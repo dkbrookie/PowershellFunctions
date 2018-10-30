@@ -1,9 +1,28 @@
-Function Trigger-Popup {
-  Param($Message)
+Function YesNo-Popup {
+  <#
+    .SYNOPSIS
+    YesNo-Popup
 
-  If(!$msp) {
-    $msp = "DKBInnovative"
-  }
+    .DESCRIPTION
+    YesNo-Popup allows you to define a custom title and message for a popup to the end user by defining the `-Message` and `-Title` parameters.DESCRIPTION
+
+    .PARAMETER Message
+    Define the message you want to display to the end user here. Keep in mind if you want to use multiple lines, you have to start each new line with `n (not this is the key next to the number 1 key and not a single quote)
+
+    .PARAMETER Title
+    Define the title of the popup window here. If not specified, this will be "DKBInnovative Notice"
+
+    .EXAMPLE
+    C:\PS> YesNo-Popup -Message "This is my message to display on the popup" -Title "Custom title here"
+    C:\PS> YesNo-Popup -Message "This is an example of how to use`nMultiple lines separated by using a backtick`nwhich is next to the 1 key"
+  #>
+  [CmdletBinding()]
+
+  Param(
+      [Parameter(Mandatory = $True)]
+      [string]$Message,
+      [string]$Title
+  )
 
   $imgUrl = "https://support.dkbinnovative.com/labtech/transfer/assets/dkblogo.png"
   $bgImage = "$env:windir\LTSvc\dkblogo.png"
@@ -11,15 +30,23 @@ Function Trigger-Popup {
     Start-BitsTransfer -Source $imgUrl -Destination $bgImage
   }
 
+  If(!$Message) {
+    $Message = "No message was specified"
+  }
+
+  If(!$Title){
+    $Title = "DKBInnovative Notice"
+  }
+
   ##Load the Winforms assembly
   [reflection.assembly]::LoadWithPartialName( "System.Windows.Forms") | Out-Null
   Add-Type -AssemblyName System.Windows.Forms
 
   $Icon = [system.drawing.icon]::ExtractAssociatedIcon("C:\Windows\LTSvc\labTech.ico")
-  $Background = [system.drawing.image]::FromFile("C:\dkblogo.png")
+  $Background = [system.drawing.image]::FromFile($bgImage)
   $Font = New-Object System.Drawing.Font("Roboto",10,[System.Drawing.FontStyle]::Regular)
   $rebootForm = New-Object system.Windows.Forms.Form
-  $rebootForm.Text = $msp
+  $rebootForm.Text = $Title
   $rebootForm.Icon = $Icon
   $rebootForm.AutoScale = $True
   $rebootForm.AutoSize = $True
@@ -74,5 +101,5 @@ Function Trigger-Popup {
   $rebootForm.ShowDialog() | Out-Null
 }
 
-Trigger-Popup -Message "Your machine is pending a restart to complete critical patching.`nPLEASE NOTE: The next reboot to your computer will install updates,`nplease plan accordingly.`n`nRestart now?"
+Trigger-Popup
 Write-Output "$Answer"
