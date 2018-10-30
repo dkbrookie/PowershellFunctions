@@ -4,19 +4,25 @@ Function YesNo-Popup {
     YesNo-Popup
 
     .DESCRIPTION
-    YesNo-Popup allows you to define a custom title and message for a popup to the end user by defining the `-Message` and `-Title` parameters.DESCRIPTION
+    YesNo-Popup allows you to define a custom title and message for a popup to the end user by defining the `-Message` and `-Title`
+    parameters. You can also chagne what the buttons say by defining the -Option1 and -Option1 parameters.
 
     .PARAMETER Message
-    Define the message you want to display to the end user here. Keep in mind if you want to use multiple lines, you have to start each new line with `n (not this is the key next to the number 1 key and not a single quote)
+    Define the message you want to display to the end user here. Keep in mind if you want to use multiple lines, you have to start
+    each new line with `n (not this is the key next to the number 1 key and not a single quote)
 
     .PARAMETER Title
     Define the title of the popup window here. If not specified, this will be "DKBInnovative"
 
     .PARAMETER Option1
-    Define what the first button option will be on the popup. Keep in mind that whatever your button says is exactly what the output will be if the user clicks that button. So if Option1 = "WOOHOO!" and the user clicks Option2, then the output of the popup to your console will be "WOOHOO!". The default option will be "Yes" unless this parameter is specified.
+    Define what the first button option will be on the popup. Keep in mind that whatever your button says is exactly what the output
+    will be if the user clicks that button. So if Option1 = "WOOHOO!" and the user clicks Option2, then the output of the popup to
+    your console will be "WOOHOO!". The default option will be "Yes" unless this parameter is specified.
 
     .PARAMETER Option2
-    Define what the second button option will be on the popup. Keep in mind that whatever your button says is exactly what the output will be if the user clicks that button. So if Option2 = "WOOHOO!" and the user clicks Option2, then the output of the popup to your console will be "WOOHOO!". The default option will be "No" unless this parameter is specified.
+    Define what the second button option will be on the popup. Keep in mind that whatever your button says is exactly what the output
+    will be if the user clicks that button. So if Option2 = "WOOHOO!" and the user clicks Option2, then the output of the popup to
+    your console will be "WOOHOO!". The default option will be "No" unless this parameter is specified.
 
     .EXAMPLE
     C:\PS> YesNo-Popup -Message "This is my message to display on the popup" -Title "Custom title here"
