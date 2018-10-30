@@ -10,18 +10,28 @@ Function YesNo-Popup {
     Define the message you want to display to the end user here. Keep in mind if you want to use multiple lines, you have to start each new line with `n (not this is the key next to the number 1 key and not a single quote)
 
     .PARAMETER Title
-    Define the title of the popup window here. If not specified, this will be "DKBInnovative Notice"
+    Define the title of the popup window here. If not specified, this will be "DKBInnovative"
+
+    .PARAMETER Option1
+    Define what the first button option will be on the popup. Keep in mind that whatever your button says is exactly what the output will be if the user clicks that button. So if Option1 = "WOOHOO!" and the user clicks Option2, then the output of the popup to your console will be "WOOHOO!". The default option will be "Yes" unless this parameter is specified.
+
+    .PARAMETER Option2
+    Define what the second button option will be on the popup. Keep in mind that whatever your button says is exactly what the output will be if the user clicks that button. So if Option2 = "WOOHOO!" and the user clicks Option2, then the output of the popup to your console will be "WOOHOO!". The default option will be "No" unless this parameter is specified.
 
     .EXAMPLE
     C:\PS> YesNo-Popup -Message "This is my message to display on the popup" -Title "Custom title here"
     C:\PS> YesNo-Popup -Message "This is an example of how to use`nMultiple lines separated by using a backtick`nwhich is next to the 1 key"
+    C:\PS> YesNo-Popuyp -Message "This is the message that will be displayed to the user" -Option1 HI -Option2 BYE
   #>
+
   [CmdletBinding()]
 
   Param(
       [Parameter(Mandatory = $True)]
       [string]$Message,
-      [string]$Title
+      [string]$Title,
+      [string]$Option1,
+      [string]$Option2
   )
 
   $imgUrl = "https://support.dkbinnovative.com/labtech/transfer/assets/dkblogo.png"
@@ -35,7 +45,15 @@ Function YesNo-Popup {
   }
 
   If(!$Title){
-    $Title = "DKBInnovative Notice"
+    $Title = "DKBInnovative"
+  }
+
+  If(!$Option1) {
+    $Option1 = "Yes"
+  }
+
+  If(!$Option2) {
+    $Option2 = "No"
   }
 
   ##Load the Winforms assembly
@@ -68,7 +86,7 @@ Function YesNo-Popup {
 
   ##Button 1
   $button1 = new-object System.Windows.Forms.Button
-  $button1.Text = "Yes"
+  $button1.Text = $Option1
   $button1.AutoSize = $True
   $button1.Dock = [System.Windows.Forms.DockStyle]::Bottom
   $button1.Anchor = [System.Windows.Forms.AnchorStyles]::Right
@@ -77,14 +95,14 @@ Function YesNo-Popup {
   $rebootForm.Controls.Add($button1)
   ##Button 1 action
   $button1.add_click({
-      $global:Answer = "Yes"
+      $global:Answer = $Option1
       $rebootForm.Close()
   })
 
 
   ##Button 2
   $button2 = new-object System.Windows.Forms.Button
-  $button2.Text = "No"
+  $button2.Text = $Option2
   $button2.AutoSize = $True
   $button2.Dock = [System.Windows.Forms.DockStyle]::Bottom
   $button2.Anchor = [System.Windows.Forms.AnchorStyles]::Right
@@ -93,13 +111,11 @@ Function YesNo-Popup {
   $rebootForm.Controls.Add($button2)
   ##Button 2 action
   $button2.add_click({
-      $global:Answer = "No"
+      $global:Answer = $Option2
       $rebootForm.Close()
   })
 
   $rebootForm.Controls.Add($Label)
   $rebootForm.ShowDialog() | Out-Null
+  Write-Output "$Answer"
 }
-
-Trigger-Popup
-Write-Output "$Answer"
