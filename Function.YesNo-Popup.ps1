@@ -24,10 +24,16 @@ Function YesNo-Popup {
     will be if the user clicks that button. So if Option2 = "WOOHOO!" and the user clicks Option2, then the output of the popup to
     your console will be "WOOHOO!". The default option will be "No" unless this parameter is specified.
 
+    .PARAMETER BackgroundImage
+    Allows you to set a custom background image on the popup. Fill in this parameter with the direct URL to a custom image-- generally
+    a PNG with a transparent background works best. The image should be ~190px wide and 75px tall. Variations of those sizes
+    will be fine if they're at least close.
+
     .EXAMPLE
     C:\PS> YesNo-Popup -Message "This is my message to display on the popup" -Title "Custom title here"
     C:\PS> YesNo-Popup -Message "This is an example of how to use`nMultiple lines separated by using a backtick`nwhich is next to the 1 key"
     C:\PS> YesNo-Popuyp -Message "This is the message that will be displayed to the user" -Option1 HI -Option2 BYE
+    C:\PS> YesNo-Popuyp -Message "This is the message that will be displayed to the user" -BackgroundImage "https://yourdomain.com/animage.png"
   #>
 
   [CmdletBinding()]
@@ -37,13 +43,17 @@ Function YesNo-Popup {
       [string]$Message,
       [string]$Title,
       [string]$Option1,
-      [string]$Option2
+      [string]$Option2,
+      [string]$BackgroundImage
   )
 
-  $imgUrl = "https://support.dkbinnovative.com/labtech/transfer/assets/dkblogo.png"
-  $bgImage = "$env:windir\LTSvc\dkblogo.png"
+  If(!$BackgroundImage) {
+    $BackgroundImage = "https://support.dkbinnovative.com/labtech/transfer/assets/dkblogo.png"
+  }
+
+  $bgImage = "$env:windir\LTSvc\logo.png"
   If(!(Test-Path $bgImage -PathType Leaf)) {
-    Start-BitsTransfer -Source $imgUrl -Destination $bgImage
+    Start-BitsTransfer -Source $BackgroundImage -Destination $bgImage
   }
 
   If(!$Message) {
@@ -61,6 +71,7 @@ Function YesNo-Popup {
   If(!$Option2) {
     $Option2 = "No"
   }
+
 
   ##Load the Winforms assembly
   [reflection.assembly]::LoadWithPartialName( "System.Windows.Forms") | Out-Null
