@@ -120,7 +120,9 @@ Function YesNo-Popup {
   ## Button 1 action
   $button1.add_click({
     If($RebootOnYes -eq 'Yes') {
-      shutdown /r /f /c "Preparing to restart your machine to complete critical Windows patching. Please save your work!" /t 300
+      shutdown /r /f /c "Preparing to restart your machine to complete critical Windows patching. Please save your work!" /t 120
+      $Label.Text = "Your computer will reboot in 2 minutes, please`nsave all open files." + $textfield.text
+      Start-Sleep -s 120
       $rebootForm.Close()
     } Else {
       $global:Answer = $Option1
