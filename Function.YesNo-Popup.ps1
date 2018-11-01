@@ -34,7 +34,7 @@ Function YesNo-Popup {
 
     .PARAMETER RebootOnYes
     Fill out this parameter with 'Yes' or 'No'. If 'Yes', the machine will be auto rebooted with a 5min warning for the user to save
-    their    files. If 'No', the script will just output the answer to $Option1 or $Option2.
+    their files IF they click "Yes" from the popup. If 'No', the script will just output the answer to $Option1 or $Option2.
 
     .EXAMPLE
     C:\PS> YesNo-Popup -Message "This is my message to display on the popup" -Title "Custom title here"
