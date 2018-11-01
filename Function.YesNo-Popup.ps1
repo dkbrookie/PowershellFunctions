@@ -29,6 +29,10 @@ Function YesNo-Popup {
     a PNG with a transparent background works best. The image should be ~190px wide and 75px tall. Variations of those sizes
     will be fine if they're at least close.
 
+    .PARAMETER RebootOnYes
+    Fill out this parameter with 'Yes' or 'No'. If 'Yes', the machine will be auto rebooted with a 5min warning for the user to save their
+    files. If 'No', the script will just output the answer to $Option1 or $Option2.
+
     .EXAMPLE
     C:\PS> YesNo-Popup -Message "This is my message to display on the popup" -Title "Custom title here"
     C:\PS> YesNo-Popup -Message "This is an example of how to use`nMultiple lines separated by using a backtick`nwhich is next to the 1 key"
@@ -44,7 +48,8 @@ Function YesNo-Popup {
       [string]$Title,
       [string]$Option1,
       [string]$Option2,
-      [string]$BackgroundImage
+      [string]$BackgroundImage,
+      [string]$RebootOnYes
   )
 
   If(!$BackgroundImage) {
@@ -113,8 +118,13 @@ Function YesNo-Popup {
   $rebootForm.Controls.Add($button1)
   ##Button 1 action
   $button1.add_click({
+    If($RebootOnYes -eq 'Yes') {
+      shutdown /r /f /c "Preparing to restart your machine to complete critical Windows patching. Please save your work!" /t 300
+      $rebootForm.Close()
+    } Else {
       $global:Answer = $Option1
       $rebootForm.Close()
+    }
   })
 
 
@@ -129,8 +139,8 @@ Function YesNo-Popup {
   $rebootForm.Controls.Add($button2)
   ##Button 2 action
   $button2.add_click({
-      $global:Answer = $Option2
-      $rebootForm.Close()
+    $global:Answer = $Option2
+    $rebootForm.Close()
   })
 
   $rebootForm.Controls.Add($Label)
