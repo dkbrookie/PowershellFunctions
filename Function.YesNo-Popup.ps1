@@ -79,7 +79,7 @@ Function YesNo-Popup {
 
   $Icon = [system.drawing.icon]::ExtractAssociatedIcon("C:\Windows\LTSvc\labTech.ico")
   $Background = [system.drawing.image]::FromFile($bgImage)
-  $Font = New-Object System.Drawing.Font("Roboto",10,[System.Drawing.FontStyle]::Regular)
+  $Font = New-Object System.Drawing.Font("Segoe UI",10,[System.Drawing.FontStyle]::Regular)
   $rebootForm = New-Object system.Windows.Forms.Form
   $rebootForm.Text = $Title
   $rebootForm.Icon = $Icon
