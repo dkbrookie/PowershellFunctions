@@ -78,7 +78,7 @@ Function YesNo-Popup {
   }
 
 
-  ##Load the Winforms assembly
+  ## Load the Winforms assembly
   [reflection.assembly]::LoadWithPartialName( "System.Windows.Forms") | Out-Null
   Add-Type -AssemblyName System.Windows.Forms
 
@@ -98,16 +98,17 @@ Function YesNo-Popup {
   $rebootForm.BackgroundImage = $Background
   $rebootForm.BackgroundImageLayout = "Center"
 
+  ## Text
   $Label = New-Object System.Windows.Forms.Label
   $Label.AutoSize = $True
   $Label.BackColor = "Transparent"
   $Label.textAlign = "MiddleCenter"
   $Label.Dock = [System.Windows.Forms.DockStyle]::Top
   $Label.Anchor = [System.Windows.Forms.AnchorStyles]::Left
-  $Label.Padding = 25
+  $Label.Padding = 20
   $Label.Text = $message
 
-  ##Button 1
+  ## Button 1
   $button1 = new-object System.Windows.Forms.Button
   $button1.Text = $Option1
   $button1.AutoSize = $True
@@ -116,7 +117,7 @@ Function YesNo-Popup {
   $button1.Margin = 20
   $button1.Location = New-Object Drawing.Point -40,40
   $rebootForm.Controls.Add($button1)
-  ##Button 1 action
+  ## Button 1 action
   $button1.add_click({
     If($RebootOnYes -eq 'Yes') {
       shutdown /r /f /c "Preparing to restart your machine to complete critical Windows patching. Please save your work!" /t 300
@@ -128,7 +129,7 @@ Function YesNo-Popup {
   })
 
 
-  ##Button 2
+  ## Button 2
   $button2 = new-object System.Windows.Forms.Button
   $button2.Text = $Option2
   $button2.AutoSize = $True
@@ -137,7 +138,7 @@ Function YesNo-Popup {
   $button2.Margin = 20
   $button2.Location = New-Object Drawing.Point ($button1.Location.X + 80),($button1.Location.Y)
   $rebootForm.Controls.Add($button2)
-  ##Button 2 action
+  ## Button 2 action
   $button2.add_click({
     $global:Answer = $Option2
     $rebootForm.Close()
