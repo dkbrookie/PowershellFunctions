@@ -1,3 +1,6 @@
+## Clear out all variables / hash tables before starting the script
+Remove-Variable * -ErrorAction SilentlyContinue; Remove-Module *; $error.Clear(); Clear-Host
+
 Function YesNo-Popup {
   <#
     .SYNOPSIS
@@ -80,7 +83,6 @@ Function YesNo-Popup {
     $Option2 = "No"
   }
 
-
   ## Load the Winforms assembly
   [reflection.assembly]::LoadWithPartialName( "System.Windows.Forms") | Out-Null
   Add-Type -AssemblyName System.Windows.Forms
@@ -111,7 +113,7 @@ Function YesNo-Popup {
   $Label.Padding = 15
   $Label.Text = $message
 
-  ## Button 1
+  #region Button1
   $button1 = new-object System.Windows.Forms.Button
   $button1.Text = $Option1
   $button1.AutoSize = $True
@@ -120,21 +122,31 @@ Function YesNo-Popup {
   $button1.Margin = 20
   $button1.Location = New-Object Drawing.Point -40,40
   $rebootForm.Controls.Add($button1)
+
+  ## Timer
+  $Timer = New-Object System.Windows.Forms.Timer
+  $Timer.Interval = 1000
+  $script:countDown = 120
+
   ## Button 1 action
   $button1.add_click({
     If($RebootOnYes -eq 'Yes') {
       shutdown /r /f /c "Preparing to restart your machine to complete critical Windows patching. Please save your work!" /t 120
-      $Label.Text = "Your computer will reboot in 2 minutes, please`nsave all open files." + $textfield.text
-      Start-Sleep -s 120
-      $rebootForm.Close()
+      $Timer.add_Tick({
+        $Label.Text = "Your computer will reboot in 2 minutes, please save all open files.`n`n$script:countDown seconds" + $textfield.text
+        $script:countDown--
+        IF($script:countDown -eq 0) {
+          $rebootForm.Close()
+        }
+      })
     } Else {
       $global:Answer = $Option1
       $rebootForm.Close()
     }
   })
+  #endregion Button1
 
-
-  ## Button 2
+  #region Button2
   $button2 = new-object System.Windows.Forms.Button
   $button2.Text = $Option2
   $button2.AutoSize = $True
@@ -143,12 +155,15 @@ Function YesNo-Popup {
   $button2.Margin = 20
   $button2.Location = New-Object Drawing.Point ($button1.Location.X + 80),($button1.Location.Y)
   $rebootForm.Controls.Add($button2)
+
   ## Button 2 action
   $button2.add_click({
     $global:Answer = $Option2
     $rebootForm.Close()
   })
+  #endregion Button2
 
+  $Timer.Start()
   $rebootForm.Controls.Add($Label)
   $rebootForm.ShowDialog() | Out-Null
   Write-Output "$Answer"
