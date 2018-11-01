@@ -105,7 +105,7 @@ Function YesNo-Popup {
   $Label.textAlign = "MiddleCenter"
   $Label.Dock = [System.Windows.Forms.DockStyle]::Top
   $Label.Anchor = [System.Windows.Forms.AnchorStyles]::Left
-  $Label.Padding = 20
+  $Label.Padding = 15
   $Label.Text = $message
 
   ## Button 1
