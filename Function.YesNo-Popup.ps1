@@ -4,8 +4,8 @@ Function YesNo-Popup {
     YesNo-Popup
 
     .DESCRIPTION
-    YesNo-Popup allows you to define a custom title and message for a popup to the end user by defining the `-Message` and `-Title`
-    parameters. You can also chagne what the buttons say by defining the -Option1 and -Option1 parameters.
+    YesNo-Popup allows you to define a custom title, message, background, custom buttons, and start a reboot for a popup to the end
+    user by defining the -Title, -Message, -Option1, -Option2, -BackgroundImage, and -RebootOnYes parameters.
 
     .PARAMETER Message
     Define the message you want to display to the end user here. Keep in mind if you want to use multiple lines, you have to start
