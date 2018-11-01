@@ -30,14 +30,16 @@ Function YesNo-Popup {
     will be fine if they're at least close.
 
     .PARAMETER RebootOnYes
-    Fill out this parameter with 'Yes' or 'No'. If 'Yes', the machine will be auto rebooted with a 5min warning for the user to save their
-    files. If 'No', the script will just output the answer to $Option1 or $Option2.
+    Fill out this parameter with 'Yes' or 'No'. If 'Yes', the machine will be auto rebooted with a 5min warning for the user to save
+    their    files. If 'No', the script will just output the answer to $Option1 or $Option2.
 
     .EXAMPLE
     C:\PS> YesNo-Popup -Message "This is my message to display on the popup" -Title "Custom title here"
-    C:\PS> YesNo-Popup -Message "This is an example of how to use`nMultiple lines separated by using a backtick`nwhich is next to the 1 key"
+    C:\PS> YesNo-Popup -Message "This is an example of how to use`nMultiple lines separated by using a backtick`nwhich is next to the
+    1 key"
     C:\PS> YesNo-Popuyp -Message "This is the message that will be displayed to the user" -Option1 HI -Option2 BYE
-    C:\PS> YesNo-Popuyp -Message "This is the message that will be displayed to the user" -BackgroundImage "https://yourdomain.com/animage.png"
+    C:\PS> YesNo-Popuyp -Message "This is the message that will be displayed to the user" -BackgroundImage
+    "https://yourdomain.com/animage.png"
   #>
 
   [CmdletBinding()]
