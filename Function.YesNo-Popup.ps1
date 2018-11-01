@@ -62,6 +62,11 @@ Function YesNo-Popup {
     $BackgroundImage = "https://support.dkbinnovative.com/labtech/transfer/assets/dkblogo.png"
   }
 
+  $bgImage = "$env:windir\LTSvc\logo.png"
+  If(!(Test-Path $bgImage -PathType Leaf)) {
+    Start-BitsTransfer -Source $BackgroundImage -Destination $bgImage
+  }
+
   If(!$Message) {
     $Message = "No message was specified"
   }
@@ -83,7 +88,7 @@ Function YesNo-Popup {
   Add-Type -AssemblyName System.Windows.Forms
 
   $Icon = [system.drawing.icon]::ExtractAssociatedIcon("C:\Windows\LTSvc\labTech.ico")
-  $Background = [system.drawing.image]::FromFile($BackgroundImage)
+  $Background = [system.drawing.image]::FromFile($bgImage)
   $Font = New-Object System.Drawing.Font("Segoe UI",10,[System.Drawing.FontStyle]::Regular)
   $rebootForm = New-Object system.Windows.Forms.Form
   $rebootForm.Text = $Title
