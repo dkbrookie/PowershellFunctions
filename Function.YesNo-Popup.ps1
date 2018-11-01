@@ -40,6 +40,7 @@ Function YesNo-Popup {
     C:\PS> YesNo-Popuyp -Message "This is the message that will be displayed to the user" -Option1 HI -Option2 BYE
     C:\PS> YesNo-Popuyp -Message "This is the message that will be displayed to the user" -BackgroundImage
     "https://yourdomain.com/animage.png"
+    C:\PS> YesNo-Popuyp -Message "This is the message that will be displayed to the user" -RebootOnYes Yes
   #>
 
   [CmdletBinding()]
