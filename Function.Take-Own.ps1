@@ -4,27 +4,31 @@ Function Take-Own {
     Take-Own
 
     .DESCRIPTION
-    Take-Own force takes ownership to the Administrators group over the entire folder path you define in -FolderPath. This is
-    useful for deleting or modifying system or other user files on a system to ensure no errors.
+    Take-Own force takes ownership to the Administrators group over the entire file or folder path you define in -FolderPath or -FilePath.
+    This is useful for deleting or modifying system or other user files on a system to ensure no errors.
 
     .PARAMETER FolderPath
-    Define the full folder path of the itme you want to take control over such as "C:\Users"
+    Define the full folder path of the item you want to take ownership of such as "C:\Users"
+
+    .PARAMETER FilePath
+    Define the full path to a single file to take ownership of such as "C:\test.txt"
 
     .EXAMPLE
     C:\PS> Take-Own -FolderPath C:\Users
     C:\PS> Take-Own -FolderPath C:\Users -SuppressResults $True
     C:\PS> Take-Own -FolderPath C:\Users -SuppressResults $False
+    C:\PS> Take-Own -FilePath C:\test.txt -SuppressResults $False
   #>
 
   [CmdletBinding()]
 
   Param(
-    [Parameter(Mandatory = $True)]
     [string]$FolderPath,
+    [string]$FilePath,
     [string]$SuppressResults
   )
 
-  If(!$FolderPath) {
+  If(!$FolderPath -and !$FilePath) {
     Write-Output "You must define the -FolderPath parameter. Use 'Get-Help Take-Own' and 'Get-Help Take-Own -Examples' for help."
     Return
   }
@@ -34,11 +38,27 @@ Function Take-Own {
   }
 
   If($SuppressResults -eq $True) {
-    echo y| takeown /F $FolderPath\* /R /A | Out-Null
-    echo y| cacls $FolderPath\*.* /T /grant administrators:F | Out-Null
+    If($FilePath) {
+      echo y| takeown /F $FilePath /A | Out-Null
+      echo y| cacls $FilePath /C /grant administrators:F | Out-Null
+    }
+    ElseIf($FolderPath) {
+      echo y| takeown /F $FolderPath\* /R /A | Out-Null
+      echo y| cacls $FolderPath\*.* /T /grant administrators:F | Out-Null
+    } Else {
+      Write-Output "No input forth -FolderPath or -FilePath was provided. Use 'Get-Help Take-Own' and 'Get-Help Take-Own -Examples' for help."
+    }
   } Else {
-    echo y| takeown /F $FolderPath\* /R /A
-    echo y| cacls $FolderPath\*.* /T /grant administrators:F
+    If($FilePath) {
+      echo y| takeown /F $FilePath /A | Out-Null
+      echo y| cacls $FilePath /C /grant administrators:F
+    }
+    ElseIf($FolderPath) {
+      echo y| takeown /F $FolderPath\* /R /A
+      echo y| cacls $FolderPath\*.* /T /grant administrators:F
+    } Else {
+      Write-Output "No input forth -FolderPath or -FilePath was provided. Use 'Get-Help Take-Own' and 'Get-Help Take-Own -Examples' for help."
+    }
     Write-Output "Take-Own tasks completed"
   }
 }
