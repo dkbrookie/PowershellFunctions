@@ -4,8 +4,8 @@ Function Take-Own {
     Take-Own
 
     .DESCRIPTION
-    Take-Own force takes ownership over the entire file path you define in -FolderPath. This is useful for deleting or modifying
-    system or other user files on a system to ensure no errors.
+    Take-Own force takes ownership to the Administrators group over the entire folder path you define in -FolderPath. This is
+    useful for deleting or modifying system or other user files on a system to ensure no errors.
 
     .PARAMETER FolderPath
     Define the full folder path of the itme you want to take control over such as "C:\Users"
