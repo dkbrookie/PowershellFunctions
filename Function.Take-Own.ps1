@@ -29,7 +29,7 @@ Function Take-Own {
   )
 
   If(!$FolderPath -and !$FilePath) {
-    Write-Output "You must define the -FolderPath parameter. Use 'Get-Help Take-Own' and 'Get-Help Take-Own -Examples' for help."
+    Write-Output "You must define the -FolderPath or -FilePath parameter. Use 'Get-Help Take-Own' and 'Get-Help Take-Own -Examples' for help."
     Return
   }
 
