@@ -46,7 +46,7 @@ Function Take-Own {
       echo y| takeown /F $FolderPath\* /R /A | Out-Null
       echo y| cacls $FolderPath\*.* /T /grant administrators:F | Out-Null
     } Else {
-      Write-Output "No input forth -FolderPath or -FilePath was provided. Use 'Get-Help Take-Own' and 'Get-Help Take-Own -Examples' for help."
+      Write-Output "No input for the -FolderPath or -FilePath parameters was provided. Use 'Get-Help Take-Own' and 'Get-Help Take-Own -Examples' for help."
     }
   } Else {
     If($FilePath) {
@@ -57,7 +57,7 @@ Function Take-Own {
       echo y| takeown /F $FolderPath\* /R /A
       echo y| cacls $FolderPath\*.* /T /grant administrators:F
     } Else {
-      Write-Output "No input forth -FolderPath or -FilePath was provided. Use 'Get-Help Take-Own' and 'Get-Help Take-Own -Examples' for help."
+      Write-Output "No input for the -FolderPath or -FilePath parameters was provided. Use 'Get-Help Take-Own' and 'Get-Help Take-Own -Examples' for help."
     }
     Write-Output "Take-Own tasks completed"
   }
