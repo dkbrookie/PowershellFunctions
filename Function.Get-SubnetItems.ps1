@@ -1,4 +1,4 @@
-Function IP-Scan {
+Function Get-SubnetItems {
     <#
         .SYNOPSIS
         Powerful asynchronus IPv4 Network Scanner
