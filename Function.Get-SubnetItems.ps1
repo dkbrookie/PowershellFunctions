@@ -648,9 +648,3 @@ Function Get-SubnetItems {
     End{
     }
 }
-
-$upIPs = ip-scan -StartIPv4Address 192.168.180.100 -EndIPv4Address 192.168.180.105 | Select -ExpandProperty IPv4Address
-$ipList = $iptest.IPAddressToString
-ForEach($ip in $ipList) {
-  Write-Output "install things to $ip"
-}
