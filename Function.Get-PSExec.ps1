@@ -1,6 +1,6 @@
 Function Get-PSExec {
   $PSExecDir = "$env:windir\LTSvc\packages\software\PSExec"
-  $PSExecURL = "https://support.dkbinnovative.com/labtech/Transfer/software/PSExec/7za.exe"
+  $PSExecURL = "https://support.dkbinnovative.com/labtech/Transfer/software/PSExec/PSExec.exe"
   $PSExecExe = "$PSExecDir\PSExec.exe"
 
   Try {
