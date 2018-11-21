@@ -9,7 +9,7 @@ Function Get-FileDownload {
   )
 
   Try {
-    Start-BitsTransfer -Source $FileURL -Destination $Destination
+    Start-BitsTransfer -Source $FileURL -Destination $Destination -Wait
   } Catch {
     Write-Error "There was an error while trying to download 7zip"
   }
