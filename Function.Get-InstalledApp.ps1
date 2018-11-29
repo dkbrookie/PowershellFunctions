@@ -29,7 +29,7 @@ Function Get-InstalledApp {
       'HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*'
     )
   }
-  $result = Get-ItemProperty $regPath | .{process{if($_.DisplayName -and $_.UninstallString) { $_ } }} | Select DisplayName, Publisher, InstallDate, DisplayVersion, UninstallString | Where { $_.DisplayName -eq $AppName }
+  $result = Get-ItemProperty $regPath | .{process{If($_.DisplayName -and $_.UninstallString) { $_ } }} | Select DisplayName, Publisher, InstallDate, DisplayVersion, UninstallString | Where { $_.DisplayName -eq $AppName }
   If($result) {
     $True
   }
