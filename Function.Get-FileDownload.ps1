@@ -39,6 +39,13 @@ Function Get-FileDownload {
     } Catch {
       Write-Error "There was an error while trying to download $FileURL"
     }
+  } ElseIf($TransferType -eq 'IWR') {
+    Try {
+      Invoke-WebRequest -Uri $FileURL -OutFile $DestinationFile
+      Write-Output "Download Complete! Download Total Time: $((Get-Date).Subtract($startTime).Seconds) second(s)"
+    } Catch {
+      Write-Error "There was an error while trying to download $FileURL"
+    }
   } Else {
     Try {
       (New-Object System.Net.WebClient).DownloadFile($FileURL,$DestinationFile)
