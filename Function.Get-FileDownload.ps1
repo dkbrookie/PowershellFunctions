@@ -19,7 +19,8 @@ Function Get-FileDownload {
 
     .EXAMPLE
     C:\PS> Get-FileDownload -FileURL https://domain.com/file/file.txt -DestinationFolder C:\temp\file.txt
-    C:\PS> Get-FileDownload -FileURL https://domain.com/file/file.txt -DestinationFolder C:\temp\file.txt -TransferType Bits
+    C:\PS> Get-FileDownload -FileURL https://domain.com/file/file.txt -DestinationFolder C:\temp\file.txt -TransferType BITS
+    C:\PS> Get-FileDownload -FileURL https://domain.com/file/file.txt -DestinationFolder C:\temp\file.txt -TransferType IWR
   #>
   [CmdletBinding()]
   Param(
@@ -32,24 +33,24 @@ Function Get-FileDownload {
 
   $startTime = Get-Date
 
-  If($TransferType -eq 'Bits') {
+  If($TransferType -eq 'BITS') {
     Try {
       Start-BitsTransfer -Source $FileURL -Destination $DestinationFile
-      Write-Output "Download Complete! Download Total Time: $((Get-Date).Subtract($startTime).Seconds) second(s)"
+      Write-Output "Download Complete via BITS! Download Total Time: $((Get-Date).Subtract($startTime).Seconds) second(s)"
     } Catch {
       Write-Error "There was an error while trying to download $FileURL"
     }
   } ElseIf($TransferType -eq 'IWR') {
     Try {
       Invoke-WebRequest -Uri $FileURL -OutFile $DestinationFile
-      Write-Output "Download Complete! Download Total Time: $((Get-Date).Subtract($startTime).Seconds) second(s)"
+      Write-Output "Download Complete via IWR! Download Total Time: $((Get-Date).Subtract($startTime).Seconds) second(s)"
     } Catch {
       Write-Error "There was an error while trying to download $FileURL"
     }
   } Else {
     Try {
       (New-Object System.Net.WebClient).DownloadFile($FileURL,$DestinationFile)
-      Write-Output "Download Complete! Download Total Time: $((Get-Date).Subtract($startTime).Seconds) second(s)"
+      Write-Output "Download Complete via .NET! Download Total Time: $((Get-Date).Subtract($startTime).Seconds) second(s)"
     } Catch {
       Write-Error "There was an error while trying to download $FileURL"
     }
