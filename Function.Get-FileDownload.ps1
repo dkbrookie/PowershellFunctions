@@ -13,14 +13,15 @@ Function Get-FileDownload {
     Enter the full path to the destination file including the extension.
 
     .PARAMETER TransferType
-    You can use the Bits download method instead of the standard .NET method by specifying the value of this as Bits.
-    If this is not defined at all, the download will by default use the .NET method. Note the BITS method requires
-    Powershell 3 or higher.
+    You can use .NET, BITS, or IWR download methods to download your file. If this argument is not defined at all, the download
+    will by default use the .NET method. Note the BITS method requires Powershell 3 or higher. Possible values are "NET", "BITS",
+    or "IWR".
 
     .EXAMPLE
-    C:\PS> Get-FileDownload -FileURL https://domain.com/file/file.txt -DestinationFolder C:\temp\file.txt
-    C:\PS> Get-FileDownload -FileURL https://domain.com/file/file.txt -DestinationFolder C:\temp\file.txt -TransferType BITS
-    C:\PS> Get-FileDownload -FileURL https://domain.com/file/file.txt -DestinationFolder C:\temp\file.txt -TransferType IWR
+    C:\PS> Get-FileDownload -FileURL https://domain.com/file/file.txt -DestinationFile C:\temp\file.txt
+    C:\PS> Get-FileDownload -FileURL https://domain.com/file/file.txt -DestinationFile C:\temp\file.txt -TransferType BITS
+    C:\PS> Get-FileDownload -FileURL https://domain.com/file/file.txt -DestinationFile C:\temp\file.txt -TransferType IWR
+    C:\PS> Get-FileDownload -FileURL https://domain.com/file/file.txt -DestinationFile C:\temp\file.txt -TransferType NET
   #>
   [CmdletBinding()]
   Param(
@@ -32,6 +33,9 @@ Function Get-FileDownload {
   )
 
   $startTime = Get-Date
+  If(!$TransferType) {
+    $TransferType = "NET"
+  }
 
   If($TransferType -eq 'BITS') {
     Try {
