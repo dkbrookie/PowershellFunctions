@@ -1,7 +1,7 @@
-Function Get-InstalledApps {
+Function Get-InstalledApp {
   <#
     .SYNOPSIS
-    Get-InstalledApps
+    Get-InstalledApp
 
     .DESCRIPTION
     Finds the current install status of an application. If the application is NOT installed, the return will be NULL, if an
@@ -11,7 +11,7 @@ Function Get-InstalledApps {
     In quotes define the app name in question exactly as it's seen in Add Remove Programs in Control Panel
 
     .EXAMPLE
-    C:\PS> Get-InstalledApps -AppName 'Microsoft SQL Server 2016'
+    C:\PS> Get-InstalledApp -AppName 'Microsoft SQL Server 2016'
   #>
 
   [CmdletBinding()]
