@@ -49,7 +49,7 @@ Function Install-MSI {
 
     If(!(Test-Path $FileMSIPath -PathType Leaf)) {
       ($WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Get-FileDownload.ps1') | iex
-      Get-FileDownlaod -FileURL $FileDownloadLink -DestinationFile $FileMSIPath
+      Get-FileDownload -FileURL $FileDownloadLink -DestinationFile $FileMSIPath
       If(!(Test-Path $FileMSIPath -PathType Leaf)) {
         Write-Error "Failed to download $FileDownloadLink"
         Break

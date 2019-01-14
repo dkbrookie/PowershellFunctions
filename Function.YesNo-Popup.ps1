@@ -29,7 +29,7 @@ Function YesNo-Popup {
 
     .PARAMETER BackgroundImage
     Allows you to set a custom background image on the popup. Fill in this parameter with the direct URL to a custom image-- generally
-    a PNG with a transparent background works best. The image should be ~190px wide and 75px tall. Variations of those sizes
+    a PNG with a transparent background works best. Th0e image should be ~190px wide and 75px tall. Variations of those sizes
     will be fine if they're at least close.
 
     .PARAMETER RebootOnYes
@@ -44,6 +44,7 @@ Function YesNo-Popup {
     C:\PS> YesNo-Popuyp -Message "This is the message that will be displayed to the user" -BackgroundImage
     "https://yourdomain.com/animage.png"
     C:\PS> YesNo-Popuyp -Message "This is the message that will be displayed to the user" -RebootOnYes Yes
+    In CMD: powershell.exe -command "& {(new-object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.YesNo-Popup.ps1') | iex ; YesNo-Popup -Title 'DKBInnovative' -Message 'Your machine is pending a reboot, okay to reboot now?'}"
   #>
 
   [CmdletBinding()]
@@ -71,7 +72,7 @@ Function YesNo-Popup {
     $Message = "No message was specified"
   }
 
-  If(!$Title){
+  If(!$Title) {
     $Title = "DKBInnovative"
   }
 
