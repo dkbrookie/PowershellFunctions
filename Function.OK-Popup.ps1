@@ -34,6 +34,7 @@ Function OK-Popup {
         [string]$Option1
     )
 
+    $psIcon = "https://drive.google.com/uc?export=download&id=1eNCta3hRYErNI2_Q8Wyu-C034-25cjUM"
     $imgUrl = "https://drive.google.com/uc?export=download&id=115V55-YXSvaPD6cuUQ_KzO0-SY8FSVW5"
     $bgImage = "$env:windir\LTSvc\dkblogo.png"
     If(!(Test-Path $bgImage -PathType Leaf)) {
