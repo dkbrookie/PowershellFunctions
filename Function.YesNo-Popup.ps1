@@ -65,7 +65,7 @@ Function YesNo-Popup {
 
   $bgImage = "$env:windir\LTSvc\logo.png"
   If(!(Test-Path $bgImage -PathType Leaf)) {
-    Start-BitsTransfer -Source $BackgroundImage -Destination $bgImage
+    (New-Object System.Net.WebClient).DownloadFile($BackgroundImage,$bgImage)
   }
 
   If(!$Message) {
