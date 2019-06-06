@@ -67,10 +67,6 @@ Function Install-EXE {
     If(!(Test-Path $FileEXEPath -PathType Leaf)) {
       (New-Object System.Net.WebClient).DownloadFile($FileDownloadLink,$FileEXEPath)
       }
-
-    If (!$LogPath) {
-      "$LogPath = $FileDir\Install Log - $($AppName).txt"
-    }
   } Catch {
     Write-Error "Failed to download $FileDownloadLink to $FileEXEPath"
   }
