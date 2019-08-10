@@ -79,7 +79,7 @@ Function Install-MSI {
   #endregion checkFiles
 
   Try {
-    Start-Process msiexec.exe -Wait -ArgumentList """$FileMSIPath"" $Arguments /l $LogPath"
+    Start-Process msiexec.exe -Wait -ArgumentList "/i ""$FileMSIPath"" $Arguments /l $LogPath"
     Write-Host "$AppName installation complete"
     #endregion installVAC
   } Catch {
