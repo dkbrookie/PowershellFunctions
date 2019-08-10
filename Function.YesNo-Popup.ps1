@@ -60,7 +60,7 @@ Function YesNo-Popup {
   )
 
   If(!$BackgroundImage) {
-    $BackgroundImage = "https://support.dkbinnovative.com/labtech/transfer/assets/dkblogo.png"
+    $BackgroundImage = "https://drive.google.com/uc?export=download&id=115V55-YXSvaPD6cuUQ_KzO0-SY8FSVW5"
   }
 
   $bgImage = "$env:windir\LTSvc\logo.png"
