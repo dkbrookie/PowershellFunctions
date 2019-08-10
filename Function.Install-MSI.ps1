@@ -78,7 +78,7 @@ Function Install-MSI {
   }
 
   Try {
-    Start-Process msiexec.exe -Wait -ArgumentList "/i ""$FileMSIPath"" $Arguments /l $LogPath"
+    Start-Process msiexec.exe -Wait -ArgumentList "/i ""$FileMSIPath"" ""$Arguments"" /l ""$LogPath"""
     Write-Host "$AppName installation complete"
   } Catch {
     Write-Error "Failed to install $AppName"
