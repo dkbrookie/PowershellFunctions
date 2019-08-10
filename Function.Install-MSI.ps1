@@ -71,7 +71,7 @@ Function Install-MSI {
       }
 
     If (!$LogPath) {
-      "$LogPath = $FileDir\Install Log - $($AppName).txt"
+      $LogPath = "$FileDir\Install Log - $($AppName).txt"
     }
   } Catch {
     Write-Error "Failed to download $FileDownloadLink to $FileMSIPath"
