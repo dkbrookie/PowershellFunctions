@@ -51,7 +51,7 @@ Function Install-MSI {
     [string]$LogPath,
     [Parameter(
       Mandatory=$True,
-      HelpMessage="Enter all arguments to install the MSI, such as /qn and /norestart"
+      HelpMessage="DO NOT use /i or /l, these are already specified! Enter all other arguments to install the MSI, such as /qn and /norestart"
     )][string]$Arguments
   )
 
