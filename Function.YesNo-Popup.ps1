@@ -56,7 +56,8 @@ Function YesNo-Popup {
       [string]$Option1,
       [string]$Option2,
       [string]$BackgroundImage,
-      [string]$RebootOnYes
+      [string]$RebootOnYes,
+      [string]$ShowBackground
   )
 
   If(!$BackgroundImage) {
@@ -64,8 +65,10 @@ Function YesNo-Popup {
   }
 
   $bgImage = "$env:windir\LTSvc\logo.png"
-  If(!(Test-Path $bgImage -PathType Leaf)) {
-    (New-Object System.Net.WebClient).DownloadFile($BackgroundImage,$bgImage)
+  If ($ShowBackground -ne 'No') {
+    If (!(Test-Path $bgImage -PathType Leaf)) {
+      (New-Object System.Net.WebClient).DownloadFile($BackgroundImage,$bgImage)
+    }
   }
 
   If(!$Message) {
@@ -89,7 +92,9 @@ Function YesNo-Popup {
   Add-Type -AssemblyName System.Windows.Forms
 
   $Icon = [system.drawing.icon]::ExtractAssociatedIcon("C:\Windows\LTSvc\labTech.ico")
-  $Background = [system.drawing.image]::FromFile($bgImage)
+  If ($ShowBackground -ne 'No') {
+    $Background = [system.drawing.image]::FromFile($bgImage)
+  }
   $Font = New-Object System.Drawing.Font("Segoe UI",10,[System.Drawing.FontStyle]::Regular)
   $rebootForm = New-Object system.Windows.Forms.Form
   $rebootForm.Text = $Title
