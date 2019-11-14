@@ -1,4 +1,4 @@
-Function New-DomainJoinFile {
+Function Domain-NewOfflineJoinFile {
     <#
     .Synopsis
         Join a domain using a DomainJoinFile
@@ -57,7 +57,7 @@ Function New-DomainJoinFile {
         Use the -PrimaryDNS paraemtger to define the name of the primary DNS domain of the computer joining the domain.
 
     .EXAMPLE
-        PS> New-DomainJoinFile -Domain company.local -ComputerName Company-98320DWR
+        PS> Domain-NewOfflineJoinFile -Domain company.local -ComputerName Company-98320DWR
     #>
 
     [CmdletBinding(SupportsShouldProcess=$true)]
@@ -198,7 +198,7 @@ Function New-DomainJoinFile {
 
 
 
-Function Join-DomainUsingFile {
+Function Domain-JoinFromFile {
     <#
     .Synopsis
         Join a domain using a DomainJoinFile
@@ -207,7 +207,7 @@ Function Join-DomainUsingFile {
     .PARAMETER Path
         The -Path switch is the location your already created offline domain join file is located
     .EXAMPLE
-        PS> Join-DomainUsingFile -Path 'C:\domainJoin.txt' -JoinLocalOS 
+        PS> Domain-JoinFromFile -Path 'C:\domainJoin.txt' -JoinLocalOS 
     #>
 
     [CmdletBinding(SupportsShouldProcess=$true)]
