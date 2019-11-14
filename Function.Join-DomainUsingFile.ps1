@@ -1,5 +1,4 @@
 Function New-DomainJoinFile {
-
     <#
     .Synopsis
         Join a domain using a DomainJoinFile
@@ -200,7 +199,6 @@ Function New-DomainJoinFile {
 
 
 Function Join-DomainUsingFile {
-
     <#
     .Synopsis
         Join a domain using a DomainJoinFile
