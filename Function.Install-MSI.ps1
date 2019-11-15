@@ -93,7 +93,7 @@ Function Install-MSI {
     } Catch {
         Write-Error "Failed to install $AppName"
     }
-}
 
-## Delete the installer file
-Remove-Item $FileMSIPath -Force
+    ## Delete the installer file
+    Remove-Item $FileMSIPath -Force
+}
