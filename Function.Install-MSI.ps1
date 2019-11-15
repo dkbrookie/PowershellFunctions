@@ -1,5 +1,5 @@
 Function Install-MSI {
-  <#
+    <#
     .SYNOPSIS
     Install-MSI allows you to easily downooad and install an application via MSI
 
@@ -36,51 +36,64 @@ Function Install-MSI {
     .EXAMPLE
     C:\PS> Install-MSI -AppName "SuperApp" -FileDownloadURL "https://domain.com/file/file.msi"
     C:\PS> Install-MSI -AppName "SuperApp" -FileDownloadURL "https://domain.com/file/file.msi" -FileMSIPath "C:\windows\ltsvc\packages\softwar\superapp\superapp.msi" -LogPath "C:\install log.txt"
-  #>
+    #>
 
-  [CmdletBinding()]
+    [CmdletBinding()]
 
-  Param(
-    [Parameter(
-      Mandatory=$True,
-      HelpMessage="Please enter the name of the application you want to install"
-    )][string]$AppName,
-    [string]$FileDownloadLink,
-    [string]$FileDir,
-    [string]$FileMSIPath,
-    [string]$LogPath,
-    [Parameter(
-      Mandatory=$True,
-      HelpMessage="DO NOT use /i or /l, these are already specified! Enter all other arguments to install the MSI, such as /qn and /norestart"
-    )][string]$Arguments
-  )
+    Param(
+        [Parameter(
+        Mandatory=$True,
+        HelpMessage="Please enter the name of the application you want to install"
+        )][string]$AppName,
+        [string]$FileDownloadLink,
+        [string]$FileDir,
+        [string]$FileMSIPath,
+        [string]$LogPath,
+        [Parameter(
+        Mandatory=$True,
+        HelpMessage="DO NOT use /i or /l, these are already specified! Enter all other arguments to install the MSI, such as /qn and /norestart"
+        )][string]$Arguments
+    )
 
-  Try {
-    If (!$FileDir) {
-      $FileDir = "$env:windir\LTSvc\packages\software\$AppName"
+    Try {
+        ## Check for the directory variable and set it if it doensn't exist
+        If (!$FileDir) {
+            $FileDir = "$env:windir\LTSvc\packages\software\$AppName"
+        }
+        ## Create the directory if it doesn't exist
+        If(!(Test-Path $FileDir)) {
+            New-Item -ItemType Directory $FileDir | Out-Null
+        }
+        ## Set the path for the MSI installer
+        If (!$FileMSIPath) {
+            $FileMSIPath = "$FileDir\$($AppName).msi"
+        }
+
+        ## Download the MSI if it doens't exist, delete it and downlaod a new one of it does
+        If(!(Test-Path $FileMSIPath -PathType Leaf)) {
+            (New-Object System.Net.WebClient).DownloadFile($FileDownloadLink,$FileMSIPath)
+        } Else {
+            Remove-Item $FileMSIPath -Force
+            (New-Object System.Net.WebClient).DownloadFile($FileDownloadLink,$FileMSIPath)
+        }
+
+        ## Set the path for logs if it doesn't exist
+        If (!$LogPath) {
+            $LogPath = "$FileDir\Install Log - $($AppName).txt"
+        }
+    } Catch {
+        Write-Error "Failed to download $FileDownloadLink to $FileMSIPath"
     }
-    If(!(Test-Path $FileDir)) {
-      New-Item -ItemType Directory $FileDir | Out-Null
-    }
 
-    If (!$FileMSIPath) {
-      $FileMSIPath = "$FileDir\$($AppName).msi"
+    Try {
+        ## Start the install process
+        Start-Process msiexec.exe -Wait -ArgumentList "/i ""$FileMSIPath"" $Arguments /l*v ""$LogPath"""
+        ## Log the install is complete. Currently no validation done for success/fail, just says it's done
+        Write-Host "$AppName installation complete"
+    } Catch {
+        Write-Error "Failed to install $AppName"
     }
-    If(!(Test-Path $FileMSIPath -PathType Leaf)) {
-      (New-Object System.Net.WebClient).DownloadFile($FileDownloadLink,$FileMSIPath)
-      }
-
-    If (!$LogPath) {
-      $LogPath = "$FileDir\Install Log - $($AppName).txt"
-    }
-  } Catch {
-    Write-Error "Failed to download $FileDownloadLink to $FileMSIPath"
-  }
-
-  Try {
-    Start-Process msiexec.exe -Wait -ArgumentList "/i ""$FileMSIPath"" $Arguments /l*v ""$LogPath"""
-    Write-Host "$AppName installation complete"
-  } Catch {
-    Write-Error "Failed to install $AppName"
-  }
 }
+
+## Delete the installer file
+Remove-Item $FileMSIPath -Force
