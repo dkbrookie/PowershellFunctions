@@ -236,9 +236,9 @@ Function Domain-JoinFromFile {
 
     If ($PSCmdlet.ShouldProcess($TargetString, "Use [$Path] to domain join")) {
         If ($JoinLocalOS.IsPresent) {
-            djoin.exe /requestodj /LoadFile $Path /Windowspath '$env:windir' /LocalOS
+            djoin.exe --% /requestodj /LoadFile $Path /Windowspath '$env:windir' /LocalOS
         } Else {
-            djoin.exe /requestodj /LoadFile $Path /Windowspath '$env:windir'
+            djoin.exe --% /requestodj /LoadFile $Path /Windowspath '$env:windir'
         }
     }
 }
