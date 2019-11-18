@@ -234,11 +234,13 @@ Function Domain-JoinFromFile {
         $TargetString =  "Offine computer"
     }
 
+    $escapeParser = '--%'
+
     If ($PSCmdlet.ShouldProcess($TargetString, "Use [$Path] to domain join")) {
         If ($JoinLocalOS.IsPresent) {
-            djoin.exe "--%" /requestodj /LoadFile $Path /Windowspath '$env:windir' /LocalOS
+            djoin.exe $escapeParser /requestodj /LoadFile $Path /Windowspath '$env:windir' /LocalOS
         } Else {
-            djoin.exe "--%" /requestodj /LoadFile $Path /Windowspath '$env:windir'
+            djoin.exe $escapeParser /requestodj /LoadFile $Path /Windowspath '$env:windir'
         }
     }
 }
