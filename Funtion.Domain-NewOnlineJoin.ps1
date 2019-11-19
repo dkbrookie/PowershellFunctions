@@ -1,25 +1,27 @@
 Function Domain-NewOnlineJoin {
     <#
     .Synopsis
-        Join a domain using the built in Powershell calls
+        Join a domain using the built in Powershell calls.
 
     .DESCRIPTION
-        This is a function to handle a domain join with some error handling
+        This is a function to handle a domain join with some error handling.
 
     .PARAMETER Domain
-        test
+        Full domain here like "DOMAIN.local".
 
     .PARAMETER Server
-        test
+        AD server you want to contact to join the domain. You can use the FQDN or just the server name, if it's
+        only the server name the domain will be added to the end of it automatically.
 
     .PARAMETER Username
-        test
+        AD username you want to use to join the machine to the domain. Be sure to include the domain name before
+        the username like "DOMAIN\USER"
     
     .PARAMETER Password
-        test
+        Password for the AD account you're using to join the domain
 
     .EXAMPLE
-        PS> Domain-NewOnlineJoin -Domain company.local -Server ADSERVER -Username Administrator -Password SomePassHere
+        PS> Domain-NewOnlineJoin -Domain company.local -Server ADSERVER -Username DOMAIN\Administrator -Password SomePassHere
     #>
 
     [CmdletBinding(SupportsShouldProcess=$true)]
