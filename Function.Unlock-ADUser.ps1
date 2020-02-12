@@ -18,7 +18,7 @@ Function Unlock-ADUser {
 
     Param(
         [Parameter(Mandatory = $True)]
-        [string]$User,
+        [string]$User
     )
 
     If (!$user) {
