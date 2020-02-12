@@ -1,5 +1,5 @@
 Function Install-EXE {
-  <#
+    <#
     .SYNOPSIS
     Install-EXE allows you to easily downooad and install an application via EXE
 
@@ -35,48 +35,52 @@ Function Install-EXE {
     .EXAMPLE
     C:\PS> Install-EXE -AppName "SuperApp" -FileDownloadURL "https://domain.com/file/file.EXE -Arguments "/silent""
     C:\PS> Install-EXE -AppName "SuperApp" -FileDownloadURL "https://domain.com/file/file.EXE" -FileEXEPath "C:\windows\ltsvc\packages\softwar\superapp\superapp.EXE" -Arguments "/s""
-  #>
+    #>
 
-  [CmdletBinding()]
+    [CmdletBinding()]
 
-  Param(
+    Param(
     [Parameter(
-      Mandatory=$True,
-      HelpMessage="Please enter the name of the application you want to install"
+        Mandatory=$True,
+        HelpMessage="Please enter the name of the application you want to install"
     )][string]$AppName,
     [string]$FileDownloadLink,
     [string]$FileDir,
     [string]$FileEXEPath,
     [Parameter(
-      Mandatory=$True,
-      HelpMessage="Enter all arguments to install the EXE, such as /s or /silent"
+        Mandatory=$True,
+        HelpMessage="Enter all arguments to install the EXE, such as /s or /silent"
     )][string]$Arguments
-  )
+    )
 
-  Try {
-    If (!$FileDir) {
-      $FileDir = "$env:windir\LTSvc\packages\software\$AppName"
+    Try {
+        If (!$FileDir) {
+            $FileDir = "$env:windir\LTSvc\packages\software\$AppName"
+        }
+        If(!(Test-Path $FileDir)) {
+            New-Item -ItemType Directory $FileDir | Out-Null
+        }
+
+        If (!$FileEXEPath) {
+            $FileEXEPath = "$FileDir\$($AppName).EXE"
+        }
+
+        If(!(Test-Path $FileEXEPath -PathType Leaf)) {
+            (New-Object System.Net.WebClient).DownloadFile($FileDownloadLink,$FileEXEPath)
+        }
+    } Catch {
+        Write-Error "Failed to download $FileDownloadLink to $FileEXEPath"
     }
-    If(!(Test-Path $FileDir)) {
-      New-Item -ItemType Directory $FileDir | Out-Null
+    #endregion checkFiles
+
+    Try {
+        Start-Process $FileEXEPath -Wait -ArgumentList $Arguments
+        Write-Host "$AppName installation complete"
+        #endregion installVAC
+    } Catch {
+            Write-Error "Failed to install $AppName"
     }
 
-    If (!$FileEXEPath) {
-      $FileEXEPath = "$FileDir\$($AppName).EXE"
-    }
-    If(!(Test-Path $FileEXEPath -PathType Leaf)) {
-      (New-Object System.Net.WebClient).DownloadFile($FileDownloadLink,$FileEXEPath)
-      }
-  } Catch {
-    Write-Error "Failed to download $FileDownloadLink to $FileEXEPath"
-  }
-  #endregion checkFiles
-
-  Try {
-    Start-Process $FileEXEPath -Wait -ArgumentList $Arguments
-    Write-Host "$AppName installation complete"
-    #endregion installVAC
-  } Catch {
-    Write-Error "Failed to install $AppName"
-  }
+    ## Delete the installer file
+    Remove-Item $FileEXEPath -Force
 }
