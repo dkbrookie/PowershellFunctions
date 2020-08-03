@@ -18,6 +18,11 @@ Function Take-Own {
     C:\PS> Take-Own -FolderPath C:\Users -SuppressResults $True
     C:\PS> Take-Own -FolderPath C:\Users -SuppressResults $False
     C:\PS> Take-Own -FilePath C:\test.txt -SuppressResults $False
+
+    .NOTES
+    Another way to take ownership I might wanna look into later is icacls "full path of folder or drive" /setowner "Administrators" /T /C.
+    Tried this on my own machine while troubleshooting an issues and seems like it might be a better option than "takeown" since takeown
+    just takes ownership as admin group and using the icacls ownership method you can specify users and groups.
   #>
 
   [CmdletBinding()]
