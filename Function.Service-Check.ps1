@@ -99,7 +99,12 @@ Function Service-Check {
                 }
             }
         }
-        "Status=$status|logOutput=$logOutput|uptime=$uptime"
+        ## Maybe not the best way, but I'm adding to the strings for what service were started or failed as
+        ## a total result and they end up with a comma at the end so these two lines just nuke the ending comma
+        $successfulRestarts = $script:successfulRestarts.Substring(0,$successfulRestarts.Length-1)
+        $failedRestarts = $script:failedRestarts.Substring(0,$failedRestarts.Length-1)
+        ## Final output to parse with Automate
+        "Status=$status|logOutput=$logOutput|uptime=$uptime|successfulRestarts=$successfulRestarts|failedRestarts=$failedRestarts"
     } Else {
         $script:logOutput += "$env:COMPUTERNAME has only been powered on for $upTime minutes so services not being started is expected. Will check again once computer has reach $AcceptableUptime minutes or greater of uptime.`r`n"
         Break
@@ -149,6 +154,7 @@ Function Service-Restart {
                     } Else {
                         If ($script:Status -ne 'Warning' -and $script:Status -ne 'Failed') {
                             $script:Status = 'Success'
+                            $script:successfulRestarts += $serviceRestart + ','
                         }
                         $script:logOutput += "Successfully started $serviceRestart`r`n"
                         $stopLoop = $True
@@ -160,8 +166,11 @@ Function Service-Restart {
                 ## If we got here, it means we've tried to restart the service 3 times already and it's failed
                 If ($script:Status -ne 'Warning' -and $script:Status -ne 'Failed') {
                     $script:Status = 'Failed'
+                    $script:failedRestarts += $serviceRestart + ','
                 }
                 $script:logOutput += "Failed to start the $serviceRestart service after 3 attempts.`r`n"
+                ## Set $checkDependency to $True so the next part of the script will know to check the running status of all dependencies
+                ## for the service currently failing to start
                 If ($script:checkDependency -ne $True) {
                     $script:checkDependency = $True
                 }
