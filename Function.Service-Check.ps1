@@ -29,15 +29,50 @@ Function Service-Check {
 
     Param(
         [Parameter(
-            Mandatory=$True,
             HelpMessage='Please enter the name of the service(s) you want to check the status of and attempt to restart'
         )][array]$ServiceList
         ,[int]$AcceptableUptime
         ,[switch]$StartDependencies
+        ,[Parameter(
+            HelpMessage='Choose the role you want to monitor. Each role contains an array of services needed for the given role to check automatically.'
+        )]
+        [ValidateSet('AD','DHCP','DNS','Print','MSSQL','MySQL','Exchange')]
+        [string]$Role
     )
 
     If (!$AcceptableUptime) {
         $AcceptableUptime = 15
+    }
+
+    ## Define list of services per server role
+    [array]$roleAD = 'ADWS','NTDS','Netlogon','W32Time','LanmanServer','RpcSs','kdc'
+    [array]$roleDHCP = 'DHCPServer','DHCP'
+    [array]$roleDNS = 'Dnscache','DNS'
+    [array]$rolePrint = 'Spooler'
+    [array]$roleMSSQL = 'MSSQLSERVER','SQLBrowser','SQLWriter','MsDtsServer100','MsDtsServer 110','MsDtsServer120','MsDtsServer130','MsDtsServer140','MSSQLServerOLAPService','SQLServerAgent'
+    [array]$roleMySQL = 'MySQL'
+    [array]$roleExchange = 'EdgeCredentialSvc','HostControllerService','IMAP4Svc','MSComplianceAudit','MSExchangeAB','MSExchangeADAM','MSExchangeADTopology','MSExchangeAntispamUpdate','MSExchangeCompliance','MSExchangeDagMgmt','MSExchangeDelivery','MSExchangeDiagnostics','MSExchangeEdgeCredential','MSExchangeEdgeSync','MSExchangeFastSearch','MSExchangeFBA','MSExchangeFDS','MSExchangeFrontEndTransport','MSExchangeHM','MSExchangeHMRecovery','MSExchangeIMAP4','MSExchangeIMAP4BE','MSExchangeIS','MSExchangeMailboxReplication','MSExchangeMailSubmission','MSExchangeMGMT','MSExchangeMailboxAssistants','MSExchangeMTA','MSExchangeNotificationsBroker','MSExchangePOP3','MSExchangePOP3BE','MSExchangeProtectedServiceHost','MSExchangeRepl','MSExchangeRPC','MSExchangeSA','MSExchangeSearch','MSExchangeServiceHost','MSExchangeSubmission','MSExchangeThrottling','MSExchangeTransport','MSExchangeTransportLogSearch','MSExchangeUM','MSExchangeUMCR','MSSpeechService','POP3Svc','RESvc','SMTPSVC','WSBExchange'
+
+    If ($Role -eq 'AD') {
+        $ServiceList = $roleAD
+    } ElseIf ($Role -eq 'DHCP') {
+        $ServiceList = $roleDHCP
+    } ElseIf ($Role -eq 'DNS') {
+        $ServiceList = $roleDNS
+    } ElseIf ($Role -eq 'Print') {
+        $ServiceList = $rolePrint
+    } ElseIf ($Role -eq 'MSSQL') {
+        $ServiceList = $roleMSSQL
+    } ElseIf ($Role -eq 'MySQL') {
+        $ServiceList = $roleMySQL
+    } ElseIf ($Role -eq 'Exchange') {
+        $ServiceList = $roleExchange
+    } ElseIf (!$Role) {
+        $script:logOutput += "No recognized role was defined, checking service list..."
+        If (!$ServiceList) {
+            $script:logOutput += "$SevriceList was also blank. No services have been defined to check. Exiting script."
+            Break
+        }
     }
 
     $os = Get-WmiObject win32_operatingsystem
@@ -101,8 +136,12 @@ Function Service-Check {
         }
         ## Maybe not the best way, but I'm adding to the strings for what service were started or failed as
         ## a total result and they end up with a comma at the end so these two lines just nuke the ending comma
-        $successfulRestarts = $script:successfulRestarts.Substring(0,$successfulRestarts.Length-1)
-        $failedRestarts = $script:failedRestarts.Substring(0,$failedRestarts.Length-1)
+        If ($script:successfulRestarts) {
+            $successfulRestarts = $script:successfulRestarts.Substring(0,$successfulRestarts.Length-1)
+        }
+        If ($script:failedRestarts) {
+            $failedRestarts = $script:failedRestarts.Substring(0,$failedRestarts.Length-1)
+        }
         ## Final output to parse with Automate
         "Status=$status|logOutput=$logOutput|uptime=$uptime|successfulRestarts=$successfulRestarts|failedRestarts=$failedRestarts"
     } Else {
