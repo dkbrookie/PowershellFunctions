@@ -10,8 +10,8 @@ Function Service-Check {
     it will just inform you the service is disabled with a warning, but will not attempt to enable the service 
     (generally a disabled server is intentional so automatically re-enabling could cause problems). If the service 
     fails to start, it wil attempt to start it 3 times total, then it will check the running status of that services 
-    dependencies and start the dependencies automatically if you specify the $StartDependencies as $True. 
-    
+    dependencies and start the dependencies automatically if you specify the $StartDependencies as $True.
+
     .EXAMPLE
     Service-Check -ServiceList DHCP,LTSvcmon,LTService,wuau
     Service-Check -ServiceList DHCP,LTSvcmon,LTService,wuau -AcceptableUptime 30
@@ -19,7 +19,7 @@ Function Service-Check {
     
     .NOTES
     Script output is separated by "|"" so it's easier to parse results in Automate.
-
+    
     At the end of the script, $status is your ending indicator to tell you if you have a problem or not. If it's
     'Success' you're good, if it's 'Warning' you may have an issue to address, and if it's 'Failed' you know you
     have a problem that needs attention.
