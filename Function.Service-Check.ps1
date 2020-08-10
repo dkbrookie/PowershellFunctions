@@ -2,7 +2,7 @@ Function Service-Check {
     <#
     .SYNOPSIS
     Attempt auto start of services that are stopped
-    
+
     .DESCRIPTION
     This script allows you to specify a list of services that you'd like to check if running. If the service(s)
     are not running, this script will attempt to start them as long as the machine has been booted longer than 
@@ -18,6 +18,11 @@ Function Service-Check {
     Service-Check -ServiceList DHCP,LTSvcmon,LTService,wuau -AcceptableUptime 30 -StartDependencies $True
     
     .NOTES
+    Script output is separated by "|"" so it's easier to parse results in Automate.
+
+    At the end of the script, $status is your ending indicator to tell you if you have a problem or not. If it's
+    'Success' you're good, if it's 'Warning' you may have an issue to address, and if it's 'Failed' you know you
+    have a problem that needs attention.
     #>
 
     [CmdletBinding()]
@@ -66,7 +71,7 @@ Function Service-Check {
             ## so maybe it's related to a dependency that isn't started yet
             If ($script:checkDependency -eq $True) {
                 ## Get a list of dependencies and then print them into the output
-                $dependencies = Get-Service -Name $service -RequiredServices #| Where-Object { $_.Status -ne 'Running'}
+                $dependencies = Get-Service -Name $service -RequiredServices | Where-Object { $_.Status -ne 'Running'}
                 If ($dependencies) {
                     $dependencyCount = $dependencies.Count
                     $script:logOutput += "$service has $dependencyCount dependency services not currently running. This may be the cause for the service failing to start.`r`n"
@@ -103,13 +108,28 @@ Function Service-Check {
 
 
 Function Service-Restart {
+    <#
+    .SYNOPSIS
+    Restart service function
+
+    .DESCRIPTION
+    This is just the function to restart the service 3 times if it's stopped. Most of the description for the function
+    above is still accurate and this is just some of the bones to make that top function work.
+    
+    .EXAMPLE
+    Service-Restart -ServiceRestart LTService
+    
+    .NOTES
+    This is just for individual services. The function above (Service-Check) runs a loop to cycle through this.
+    #>
+
     [CmdletBinding()]
 
     Param(
         [string]$serviceRestart
     )
 
-    ## We're going to try to restart the service 3 times so this just gives us a base 0 to increment from to count our total loops
+    ## We're going to try to restart the service 3 times so this just gives us a base 1 to increment from to count our total loops
     $retryCount = 1
     Do {
         Try {
