@@ -19,7 +19,7 @@ Function Service-Check {
     
     .NOTES
     Script output is separated by "|"" so it's easier to parse results in Automate.
-    
+
     At the end of the script, $status is your ending indicator to tell you if you have a problem or not. If it's
     'Success' you're good, if it's 'Warning' you may have an issue to address, and if it's 'Failed' you know you
     have a problem that needs attention.
