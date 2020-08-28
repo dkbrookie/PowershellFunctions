@@ -74,7 +74,7 @@ Function Install-EXE {
     #endregion checkFiles
 
     Try {
-        Start-Process $FileEXEPath -Wait -ArgumentList $Arguments
+        Start-Process $FileEXEPath -Wait -ArgumentList "$Arguments"
         Write-Host "$AppName installation complete"
         #endregion installVAC
     } Catch {
