@@ -235,3 +235,8 @@ Function Service-Restart {
     $script:disabled = $False
 }
 
+$status = $null
+$logOutput = $null
+$uptime = $null
+$successfulRestarts = $null
+$failedRestarts = $null
