@@ -74,7 +74,7 @@ Function Service-Check {
     } ElseIf (!$Role) {
         $script:logOutput += "No recognized role was defined, checking service list..."
         If (!$ServiceList) {
-            $script:logOutput += "'ServiceList' variable was also blank. No services have been defined to check. Exiting script."
+            $script:logOutput += "'ServiceList' variable was also blank. No services have been defined to check. Exiting script.`r`n"
             Break
         }
     }
