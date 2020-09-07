@@ -36,7 +36,7 @@ Function Service-Check {
         ,[Parameter(
             HelpMessage='Choose the role you want to monitor. Each role contains an array of services needed for the given role to check automatically.'
         )]
-        [ValidateSet('AD','DHCP','DNS','Print','MSSQL','MySQL','Exchange')]
+        [ValidateSet('AD','DHCP','DNS','Print','MSSQL','MySQL','Exchange','Connectwise Control')]
         [string]$Role
     )
 
@@ -52,6 +52,7 @@ Function Service-Check {
     [array]$roleMSSQL = 'MSSQLSERVER','SQLBrowser','SQLWriter','MsDtsServer100','MsDtsServer 110','MsDtsServer120','MsDtsServer130','MsDtsServer140','MSSQLServerOLAPService','SQLServerAgent'
     [array]$roleMySQL = 'MySQL'
     [array]$roleExchange = 'EdgeCredentialSvc','HostControllerService','IMAP4Svc','MSComplianceAudit','MSExchangeAB','MSExchangeADAM','MSExchangeADTopology','MSExchangeAntispamUpdate','MSExchangeCompliance','MSExchangeDagMgmt','MSExchangeDelivery','MSExchangeDiagnostics','MSExchangeEdgeCredential','MSExchangeEdgeSync','MSExchangeFastSearch','MSExchangeFBA','MSExchangeFDS','MSExchangeFrontEndTransport','MSExchangeHM','MSExchangeHMRecovery','MSExchangeIMAP4','MSExchangeIMAP4BE','MSExchangeIS','MSExchangeMailboxReplication','MSExchangeMailSubmission','MSExchangeMGMT','MSExchangeMailboxAssistants','MSExchangeMTA','MSExchangeNotificationsBroker','MSExchangePOP3','MSExchangePOP3BE','MSExchangeProtectedServiceHost','MSExchangeRepl','MSExchangeRPC','MSExchangeSA','MSExchangeSearch','MSExchangeServiceHost','MSExchangeSubmission','MSExchangeThrottling','MSExchangeTransport','MSExchangeTransportLogSearch','MSExchangeUM','MSExchangeUMCR','MSSpeechService','POP3Svc','RESvc','SMTPSVC','WSBExchange'
+    [array]$roleControl = 'ScreenConnect Relay','ScreenConnect Session Manager','ScreenConnect Web Server'
 
     ## Set the list of services for the role to the list of services to check
     If ($Role -eq 'AD') {
@@ -68,6 +69,8 @@ Function Service-Check {
         $ServiceList = $roleMySQL
     } ElseIf ($Role -eq 'Exchange') {
         $ServiceList = $roleExchange
+    } ElseIf ($Role -eq 'Connectwise Control') {
+        $ServiceList = $roleControl
     } ElseIf (!$Role) {
         $script:logOutput += "No recognized role was defined, checking service list..."
         If (!$ServiceList) {
@@ -199,6 +202,9 @@ Function Service-Restart {
                         $script:logOutput += "Successfully started $serviceRestart`r`n"
                         $stopLoop = $True
                     }
+                } Else {
+                    $script:Status = 'Success'
+                    $script:logOutput += "Verified $service is running!`r`n"
                 }
             }
         } Catch {
