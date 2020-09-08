@@ -16,6 +16,7 @@ Function Service-Check {
     Service-Check -ServiceList DHCP,LTSvcmon,LTService,wuau
     Service-Check -ServiceList DHCP,LTSvcmon,LTService,wuau -AcceptableUptime 30
     Service-Check -ServiceList DHCP,LTSvcmon,LTService,wuau -AcceptableUptime 30 -StartDependencies $True
+    Service-Check -Role AD,DHCP,DNS
     
     .NOTES
     Script output is separated by "|"" so it's easier to parse results in Automate.
@@ -36,47 +37,25 @@ Function Service-Check {
         ,[Parameter(
             HelpMessage='Choose the role you want to monitor. Each role contains an array of services needed for the given role to check automatically.'
         )]
-        [ValidateSet('AD','DHCP','DNS','Print','MSSQL','MySQL','Exchange','Connectwise Control')]
-        [string]$Role
+        [ValidateSet('AD','DHCP','DNS','Print','MSSQL','MySQL','Exchange','Connectwise Control','Connectwise Manage')]
+        [array]$Role
     )
 
     If (!$AcceptableUptime) {
         $AcceptableUptime = 15
     }
 
-    ## Define list of services per server role
-    [array]$roleAD = 'ADWS','NTDS','Netlogon','W32Time','LanmanServer','RpcSs','kdc'
-    [array]$roleDHCP = 'DHCPServer','DHCP'
-    [array]$roleDNS = 'Dnscache','DNS'
-    [array]$rolePrint = 'Spooler'
-    [array]$roleMSSQL = 'MSSQLSERVER','SQLBrowser','SQLWriter','MsDtsServer100','MsDtsServer 110','MsDtsServer120','MsDtsServer130','MsDtsServer140','MSSQLServerOLAPService','SQLServerAgent'
-    [array]$roleMySQL = 'MySQL'
-    [array]$roleExchange = 'EdgeCredentialSvc','HostControllerService','IMAP4Svc','MSComplianceAudit','MSExchangeAB','MSExchangeADAM','MSExchangeADTopology','MSExchangeAntispamUpdate','MSExchangeCompliance','MSExchangeDagMgmt','MSExchangeDelivery','MSExchangeDiagnostics','MSExchangeEdgeCredential','MSExchangeEdgeSync','MSExchangeFastSearch','MSExchangeFBA','MSExchangeFDS','MSExchangeFrontEndTransport','MSExchangeHM','MSExchangeHMRecovery','MSExchangeIMAP4','MSExchangeIMAP4BE','MSExchangeIS','MSExchangeMailboxReplication','MSExchangeMailSubmission','MSExchangeMGMT','MSExchangeMailboxAssistants','MSExchangeMTA','MSExchangeNotificationsBroker','MSExchangePOP3','MSExchangePOP3BE','MSExchangeProtectedServiceHost','MSExchangeRepl','MSExchangeRPC','MSExchangeSA','MSExchangeSearch','MSExchangeServiceHost','MSExchangeSubmission','MSExchangeThrottling','MSExchangeTransport','MSExchangeTransportLogSearch','MSExchangeUM','MSExchangeUMCR','MSSpeechService','POP3Svc','RESvc','SMTPSVC','WSBExchange'
-    [array]$roleControl = 'ScreenConnect Relay','ScreenConnect Session Manager','ScreenConnect Web Server'
 
-    ## Set the list of services for the role to the list of services to check
-    If ($Role -eq 'AD') {
-        $ServiceList = $roleAD
-    } ElseIf ($Role -eq 'DHCP') {
-        $ServiceList = $roleDHCP
-    } ElseIf ($Role -eq 'DNS') {
-        $ServiceList = $roleDNS
-    } ElseIf ($Role -eq 'Print') {
-        $ServiceList = $rolePrint
-    } ElseIf ($Role -eq 'MSSQL') {
-        $ServiceList = $roleMSSQL
-    } ElseIf ($Role -eq 'MySQL') {
-        $ServiceList = $roleMySQL
-    } ElseIf ($Role -eq 'Exchange') {
-        $ServiceList = $roleExchange
-    } ElseIf ($Role -eq 'Connectwise Control') {
-        $ServiceList = $roleControl
-    } ElseIf (!$Role) {
-        $script:logOutput += "No recognized role was defined, checking service list..."
-        If (!$ServiceList) {
-            $script:logOutput += "'ServiceList' variable was also blank. No services have been defined to check. Exiting script.`r`n"
-            Break
-        }
+    Switch ([array]$Role) {
+        'AD' {[array]$serviceList += 'ADWS','NTDS','Netlogon','W32Time','LanmanServer','RpcSs','kdc'}
+        'DHCP' {[array]$serviceList += 'DHCPServer','DHCP'}
+        'DNS' {[array]$serviceList += 'Dnscache','DNS'}
+        'Print' {[array]$serviceList += 'Spooler'}
+        'MSSQL' {[array]$serviceList += 'MSSQLSERVER','SQLBrowser','SQLWriter','MsDtsServer100','MsDtsServer 110','MsDtsServer120','MsDtsServer130','MsDtsServer140','MSSQLServerOLAPService','SQLServerAgent'}
+        'MySQL' {[array]$serviceList += 'MySQL'}
+        'Exchange' {[array]$serviceList += 'EdgeCredentialSvc','HostControllerService','IMAP4Svc','MSComplianceAudit','MSExchangeAB','MSExchangeADAM','MSExchangeADTopology','MSExchangeAntispamUpdate','MSExchangeCompliance','MSExchangeDagMgmt','MSExchangeDelivery','MSExchangeDiagnostics','MSExchangeEdgeCredential','MSExchangeEdgeSync','MSExchangeFastSearch','MSExchangeFBA','MSExchangeFDS','MSExchangeFrontEndTransport','MSExchangeHM','MSExchangeHMRecovery','MSExchangeIMAP4','MSExchangeIMAP4BE','MSExchangeIS','MSExchangeMailboxReplication','MSExchangeMailSubmission','MSExchangeMGMT','MSExchangeMailboxAssistants','MSExchangeMTA','MSExchangeNotificationsBroker','MSExchangePOP3','MSExchangePOP3BE','MSExchangeProtectedServiceHost','MSExchangeRepl','MSExchangeRPC','MSExchangeSA','MSExchangeSearch','MSExchangeServiceHost','MSExchangeSubmission','MSExchangeThrottling','MSExchangeTransport','MSExchangeTransportLogSearch','MSExchangeUM','MSExchangeUMCR','MSSpeechService','POP3Svc','RESvc','SMTPSVC','WSBExchange'}
+        'Connectwise Control' {[array]$serviceList += 'ScreenConnect Relay','ScreenConnect Session Manager','ScreenConnect Web Server'}
+        'Connectwise Manage' {[array]$serviceList += 'EmailRobot','CwManageSmtpRelay','NsnClientService','OutlookSync','ConnectWiseUpdaterService','ConnectWiseApiCallbackService','ConnectWiseEmailAuditService'}
     }
 
     $os = Get-WmiObject win32_operatingsystem
@@ -101,7 +80,7 @@ Function Service-Check {
                 If ($script:Status -ne 'Warning' -and $script:Status -ne 'Failed') {
                     $script:Status = 'Warning'
                 }
-                $script:logOutput += "$service does not exist!`r`n"
+                $script:logOutput += "--$service does not exist!`r`n"
                 $script:disabled = $True
             }
             $script:checkDependency = $False
@@ -147,7 +126,18 @@ Function Service-Check {
             $failedRestarts = $script:failedRestarts.Substring(0,$failedRestarts.Length-1)
         }
         ## Final output to parse with Automate
-        "Status=$status|logOutput=$logOutput|uptime=$uptime|successfulRestarts=$successfulRestarts|failedRestarts=$failedRestarts"
+        $outputDir = "$env:windir\LTSvc\serviceMonitor"
+        If (!(Test-Path $outputDir)) {
+            New-Item $outputDir -ItemType Directory | Out-Null
+        } Else {
+            Remove-Item "$outputDir\*"
+        }
+        Switch ($script:status) {
+            'Success' {$outputFile = "$outputDir\Success.txt"}
+            'Warning' {$outputFile = "$outputDir\Warning.txt"}
+            'Failed' {$outputFile = "$outputDir\Failed.txt"}
+        }
+        Set-Content -Value "Status=$status|logOutput=$logOutput|uptime=$uptime|successfulRestarts=$successfulRestarts|failedRestarts=$failedRestarts" -Path $outputFile
     } Else {
         $script:logOutput += "$env:COMPUTERNAME has only been powered on for $upTime minutes so services not being started is expected. Will check again once computer has reach $AcceptableUptime minutes or greater of uptime.`r`n"
         Break
@@ -203,7 +193,10 @@ Function Service-Restart {
                         $stopLoop = $True
                     }
                 } Else {
-                    $script:Status = 'Success'
+                    If ($script:Status -ne 'Warning' -and $script:Status -ne 'Failed') {
+                        $script:Status = 'Success'
+                        $script:successfulRestarts += $serviceRestart + ','
+                    }
                     $script:logOutput += "Verified $service is running!`r`n"
                 }
             }
@@ -235,8 +228,9 @@ Function Service-Restart {
     $script:disabled = $False
 }
 
-$status = $null
-$logOutput = $null
-$uptime = $null
-$successfulRestarts = $null
-$failedRestarts = $null
+$script:status = $null
+$script:logOutput = $null
+$script:uptime = $null
+$script:successfulRestarts = $null
+$script:failedRestarts = $null
+$script:serviceList = $null
