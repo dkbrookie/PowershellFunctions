@@ -37,7 +37,7 @@ Function Service-Check {
         ,[Parameter(
             HelpMessage='Choose the role you want to monitor. Each role contains an array of services needed for the given role to check automatically.'
         )]
-        [ValidateSet('AD','DHCP','DNS','Print','MSSQL','MySQL','Exchange','Connectwise Control','Connectwise Manage')]
+        [ValidateSet('AD','Connectwise Control Server','Connectwise Manage','DHCP','DNS','Exchange','Hyper-V','IIS','MSSQL','MySQL','Print','Windows Server','Windows Workstation')]
         [array]$Role
     )
 
@@ -45,17 +45,27 @@ Function Service-Check {
         $AcceptableUptime = 15
     }
 
-
     Switch ([array]$Role) {
-        'AD' {[array]$serviceList += 'ADWS','NTDS','Netlogon','W32Time','LanmanServer','RpcSs','kdc'}
-        'DHCP' {[array]$serviceList += 'DHCPServer','DHCP'}
-        'DNS' {[array]$serviceList += 'Dnscache','DNS'}
-        'Print' {[array]$serviceList += 'Spooler'}
-        'MSSQL' {[array]$serviceList += 'MSSQLSERVER','SQLBrowser','SQLWriter','MsDtsServer100','MsDtsServer 110','MsDtsServer120','MsDtsServer130','MsDtsServer140','MSSQLServerOLAPService','SQLServerAgent'}
-        'MySQL' {[array]$serviceList += 'MySQL'}
-        'Exchange' {[array]$serviceList += 'EdgeCredentialSvc','HostControllerService','IMAP4Svc','MSComplianceAudit','MSExchangeAB','MSExchangeADAM','MSExchangeADTopology','MSExchangeAntispamUpdate','MSExchangeCompliance','MSExchangeDagMgmt','MSExchangeDelivery','MSExchangeDiagnostics','MSExchangeEdgeCredential','MSExchangeEdgeSync','MSExchangeFastSearch','MSExchangeFBA','MSExchangeFDS','MSExchangeFrontEndTransport','MSExchangeHM','MSExchangeHMRecovery','MSExchangeIMAP4','MSExchangeIMAP4BE','MSExchangeIS','MSExchangeMailboxReplication','MSExchangeMailSubmission','MSExchangeMGMT','MSExchangeMailboxAssistants','MSExchangeMTA','MSExchangeNotificationsBroker','MSExchangePOP3','MSExchangePOP3BE','MSExchangeProtectedServiceHost','MSExchangeRepl','MSExchangeRPC','MSExchangeSA','MSExchangeSearch','MSExchangeServiceHost','MSExchangeSubmission','MSExchangeThrottling','MSExchangeTransport','MSExchangeTransportLogSearch','MSExchangeUM','MSExchangeUMCR','MSSpeechService','POP3Svc','RESvc','SMTPSVC','WSBExchange'}
-        'Connectwise Control' {[array]$serviceList += 'ScreenConnect Relay','ScreenConnect Session Manager','ScreenConnect Web Server'}
-        'Connectwise Manage' {[array]$serviceList += 'EmailRobot','CwManageSmtpRelay','NsnClientService','OutlookSync','ConnectWiseUpdaterService','ConnectWiseApiCallbackService','ConnectWiseEmailAuditService'}
+        'AD' {[array]$ServiceList += 'ADWS','NTDS','Netlogon','W32Time','LanmanServer','RpcSs','kdc'}
+        'Apache' {[array]$ServiceList += 'Appache*'}
+        'Citrix XenApp' {[array]$ServiceList += 'Citrix Encryption Service','Citrix Licensing','CitrixCseEngine','CitrixHealthMon','Citrix_GTLicensingProv','TSGateway','sshd'}
+        'Connectwise Control Endpoint' {[array]$ServiceList += 'ScreenConnect Client (dc46be1169788118)'}
+        'Connectwise Control Server' {[array]$ServiceList += 'ScreenConnect Relay','ScreenConnect Session Manager','ScreenConnect Web Server'}
+        'Connectwise Manage' {[array]$ServiceList += 'EmailRobot','CwManageSmtpRelay','NsnClientService','OutlookSync','ConnectWiseUpdaterService','ConnectWiseApiCallbackService','ConnectWiseEmailAuditService'}
+        'DHCP' {[array]$ServiceList += 'DHCPServer','DHCP'}
+        'DNS' {[array]$ServiceList += 'Dnscache','DNS'}
+        'Exchange' {[array]$ServiceList += 'EdgeCredentialSvc','HostControllerService','IMAP4Svc','MSComplianceAudit','MSExchangeAB','MSExchangeADAM','MSExchangeADTopology','MSExchangeAntispamUpdate','MSExchangeCompliance','MSExchangeDagMgmt','MSExchangeDelivery','MSExchangeDiagnostics','MSExchangeEdgeCredential','MSExchangeEdgeSync','MSExchangeFastSearch','MSExchangeFBA','MSExchangeFDS','MSExchangeFrontEndTransport','MSExchangeHM','MSExchangeHMRecovery','MSExchangeIMAP4','MSExchangeIMAP4BE','MSExchangeIS','MSExchangeMailboxReplication','MSExchangeMailSubmission','MSExchangeMGMT','MSExchangeMailboxAssistants','MSExchangeMTA','MSExchangeNotificationsBroker','MSExchangePOP3','MSExchangePOP3BE','MSExchangeProtectedServiceHost','MSExchangeRepl','MSExchangeRPC','MSExchangeSA','MSExchangeSearch','MSExchangeServiceHost','MSExchangeSubmission','MSExchangeThrottling','MSExchangeTransport','MSExchangeTransportLogSearch','MSExchangeUM','MSExchangeUMCR','MSSpeechService','POP3Svc','RESvc','SMTPSVC','WSBExchange'}
+        'Hyper-V' {[array]$ServiceList += 'vmms','vhdsvc','nvspwmi'}
+        'IIS' {[array]$ServiceList += 'IISAdmin','W3SVC'}
+        'MSSQL' {[array]$ServiceList += 'MSSQLSERVER','SQLBrowser','SQLWriter','MsDtsServer100','MsDtsServer 110','MsDtsServer120','MsDtsServer130','MsDtsServer140','MSSQLServerOLAPService','SQLServerAgent'}
+        'MySQL' {[array]$ServiceList += 'MySQL'}
+        'PostgreSQL' {[array]$ServiceList += 'postgresql'}
+        'Print' {[array]$ServiceList += 'Spooler'}
+        'Quickbooks' {[array]$ServiceList += 'QuickbooksDB*'}
+        'SharePoint' {[array]$ServiceList += 'SPAdmin*','SPTimer*','SPTrace*','SPTrace*'}
+        'Umbrella' {[array]$ServiceList += 'Umbrella_RC'}
+        'Windows Server' {[array]$ServiceList += 'EventLog','Schedule','ProfSvc','LSM'}
+        'Windows Workstation' {[array]$ServiceList += 'DHCP','spooler','EventLog','Scheduler','ProfSvc','LSM','NetLogon','LanmanWorkstation','Dnscache','SamSs','PlugPlay','CryptSvc'}
     }
 
     $os = Get-WmiObject win32_operatingsystem
