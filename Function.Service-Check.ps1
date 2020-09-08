@@ -34,18 +34,33 @@ Function Service-Check {
             HelpMessage='Please enter the name of the service(s) you want to check the status of and attempt to restart'
         )][array]$ServiceList
         ,[int]$AcceptableUptime
-        ,[switch]$StartDependencies
+        ,[Parameter(
+            HelpMessage='Set to Y if you want to check the status of all dependencies. This is Y unless manually set to N here.'
+        )]
+        [ValidateSet('Y','N')]
+        [string]$CheckDependencies
+        ,[Parameter(
+            HelpMessage='Set to Y if you want to automatically attempt to start all dependencies with the same logic as the primary service. This is N unless manually set to Y here.'
+        )]
+        [ValidateSet('Y','N')]
+        [string]$StartDependencies
         ,[Parameter(
             HelpMessage='Choose the role you want to monitor. Each role contains an array of services needed for the given role to check automatically.'
         )]
-        [ValidateSet('AD','Connectwise Control Server','Connectwise Manage','DHCP','DNS','Exchange','Hyper-V','IIS','MSSQL','MySQL','Print','Windows Server','Windows Workstation')]
+        [ValidateSet('AD','Apache','Citrix XenApp','Connectwise Control Endpoint','Connectwise Control Server','Connectwise Manage','DHCP','DNS','Exchange','Hyper-V','IIS','MSSQL','MySQL','PostgreSQL','Print','Quickbooks','Sharepoint','Umbrella','Windows Server','Windows Workstation')]
         [array]$Role
     )
 
+    ## If an acceptable uptime wasn't set, set it to 15min
     If (!$AcceptableUptime) {
         $AcceptableUptime = 15
     }
 
+    If (!$CheckDependencies) {
+        $CheckDependencies = 'Y'
+    }
+
+    ## Here we define which services we want to check per role
     Switch ([array]$Role) {
         'AD' {[array]$ServiceList += 'ADWS','NTDS','Netlogon','W32Time','LanmanServer','RpcSs','kdc'}
         'Apache' {[array]$ServiceList += 'Appache*'}
@@ -66,9 +81,11 @@ Function Service-Check {
         'SharePoint' {[array]$ServiceList += 'SPAdmin*','SPTimer*','SPTrace*','SPTrace*'}
         'Umbrella' {[array]$ServiceList += 'Umbrella_RC'}
         'Windows Server' {[array]$ServiceList += 'EventLog','Schedule','ProfSvc','LSM'}
-        'Windows Workstation' {[array]$ServiceList += 'DHCP','spooler','EventLog','Scheduler','ProfSvc','LSM','NetLogon','LanmanWorkstation','Dnscache','SamSs','PlugPlay','CryptSvc'}
+        'Windows Workstation' {[array]$ServiceList += 'DHCP','spooler','EventLog','Schedule','ProfSvc','LSM','NetLogon','LanmanWorkstation','Dnscache','SamSs','PlugPlay','CryptSvc'}
     }
 
+    ## Get total uptime. Reason being, if the machine hasn't been on long it's going to be expected for services
+    ## to not be started. Services like SQL can take 5min+ to start easily.
     $os = Get-WmiObject win32_operatingsystem
     $days = ((get-date) - ($os.ConvertToDateTime($os.lastbootuptime))).TotalDays * 24 * 60
     $hours = ((get-date) - ($os.ConvertToDateTime($os.lastbootuptime))).Hours * 60
@@ -78,27 +95,34 @@ Function Service-Check {
     If ($upTime -gt 15) {
         ForEach ($service in $ServiceList) {
             Try {
+                ## Commented out, just another way to check for service status if we want to change to only watching enabled services
                 #$serviceStatus = (Get-WmiObject win32_service -Filter "Name = '$service' AND startmode <> 'Disabled' AND state <> 'Running'").State
+                ## With the error action set to Stop here, that means it will go to the Catch if the service doesn't exist
                 $serviceStart = (Get-Service -Name $service -ErrorAction Stop).StartType
+                ## If the service is set to Disabled then add that to the log output and set the script final status to Warning
                 If ($serviceStart -eq 'Disabled') {
                     If ($script:Status -ne 'Warning' -and $script:Status -ne 'Failed') {
                         $script:Status = 'Warning'
                     }
                     $script:logOutput += "$service is set to $serviceStart, unable to start service`r`n"
+                    ## Setting $disabled to $true means that the next parts of the script will not try to start this service. We're doing this
+                    ## because it's disabled so we know the service start will fail.
                     $script:disabled = $True
                 }
             } Catch {
+                ## Set the status to Warning as long as it's not already Warning or Failed
                 If ($script:Status -ne 'Warning' -and $script:Status -ne 'Failed') {
                     $script:Status = 'Warning'
                 }
+                ## Pretty straight forward here, but update the final log output that this service doesn't exist
                 $script:logOutput += "--$service does not exist!`r`n"
+                ## Then set $disabled to $true so we don't try to restart a service that doesn't exist
                 $script:disabled = $True
             }
-            $script:checkDependency = $False
             Service-Restart -serviceRestart $service
             ## If the service failed to start, in the function we would have set $checkDependency to $True. This is because the service still isn't started
             ## so maybe it's related to a dependency that isn't started yet
-            If ($script:checkDependency -eq $True) {
+            If ($script:CheckDependency -eq 'Y') {
                 ## Get a list of dependencies and then print them into the output
                 $dependencies = Get-Service -Name $service -RequiredServices | Where-Object { $_.Status -ne 'Running'}
                 If ($dependencies) {
@@ -206,7 +230,6 @@ Function Service-Restart {
                 } Else {
                     If ($script:Status -ne 'Warning' -and $script:Status -ne 'Failed') {
                         $script:Status = 'Success'
-                        $script:successfulRestarts += $serviceRestart + ','
                     }
                     $script:logOutput += "Verified $service is running!`r`n"
                 }
