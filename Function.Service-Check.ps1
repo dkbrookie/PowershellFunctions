@@ -1,7 +1,7 @@
 Function Service-Check {
     <#
     .SYNOPSIS
-    Attempt auto start of services that are stopped
+    Attempt auto start of services that are stopped.
 
     .DESCRIPTION
     This script allows you to specify a list of services that you'd like to check if running. If the service(s)
@@ -12,6 +12,29 @@ Function Service-Check {
     fails to start, it will attempt to start it 3 times total, then it will check the running status of that services 
     dependencies and start the dependencies automatically if you specify the $StartDependencies as $True. This will
     output the results to $env:windir\LTSvc\serviceMonitor\$status.txt ($status will be Success, Warning, or Failed).
+
+    .PARAMETER ServiceList
+    Set to Y if you want the final output to go to a text file at $env:windir\LTSvc\serviceMonitor\[reuslt].txt. By 
+    default this is set to N and will output to console.
+
+    .PARAMETER Role
+    Specify the server role / application you want to monitor. Each role has a set of services associated to the role.
+    Not all services will always be present depending on the version of the role, so the script will just output a
+    warning if the service doesn't exist. This means you really only need to worry about an output of $status = FAILED
+    since this would mean the service SHOULD be running and isn't.
+
+    .PARAMETER CheckDependencies
+    Set to Y if you want to check the status of all dependencies. This is Y unless manually set to N here.
+    
+    .PARAMETER StartDependencies
+    Set to Y if you want to automatically attempt to start all dependencies with the same logic as the primary service. 
+    This is N unless manually set to Y here.
+
+    .PARAMETER FileOutput
+    If running as a monitor is set to Y the output will just be SUCCESS, WARNING, or FAILED. By default this is set to N.
+
+    .PARAMETER RunAsMonitor
+    If running as a monitor is set to Y the output will just be SUCCESS, WARNING, or FAILED. By default this is set to N.
 
     .EXAMPLE
     Service-Check -ServiceList DHCP,LTSvcmon,LTService,wuau
