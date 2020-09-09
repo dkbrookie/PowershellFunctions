@@ -80,7 +80,7 @@ Function Service-Check {
 
     ## Here we define which services we want to check per role
     Switch ([array]$Role) {
-        'AD' {[array]$ServiceList += 'ADWS','NTDS','Netlogon','W32Time','LanmanServer','RpcSs','kdc','adsync'}
+        'AD' {[array]$ServiceList += 'ADWS','NTDS','Netlogon','W32Time','LanmanServer','RpcSs','kdc'}
         'Apache' {[array]$ServiceList += 'Appache*'}
         'Citrix XenApp' {[array]$ServiceList += 'Citrix Encryption Service','Citrix Licensing','CitrixCseEngine','CitrixHealthMon','Citrix_GTLicensingProv','TSGateway','sshd'}
         'Connectwise Control Endpoint' {[array]$ServiceList += 'ScreenConnect Client (dc46be1169788118)'}
