@@ -40,7 +40,8 @@ Function Service-Check {
     Service-Check -ServiceList DHCP,LTSvcmon,LTService,wuau
     Service-Check -ServiceList DHCP,LTSvcmon,LTService,wuau -AcceptableUptime 30
     Service-Check -ServiceList DHCP,LTSvcmon,LTService,wuau -AcceptableUptime 30 -StartDependencies $True
-    Service-Check -Role AD,DHCP,DNS
+    Check and start the AD, DHCP, and DNS services and dependencies. For the output only show $status (Success, Warning, or Failed)
+    Service-Check -Role AD,DHCP,DNS -StartDependencies Y -RunAsMonitor Y
     
     .NOTES
     Script output is separated by "|"" so it's easier to parse results in Automate.
