@@ -9,7 +9,7 @@ Function Service-Check {
     15min (This low of uptime could imply the services just aren't done starting yet). If the service is disabled, 
     it will just inform you the service is disabled with a warning, but will not attempt to enable the service 
     (generally a disabled service is intentional so automatically re-enabling could cause problems). If the service 
-    fails to start, it wil attempt to start it 3 times total, then it will check the running status of that services 
+    fails to start, it will attempt to start it 3 times total, then it will check the running status of that services 
     dependencies and start the dependencies automatically if you specify the $StartDependencies as $True. This will
     output the results to $env:windir\LTSvc\serviceMonitor\$status.txt ($status will be Success, Warning, or Failed).
 
