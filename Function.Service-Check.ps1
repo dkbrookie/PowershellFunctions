@@ -66,7 +66,7 @@ Function Service-Check {
             HelpMessage='Set to Y if you want to check the status of all dependencies. This is Y unless manually set to N here.'
         )]
         [ValidateSet('Y','N')]
-        [string]$CheckDependencies
+        [string]$CheckDependencies = 'Y'
         ,[Parameter(
             HelpMessage='Set to Y if you want to automatically attempt to start all dependencies with the same logic as the primary service. This is N unless manually set to Y here.'
         )]
