@@ -106,7 +106,7 @@ Function Service-Check {
         'SharePoint' {[array]$ServiceList += 'SPAdmin*','SPTimer*','SPTrace*','SPTrace*'}
         'Umbrella' {[array]$ServiceList += 'Umbrella_RC'}
         'Windows Server' {[array]$ServiceList += 'EventLog','Schedule','ProfSvc','LSM'}
-        'Windows Workstation' {[array]$ServiceList += 'DHCP','spooler','EventLog','Schedule','ProfSvc','LSM','NetLogon','LanmanWorkstation','Dnscache','SamSs','PlugPlay','CryptSvc'}
+        'Windows Workstation' {[array]$ServiceList += 'DHCP','spooler','EventLog','Schedule','ProfSvc','LSM','NetLogon','LanmanWorkstation','Dnscache','SamSs','PlugPlay','CryptSvc','Server'}
     }
 
     ## Get total uptime. Reason being, if the machine hasn't been on long it's going to be expected for services
