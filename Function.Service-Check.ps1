@@ -136,6 +136,7 @@ Function Service-Check {
                 }
                 ## If the service called is a wildcard then the error action of stop above won't work, so we need to manually check
                 ## to see if it exists
+                ## This used to be = 'Warning'
                 If (!$serviceStart) {
                     If ($script:Status -ne 'Failed') {
                         $script:Status = 'Success'
@@ -145,6 +146,7 @@ Function Service-Check {
                 }
             } Catch {
                 ## Set the status to Warning as long as it's not already Warning or Failed
+                ## This used to be = 'Warning'
                 If ($script:Status -ne 'Failed') {
                     $script:Status = 'Success'
                 }
@@ -174,8 +176,9 @@ Function Service-Check {
                                 }
                             }
                         } Catch {
-                            If ($script:Status -ne 'Warning' -and $script:Status -ne 'Failed') {
-                                $script:Status = 'Warning'
+                            ## This used to be = 'Warning'
+                            If ($script:Status -ne 'Failed') {
+                                $script:Status = 'Success'
                             }
                             $script:logOutput += "$dependencyName does not exist!`r`n"
                             $script:disabled = $True
