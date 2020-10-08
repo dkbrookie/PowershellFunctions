@@ -134,6 +134,15 @@ Function Service-Check {
                     ## because it's disabled so we know the service start will fail.
                     $script:disabled = $True
                 }
+                ## If the service called is a wildcard then the error action of stop above won't work, so we need to manually check
+                ## to see if it exists
+                If (!$serviceStart) {
+                    If ($script:Status -ne 'Warning' -and $script:Status -ne 'Failed') {
+                        $script:Status = 'Warning'
+                    }
+                    $script:logOutput += "--$service does not exist!`r`n"
+                    $script:disabled = $True
+                }
             } Catch {
                 ## Set the status to Warning as long as it's not already Warning or Failed
                 If ($script:Status -ne 'Warning' -and $script:Status -ne 'Failed') {
