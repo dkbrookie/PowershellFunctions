@@ -126,8 +126,8 @@ Function Service-Check {
                 $serviceStart = (Get-Service -Name $service -ErrorAction Stop).StartType
                 ## If the service is set to Disabled then add that to the log output and set the script final status to Warning
                 If ($serviceStart -eq 'Disabled') {
-                    If ($script:Status -ne 'Warning' -and $script:Status -ne 'Failed') {
-                        $script:Status = 'Warning'
+                    If ($script:Status -ne 'Failed') {
+                        $script:Status = 'Success'
                     }
                     $script:logOutput += "$service is set to $serviceStart, unable to start service`r`n"
                     ## Setting $disabled to $true means that the next parts of the script will not try to start this service. We're doing this
@@ -137,16 +137,16 @@ Function Service-Check {
                 ## If the service called is a wildcard then the error action of stop above won't work, so we need to manually check
                 ## to see if it exists
                 If (!$serviceStart) {
-                    If ($script:Status -ne 'Warning' -and $script:Status -ne 'Failed') {
-                        $script:Status = 'Warning'
+                    If ($script:Status -ne 'Failed') {
+                        $script:Status = 'Success'
                     }
                     $script:logOutput += "--$service does not exist!`r`n"
                     $script:disabled = $True
                 }
             } Catch {
                 ## Set the status to Warning as long as it's not already Warning or Failed
-                If ($script:Status -ne 'Warning' -and $script:Status -ne 'Failed') {
-                    $script:Status = 'Warning'
+                If ($script:Status -ne 'Failed') {
+                    $script:Status = 'Success'
                 }
                 ## Pretty straight forward here, but update the final log output that this service doesn't exist
                 $script:logOutput += "--$service does not exist!`r`n"
