@@ -100,9 +100,10 @@ Function Service-Check {
         'IIS' {[array]$ServiceList += 'IISAdmin','W3SVC'}
         'MSSQL' {[array]$ServiceList += 'MSSQLSERVER','SQLBrowser','SQLWriter','MsDtsServer100','MsDtsServer 110','MsDtsServer120','MsDtsServer130','MsDtsServer140','MSSQLServerOLAPService','SQLServerAgent'}
         'MySQL' {[array]$ServiceList += 'MySQL'}
-        'PostgreSQL' {[array]$ServiceList += 'postgresql'}
+        'PostgreSQL' {[array]$ServiceList += 'postgresql','postgresql-x64-*'}
         'Print' {[array]$ServiceList += 'Spooler'}
         'Quickbooks' {[array]$ServiceList += 'QuickbooksDB*'}
+        'Roar' {[array]$ServiceList += 'roaragent'}
         'SharePoint' {[array]$ServiceList += 'SPAdmin*','SPTimer*','SPTrace*','SPTrace*'}
         'Umbrella' {[array]$ServiceList += 'Umbrella_RC'}
         'Windows Server' {[array]$ServiceList += 'EventLog','Schedule','ProfSvc','LSM'}
