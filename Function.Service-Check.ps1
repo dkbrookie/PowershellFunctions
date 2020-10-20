@@ -60,7 +60,7 @@ Function Service-Check {
         ,[Parameter(
             HelpMessage='Set to Y if you want the final output to go to a text file at $env:windir\LTSvc\serviceMonitor\[reuslt].txt. By default this is set to N and will output to console.'
         )]
-        [ValidateSet('AD','Apache','Citrix XenApp','Connectwise Control Endpoint','Connectwise Control Server','Connectwise Manage','DHCP','DNS','Exchange','Hyper-V','IIS','MSSQL','MySQL','PostgreSQL','Print','Quickbooks','Sharepoint','Umbrella','Windows Server','Windows Workstation')]
+        [ValidateSet('AD','Apache','Citrix XenApp','Connectwise Control Endpoint','Connectwise Control Server','Connectwise Manage','DHCP','DNS','Exchange','Hyper-V','IIS','MSSQL','MySQL','PostgreSQL','Perch Log Shipper','Print','Quickbooks','Sharepoint','Umbrella','Windows Server','Windows Workstation')]
         [array]$Role
         ,[int]$AcceptableUptime = 15
         ,[Parameter(
