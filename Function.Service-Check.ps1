@@ -60,7 +60,7 @@ Function Service-Check {
         ,[Parameter(
             HelpMessage='Set to Y if you want the final output to go to a text file at $env:windir\LTSvc\serviceMonitor\[reuslt].txt. By default this is set to N and will output to console.'
         )]
-        [ValidateSet('AD','Apache','Citrix XenApp','Connectwise Control Endpoint','Connectwise Control Server','Connectwise Manage','DHCP','DNS','Exchange','Hyper-V','IIS','MSSQL','MySQL','PostgreSQL','Print','Quickbooks','SentinelOne','Sharepoint','Umbrella','Windows Server','Windows Workstation')]
+        [ValidateSet('AD','Apache','Citrix XenApp','Connectwise Control Endpoint','Connectwise Control Server','Connectwise Manage','DHCP','DNS','Exchange','Hyper-V','IIS','MSSQL','MySQL','Perch Log Shipper','PostgreSQL','Print','Quickbooks','SentinelOne','Sharepoint','Umbrella','Windows Server','Windows Workstation')]
         [array]$Role
         ,[int]$AcceptableUptime = 15
         ,[Parameter(
@@ -100,6 +100,7 @@ Function Service-Check {
         'IIS' {[array]$ServiceList += 'IISAdmin','W3SVC'}
         'MSSQL' {[array]$ServiceList += 'MSSQLSERVER','SQLBrowser','SQLWriter','MsDtsServer100','MsDtsServer 110','MsDtsServer120','MsDtsServer130','MsDtsServer140','MSSQLServerOLAPService','SQLServerAgent'}
         'MySQL' {[array]$ServiceList += 'MySQL'}
+        'Perch Log Shipper' {[array] $ServiceList += 'auditbeat','winlogbeat'}
         'PostgreSQL' {[array]$ServiceList += 'postgresql','postgresql-x64-*'}
         'Print' {[array]$ServiceList += 'Spooler'}
         'Quickbooks' {[array]$ServiceList += 'QuickbooksDB*'}
