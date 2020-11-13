@@ -65,10 +65,10 @@ function Get-DhcpEventLogs {
         [array]$days = 'Mon','Tue','Wed','Thu','Fri','Sat','Sun'
     }
 
-    # CSV header fields, to be used later when converting each line of the tailed log from CSV
+    ## CSV header fields, to be used later when converting each line of the tailed log from CSV
     $headerFields = @("ID","Date","Time","Description","IP Address","Host Name","MAC Address","User Name","TransactionID","QResult","Probationtime","CorrelationID","Dhcid","VendorClass(Hex)","VendorClass(ASCII)","UserClass(Hex)","UserClass(ASCII)","RelayAgentInformation","DnsRegError")
 
-    # Translations of the ID field, as per the description inside the log file itself
+    ## Translations of the ID field, as per the description inside the log file itself
     $idMeanings = @{ 
         00 = "The log was started.";
         01 = "The log was stopped.";
