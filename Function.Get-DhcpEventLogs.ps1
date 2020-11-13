@@ -115,7 +115,6 @@ function Get-DhcpEventLogs {
 
     $qResultMeanings = @{0 = "No Quarantine"; 1 = "Quarantine"; 2 = "Drop Packet"; 3 = "Probation"; 6 = "No Quarantine Information"}
 
-    Write-Verbose "Reading last $Lines lines from DHCP log at location: $filePath"
     ForEach ($day in $days) {
         $filePath = "$env:SystemRoot\System32\dhcp\DhcpSrvLog-$day.log"
         $errorEvents += Get-Content $filePath –tail $Lines | ConvertFrom-Csv –Header $headerFields | Select-Object *,@{n="ID Description";e={$idMeanings[[int]::parse($_.ID)]}},@{n="QResult Description";e={$qResultMeanings[[int]::parse($_.QResult)]}}
@@ -144,15 +143,15 @@ function Get-DhcpEventLogs {
         $totalEvents | Select-Object ID, Date, Time, Description, 'IP Address', 'Host Name', QResult, DnsRegError, 'ID Description'
     }
 
-    ## Output total number of events found per event ID. This will help determine if this is a one off issue or
-    ## a reoccuring problem that's going to need more investigation
-    Write-Output "Name is the EventID, and Count is the Total times the event has occured out of the last total 500 events.`r`n"
-    $totalEvents.Id | Group-Object | Select-Object Name, Count
-
     ## Setting a ticket true/false here so we can later use these results to ticket w/ Automate
     If ($totalEvents) {
         $global:createTicket = 'Yes'
+        ## Output total number of events found per event ID. This will help determine if this is a one off issue or
+        ## a reoccuring problem that's going to need more investigation
+        Write-Output "Name is the EventID, and Count is the Total times the event has occured out of the last total 500 events.`r`n"
+        $totalEvents.Id | Group-Object | Select-Object Name, Count
     } Else {
         $global:createTicket = 'No'
+        Write-Output 'No events found matching your criteria'
     }
 }
