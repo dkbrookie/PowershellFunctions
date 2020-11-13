@@ -114,9 +114,6 @@ function Get-DhcpEventLogs {
     }
 
     $qResultMeanings = @{0 = "No Quarantine"; 1 = "Quarantine"; 2 = "Drop Packet"; 3 = "Probation"; 6 = "No Quarantine Information"}
-    
-    #Write-Verbose "Attempting to search for DHCP log at location: $filePath"
-    #if ((Test-Path $filePath) -eq $false) { throw "Couldn't locate DHCP log at $filePath" }
 
     Write-Verbose "Reading last $Lines lines from DHCP log at location: $filePath"
     ForEach ($day in $days) {
