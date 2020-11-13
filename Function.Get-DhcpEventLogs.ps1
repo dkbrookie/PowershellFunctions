@@ -127,10 +127,13 @@ function Get-DhcpEventLogs {
     ## and even if they are we don't necassarily care about them. We're going to process through each one and
     ## pick out the ones we want to look at.
     ForEach ($errorEvent in $errorEvents) {
+        ## Exclude the garbage the PSObject conversion process doesn't clean up
         If (($errorEvent.Date) -and $errorEvent.Id -ne 'QResult: 0: NoQuarantine' -and $errorEvent.ID -ne 'ID') {
+            ## Combine the date and time from the log file event to and convert to a PS datetime object
             [datetime]$date = $errorEvent.Date + ' ' + $errorEvent.Time
-            ## Here you define the EventIDs we want to check for
+            ## Only output Event IDs specified in the $EventIDs parameter
             If ($EventIDs -contains $errorEvent.Id -and $date -gt (Get-Date).AddDays(-$LogDays)) {
+                ## Add all events that meet all above criteria to the final event output var
                 [array]$totalEvents += $errorEvent
             }
         }
@@ -149,6 +152,7 @@ function Get-DhcpEventLogs {
     Write-Output "Name is the EventID, and Count is the Total times the event has occured out of the last total 500 events.`r`n"
     $totalEvents.Id | Group-Object | Select-Object Name, Count
 
+    ## Setting a ticket true/false here so we can later use these results to ticket w/ Automate
     If ($totalEvents) {
         $global:createTicket = 'Yes'
     } Else {
