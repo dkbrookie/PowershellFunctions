@@ -1,4 +1,4 @@
-function Get-DhcpEventLogs {
+Function Get-DhcpEventLogs {
     <#
     .SYNOPSIS
     Get-DhcpEventLogs-- Reads the Windows DHCP server logs
