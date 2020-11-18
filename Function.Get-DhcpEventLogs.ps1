@@ -117,7 +117,7 @@ Function Get-DhcpEventLogs {
 
     ForEach ($day in $days) {
         $filePath = "$env:SystemRoot\System32\dhcp\DhcpSrvLog-$day.log"
-        $errorEvents += Get-Content $filePath –tail $Lines | ConvertFrom-Csv –Header $headerFields | Select-Object *,@{n="ID Description";e={$idMeanings[[int]::parse($_.ID)]}},@{n="QResult Description";e={$qResultMeanings[[int]::parse($_.QResult)]}}
+        $errorEvents += Get-Content $filePath -tail $Lines | ConvertFrom-Csv -Header $headerFields | Select-Object *,@{n="ID Description";e={$idMeanings[[int]::parse($_.ID)]}},@{n="QResult Description";e={$qResultMeanings[[int]::parse($_.QResult)]}}
     }
     ## Loop through each event log entry so we can sort through the different IDs. Some events are NOT errors
     ## and even if they are we don't necassarily care about them. We're going to process through each one and
