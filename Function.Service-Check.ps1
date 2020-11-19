@@ -106,7 +106,7 @@ Function Service-Check {
         'Quickbooks' {[array]$ServiceList += 'QuickbooksDB*'}
         'Roar' {[array]$ServiceList += 'roaragent'}
         'SentinelOne' {[array]$ServiceList += 'SentinelAgent','SentinelHelperService','LogProcessorService','SentinelStaticEngine'}
-        'SharePoint' {[array]$ServiceList += 'SPAdmin*','SPTimer*','SPTrace*','SPTrace*'}
+        'SharePoint' {[array]$ServiceList += 'SPAdmin*','SPTimer*','SPTrace*','SPWriter*'}
         'Umbrella' {[array]$ServiceList += 'Umbrella_RC'}
         'Windows Server' {[array]$ServiceList += 'EventLog','Schedule','ProfSvc','LSM'}
         'Windows Workstation' {[array]$ServiceList += 'DHCP','spooler','EventLog','Schedule','ProfSvc','LSM','NetLogon','LanmanWorkstation','Dnscache','SamSs','PlugPlay','CryptSvc','Server','Workstation'}
