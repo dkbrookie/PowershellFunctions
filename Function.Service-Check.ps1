@@ -100,7 +100,7 @@ Function Service-Check {
         'IIS' {[array]$ServiceList += 'IISAdmin','W3SVC'}
         'MSSQL' {[array]$ServiceList += 'MSSQLSERVER','SQLBrowser','SQLWriter','MsDtsServer100','MsDtsServer 110','MsDtsServer120','MsDtsServer130','MsDtsServer140','MSSQLServerOLAPService','SQLServerAgent'}
         'MySQL' {[array]$ServiceList += 'MySQL'}
-        'Perch Log Shipper' {[array] $ServiceList += 'auditbeat','winlogbeat','sysmon'}
+        'Perch Log Shipper' {[array] $ServiceList += 'auditbeat','winlogbeat','sysmon','perch-auditbeat','perch-winlogbeat'}
         'PostgreSQL' {[array]$ServiceList += 'postgresql','postgresql-x64-*'}
         'Print' {[array]$ServiceList += 'Spooler'}
         'Quickbooks' {[array]$ServiceList += 'QuickbooksDB*'}
