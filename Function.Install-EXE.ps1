@@ -48,7 +48,6 @@ Function Install-EXE {
     [string]$FileDir,
     [string]$FileEXEPath,
     [Parameter(
-        Mandatory=$True,
         HelpMessage="Enter all arguments to install the EXE, such as /s or /silent"
     )][string]$Arguments
     )
@@ -74,9 +73,12 @@ Function Install-EXE {
     #endregion checkFiles
 
     Try {
-        Start-Process $FileEXEPath -Wait -ArgumentList "$Arguments"
-        Write-Host "$AppName installation complete"
-        #endregion installVAC
+        If ($Arguments) {
+            Start-Process $FileEXEPath -Wait -ArgumentList "$Arguments"
+            Write-Host "$AppName installation complete"
+        } Else {
+            Start-Process $FileEXEPath -Wait
+        }
     } Catch {
             Write-Error "Failed to install $AppName"
     }
