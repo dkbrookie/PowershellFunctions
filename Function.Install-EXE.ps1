@@ -49,7 +49,12 @@ Function Install-EXE {
     [string]$FileEXEPath,
     [Parameter(
         HelpMessage="Enter all arguments to install the EXE, such as /s or /silent"
-    )][string]$Arguments
+    )][string]$Arguments,
+    [Parameter(
+        HelpMessage='Sets the -Wait flag on the Start-Process command of the installer EXE, meaning it will wait for the EXE to continue before moving on if this is set to Y.'
+    )]
+    [ValidateSet('Y','N')]
+    [string]$Wait = 'Y'
     )
 
     Try {
@@ -74,10 +79,18 @@ Function Install-EXE {
 
     Try {
         If ($Arguments) {
-            Start-Process $FileEXEPath -Wait -ArgumentList "$Arguments"
+            If ($Wait = 'Y') {
+                Start-Process $FileEXEPath -Wait -ArgumentList "$Arguments"
+            } Else {
+                Start-Process $FileEXEPath -ArgumentList "$Arguments"
+            }
             Write-Host "$AppName installation complete"
         } Else {
-            Start-Process $FileEXEPath -Wait
+            If ($Wait = 'Y') {
+                Start-Process $FileEXEPath -Wait
+            } Else {
+                Start-Process $FileEXEPath
+            }
         }
     } Catch {
             Write-Error "Failed to install $AppName"
