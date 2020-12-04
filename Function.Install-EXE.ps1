@@ -84,7 +84,6 @@ Function Install-EXE {
             } Else {
                 Start-Process $FileEXEPath -ArgumentList "$Arguments"
             }
-            Write-Host "$AppName installation complete"
         } Else {
             If ($Wait = 'Y') {
                 Start-Process $FileEXEPath -Wait
@@ -92,6 +91,7 @@ Function Install-EXE {
                 Start-Process $FileEXEPath
             }
         }
+        Write-Host "$AppName installation complete"
     } Catch {
             Write-Error "Failed to install $AppName"
     }
