@@ -98,9 +98,14 @@ Function Install-EXE {
         $global:installedAppNames = $installedApps.DisplayName
         $global:installedAppDate = $installedApps.InstallDate
         $global:installedAppUninstallString = $installedApps.UninstallString
-        If ($installedApps.Count -gt 1) {
-            $global:logOutput += "Multiple applications found with the word(s) [$AppName] in the display name in Add/Remove programs. See list below..."
-            $global:logOutput += $installedAppNames
+        If ($installedApps) {
+            If ($installedApps.Count -gt 1) {
+                [array]$global:logOutput += "Multiple applications found with the word(s) [$AppName] in the display name in Add/Remove programs. See list below..."
+                [array]$global:logOutput += $installedAppNames
+            }
+            'Success'
+        } Else {
+            'Failed'
         }
     }
 
@@ -142,8 +147,8 @@ Function Install-EXE {
                 Start-Process $FileEXEPath
             }
         }
-        Get-InstalledApplications -ApplicationName $AppName
-        If ($global:installedAppNames) {
+        $status = Get-InstalledApplications -ApplicationName $AppName
+        If ($status -eq 'Success') {
             [array]$global:logOutput += "Verified the application name [$AppName] is now successfully showing in Add/Remove programs as installed! Script complete."
         } Else {
             [array]$global:logOutput += "$AppName is not reporting back as installed in Add/Remove Programs."
