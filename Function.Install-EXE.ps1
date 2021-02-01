@@ -69,7 +69,8 @@ Function Install-EXE {
     # To ensure successful downloads we need to set TLS protocal type to Tls1.2. Downloads regularly fail via Powershell without this step.
     Try {
         If (!([Net.SecurityProtocolType]::Tls12 )) {
-            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            # Oddly, this command works to enable TLS12 on even Powershellv2 when it shows as unavailable. This also still works for Win8+
+            [Net.ServicePointManager]::SecurityProtocol =  [Enum]::ToObject([Net.SecurityProtocolType], 3072)
             $global:logOutput += "Successfully enabled TLS1.2 to ensure successful file downloads."
         }
     } Catch {
@@ -88,7 +89,7 @@ Function Install-EXE {
         [array]$installedApps = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
         [array]$installedApps += Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
         If ((Get-PSDrive -PSProvider Registry).Name -notcontains 'HKU') {
-            New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS
+            New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS | Out-Null
         }
         # Applications can also install to single user profiles, so we're checking user profiles too
         [array]$installedApps += Get-ItemProperty "HKU:\*\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
@@ -151,9 +152,9 @@ Function Install-EXE {
         [array]$global:logOutput += "Failed to install $AppName. Full error output: $Error"
     }
 
-    ## Delete the installer file
+    # Delete the installer file
     Remove-Item $FileEXEPath -Force
 
-    $global:logOutput = $global:logOutput -join "`n"
+    [array]$global:logOutput = [array]$global:logOutput -join "`n"
     $global:logOutput
 }
