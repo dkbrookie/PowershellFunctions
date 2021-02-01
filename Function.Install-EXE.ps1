@@ -71,14 +71,14 @@ Function Install-EXE {
         If (!([Net.SecurityProtocolType]::Tls12 )) {
             # Oddly, this command works to enable TLS12 on even Powershellv2 when it shows as unavailable. This also still works for Win8+
             [Net.ServicePointManager]::SecurityProtocol =  [Enum]::ToObject([Net.SecurityProtocolType], 3072) | Out-Null
-            $global:logOutput += "Successfully enabled TLS1.2 to ensure successful file downloads."
+            $script:logOutput += "Successfully enabled TLS1.2 to ensure successful file downloads."
         }
     } Catch {
-        $global:logOutput += "Encountered an error while attempting to enable TLS1.2 to ensure successful file downloads. This can sometimes be due to dated Powershell. Checking Powershell version..."
+        $script:logOutput += "Encountered an error while attempting to enable TLS1.2 to ensure successful file downloads. This can sometimes be due to dated Powershell. Checking Powershell version..."
         # Generally enabling TLS1.2 fails due to dated Powershell so we're doing a check here to help troubleshoot failures later
         $psVers = $PSVersionTable.PSVersion
         If ($psVers.Major -lt 3) {
-            $global:logOutput += "Powershell version installed is only $psVers which has known issues with this script directly related to successful file downloads. Script will continue, but may be unsuccessful."
+            $script:logOutput += "Powershell version installed is only $psVers which has known issues with this script directly related to successful file downloads. Script will continue, but may be unsuccessful."
         }
     }
     
@@ -95,13 +95,13 @@ Function Install-EXE {
         [array]$installedApps += Get-ItemProperty "HKU:\*\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
         [array]$installedApps += Get-ItemProperty "HKU:\*\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
         # Not using all of this output right now but nice to have it handy in case we want to output any of it later
-        $global:installedAppNames = $installedApps.DisplayName
-        $global:installedAppDate = $installedApps.InstallDate
-        $global:installedAppUninstallString = $installedApps.UninstallString
+        $script:installedAppNames = $installedApps.DisplayName
+        $script:installedAppDate = $installedApps.InstallDate
+        $script:installedAppUninstallString = $installedApps.UninstallString
         If ($installedApps) {
             If ($installedApps.Count -gt 1) {
-                [array]$global:logOutput += "Multiple applications found with the word(s) [$AppName] in the display name in Add/Remove programs. See list below..."
-                [array]$global:logOutput += $installedAppNames
+                [array]$script:logOutput += "Multiple applications found with the word(s) [$AppName] in the display name in Add/Remove programs. See list below..."
+                [array]$script:logOutput += $installedAppNames
             }
             'Success'
         } Else {
@@ -127,14 +127,14 @@ Function Install-EXE {
             (New-Object System.Net.WebClient).DownloadFile($FileDownloadLink,$FileEXEPath)
         }
     } Catch {
-        [array]$global:logOutput += "Failed to download $FileDownloadLink to $FileEXEPath"
+        [array]$script:logOutput += "Failed to download $FileDownloadLink to $FileEXEPath"
     }
 
 
     # Since we added the option to NOT wait for the EXE to finish (on the off chance an EXE hangs after install, some do this for some reason) we need to
     # set alternate start-process commands
     Try {
-        [array]$global:logOutput += "Beginning installation of $AppName..."
+        [array]$script:logOutput += "Beginning installation of $AppName..."
         If ($Arguments) {
             If ($Wait) {
                 Start-Process $FileEXEPath -Wait -ArgumentList "$Arguments"
@@ -150,17 +150,17 @@ Function Install-EXE {
         }
         $status = Get-InstalledApplications -ApplicationName $AppName
         If ($status -eq 'Success') {
-            [array]$global:logOutput += "Verified the application name [$AppName] is now successfully showing in Add/Remove programs as installed! Script complete."
+            [array]$script:logOutput += "Verified the application name [$AppName] is now successfully showing in Add/Remove programs as installed! Script complete."
         } Else {
-            [array]$global:logOutput += "$AppName is not reporting back as installed in Add/Remove Programs."
+            [array]$script:logOutput += "$AppName is not reporting back as installed in Add/Remove Programs."
         }
     } Catch {
-        [array]$global:logOutput += "Failed to install $AppName. Full error output: $Error"
+        [array]$script:logOutput += "Failed to install $AppName. Full error output: $Error"
     }
 
     # Delete the installer file
     Remove-Item $FileEXEPath -Force
 
-    [array]$global:logOutput = [array]$global:logOutput -join "`n"
-    $global:logOutput
+    [array]$script:logOutput = [array]$script:logOutput -join "`n"
+    $script:logOutput
 }
