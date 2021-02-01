@@ -70,7 +70,7 @@ Function Install-EXE {
     Try {
         If (!([Net.SecurityProtocolType]::Tls12 )) {
             # Oddly, this command works to enable TLS12 on even Powershellv2 when it shows as unavailable. This also still works for Win8+
-            [Net.ServicePointManager]::SecurityProtocol =  [Enum]::ToObject([Net.SecurityProtocolType], 3072)
+            [Net.ServicePointManager]::SecurityProtocol =  [Enum]::ToObject([Net.SecurityProtocolType], 3072) | Out-Null
             $global:logOutput += "Successfully enabled TLS1.2 to ensure successful file downloads."
         }
     } Catch {
