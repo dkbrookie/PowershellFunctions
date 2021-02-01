@@ -134,6 +134,7 @@ Function Install-EXE {
     # Since we added the option to NOT wait for the EXE to finish (on the off chance an EXE hangs after install, some do this for some reason) we need to
     # set alternate start-process commands
     Try {
+        [array]$global:logOutput += "Beginning installation of $AppName..."
         If ($Arguments) {
             If ($Wait) {
                 Start-Process $FileEXEPath -Wait -ArgumentList "$Arguments"
