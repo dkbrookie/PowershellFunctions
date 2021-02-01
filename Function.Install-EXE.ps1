@@ -1,13 +1,13 @@
 Function Install-EXE {
     <#
     .SYNOPSIS
-    Install-EXE allows you to easily downooad and install an application via EXE
+    Install-EXE allows you to easily download and install an application via EXE
 
     .DESCRIPTION
-    This allows you to define as little as just the download link for the EXE installer and the rest
-    will be auto filled for you. If you decide to define more flags, like install dir or arguments,
-    you will need to make sure these values are complete and in quotes if there are spaces. See examples
-    for more informaiton.
+    This allows you to define as little as just the download link and application name for the  installer and 
+    the rest will be auto filled for you. If you decide to define more flags, like install dir or arguments,
+    you will need to make sure these values are complete and in quotes if there are spaces. See examples for 
+    more informaiton.
 
     .PARAMETER AppName
     IMPORTANT: Type the name EXACTLY as shown in Add/Remove programs in Control Panel. This will be used 
@@ -49,6 +49,10 @@ Function Install-EXE {
             HelpMessage = "Please enter the name of the application you want to install exactly as seen in Add/Remove programs."
         )]
         [string]$AppName,
+        [Parameter(
+            Mandatory = $true,
+            HelpMessage = "Please enter the full download URL for the installation EXE. This should look something like 'https://website.com/folder/exefile.exe'."
+        )]
         [string]$FileDownloadLink,
         [string]$FileDir,
         [string]$FileEXEPath,
@@ -78,7 +82,7 @@ Function Install-EXE {
     }
     
 
-    # Quick function to check for successful application install after the installer runs
+    # Quick function to check for successful application install after the installer runs. This is used near the end of the function.
     Function Get-InstalledApplications ($ApplicationName) {
         # Applications may be in either of these locations depending on if x86 or x64
         [array]$installedApps = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
