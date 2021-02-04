@@ -110,22 +110,30 @@ Function Install-EXE {
 
     # Create all the dirs we need for a successful download/install
     Try {
+        # Check for the directory variable and set it if it doensn't exist
         If (!$FileDir) {
             $FileDir = "$env:windir\LTSvc\packages\software\$AppName"
         }
+        # Create the directory if it doesn't exist
         If(!(Test-Path $FileDir)) {
             New-Item -ItemType Directory $FileDir | Out-Null
         }
-
+        # Set the path for the EXE installer
         If (!$FileEXEPath) {
             $FileEXEPath = "$FileDir\$($AppName).EXE"
         }
 
+        # Download the EXE if it doens't exist, delete it and downlaod a new one of it does
         If(!(Test-Path $FileEXEPath -PathType Leaf)) {
+            (New-Object System.Net.WebClient).DownloadFile($FileDownloadLink,$FileEXEPath)
+        # If the file already exists, delete it so we can download a fresh copy. It may be a different version so this ensures we're
+        # working with the installer we intended to.
+        } Else {
+            Remove-Item $FileEXEPath -Force
             (New-Object System.Net.WebClient).DownloadFile($FileDownloadLink,$FileEXEPath)
         }
     } Catch {
-        [array]$script:logOutput += "Failed to download $FileDownloadLink to $FileEXEPath"
+        [array]$script:logOutput += "Failed to download $FileDownloadLink to $FileEXEPath. Unable to proceed with install without the installer file, exiting script."
     }
 
 
@@ -135,14 +143,18 @@ Function Install-EXE {
         [array]$script:logOutput += "Beginning installation of $AppName..."
         If ($Arguments) {
             If ($Wait) {
+                # Install with arguments and wait
                 Start-Process $FileEXEPath -Wait -ArgumentList "$Arguments"
             } Else {
+                # Install with arguments and no wait
                 Start-Process $FileEXEPath -ArgumentList "$Arguments"
             }
         } Else {
             If ($Wait) {
+                # Install with no arguments and wait
                 Start-Process $FileEXEPath -Wait
             } Else {
+                # Install with no arguments and no wait
                 Start-Process $FileEXEPath
             }
         }
@@ -156,8 +168,10 @@ Function Install-EXE {
         [array]$script:logOutput += "Failed to install $AppName. Full error output: $Error"
     }
 
+
     # Delete the installer file
     Remove-Item $FileEXEPath -Force
+
 
     [array]$script:logOutput = [array]$script:logOutput -join "`n"
     $script:logOutput
