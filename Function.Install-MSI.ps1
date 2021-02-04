@@ -76,10 +76,12 @@ Function Install-MSI {
     # Lingering powershell tasks can hold up a successful installation, so here we're saying if a powershell
     # process has been running for more than 90min, and the user is NT Authority\SYSTEM, kill it
     [array]$processes = Get-Process -Name powershell -IncludeUserName | Where { $_.UserName -eq 'NT AUTHORITY\SYSTEM' }
-    ForEach ($process in $processes) {
-        $timeOpen = New-TimeSpan -Start (Get-Process -Id $process.ID).StartTime
-        If ($timeOpen.TotalMinutes -gt 90) {
-            Stop-Process -Id $process.Id -Force
+    If ($processes) {
+        ForEach ($process in $processes) {
+            $timeOpen = New-TimeSpan -Start (Get-Process -Id $process.ID).StartTime
+            If ($timeOpen.TotalMinutes -gt 90) {
+                Stop-Process -Id $process.Id -Force
+            }
         }
     }
 
