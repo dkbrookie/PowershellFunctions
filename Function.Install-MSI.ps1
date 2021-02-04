@@ -73,46 +73,57 @@ Function Install-MSI {
     )
 
 
-        # To ensure successful downloads we need to set TLS protocal type to Tls1.2. Downloads regularly fail via Powershell without this step.
-        Try {
-            # Oddly, this command works to enable TLS12 on even Powershellv2 when it shows as unavailable. This also still works for Win8+
-            [Net.ServicePointManager]::SecurityProtocol = [Enum]::ToObject([Net.SecurityProtocolType], 3072)
-            [array]$script:logOutput += "Successfully enabled TLS1.2 to ensure successful file downloads."
-        } Catch {
-            [array]$script:logOutput += "Encountered an error while attempting to enable TLS1.2 to ensure successful file downloads. This can sometimes be due to dated Powershell. Checking Powershell version..."
-            # Generally enabling TLS1.2 fails due to dated Powershell so we're doing a check here to help troubleshoot failures later
-            $psVers = $PSVersionTable.PSVersion
-            If ($psVers.Major -lt 3) {
-                [array]$script:logOutput += "Powershell version installed is only $psVers which has known issues with this script directly related to successful file downloads. Script will continue, but may be unsuccessful."
-            }
+    # Lingering powershell tasks can hold up a successful installation, so here we're saying if a powershell
+    # process has been running for more than 90min, and the user is NT Authority\SYSTEM, kill it
+    [array]$processes = Get-Process -Name powershell -IncludeUserName | Where { $_.UserName -eq 'NT AUTHORITY\SYSTEM' }
+    ForEach ($process in $processes) {
+        $timeOpen = New-TimeSpan -Start (Get-Process -Id $process.ID).StartTime
+        If ($timeOpen.TotalMinutes -gt 90) {
+            Stop-Process -Id $process.Id -Force
         }
-        
+    }
+
+
+    # To ensure successful downloads we need to set TLS protocal type to Tls1.2. Downloads regularly fail via Powershell without this step.
+    Try {
+        # Oddly, this command works to enable TLS12 on even Powershellv2 when it shows as unavailable. This also still works for Win8+
+        [Net.ServicePointManager]::SecurityProtocol = [Enum]::ToObject([Net.SecurityProtocolType], 3072)
+        [array]$script:logOutput += "Successfully enabled TLS1.2 to ensure successful file downloads."
+    } Catch {
+        [array]$script:logOutput += "Encountered an error while attempting to enable TLS1.2 to ensure successful file downloads. This can sometimes be due to dated Powershell. Checking Powershell version..."
+        # Generally enabling TLS1.2 fails due to dated Powershell so we're doing a check here to help troubleshoot failures later
+        $psVers = $PSVersionTable.PSVersion
+        If ($psVers.Major -lt 3) {
+            [array]$script:logOutput += "Powershell version installed is only $psVers which has known issues with this script directly related to successful file downloads. Script will continue, but may be unsuccessful."
+        }
+    }
     
-        # Quick function to check for successful application install after the installer runs. This is used near the end of the function.
-        Function Get-InstalledApplications ($ApplicationName) {
-            # Applications may be in either of these locations depending on if x86 or x64
-            [array]$installedApps = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
-            [array]$installedApps += Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
-            If ((Get-PSDrive -PSProvider Registry).Name -notcontains 'HKU') {
-                New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS | Out-Null
-            }
-            # Applications can also install to single user profiles, so we're checking user profiles too
-            [array]$installedApps += Get-ItemProperty "HKU:\*\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
-            [array]$installedApps += Get-ItemProperty "HKU:\*\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
-            # Not using all of this output right now but nice to have it handy in case we want to output any of it later
-            $script:installedAppNames = $installedApps.DisplayName
-            $script:installedAppDate = $installedApps.InstallDate
-            $script:installedAppUninstallString = $installedApps.UninstallString
-            If ($installedApps) {
-                If ($installedApps.Count -gt 1) {
-                    [array]$script:logOutput += "Multiple applications found with the word(s) [$AppName] in the display name in Add/Remove programs. See list below..."
-                    [array]$script:logOutput += $installedAppNames
-                }
-                'Success'
-            } Else {
-                'Failed'
-            }
+
+    # Quick function to check for successful application install after the installer runs. This is used near the end of the function.
+    Function Get-InstalledApplications ($ApplicationName) {
+        # Applications may be in either of these locations depending on if x86 or x64
+        [array]$installedApps = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
+        [array]$installedApps += Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
+        If ((Get-PSDrive -PSProvider Registry).Name -notcontains 'HKU') {
+            New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS | Out-Null
         }
+        # Applications can also install to single user profiles, so we're checking user profiles too
+        [array]$installedApps += Get-ItemProperty "HKU:\*\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
+        [array]$installedApps += Get-ItemProperty "HKU:\*\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
+        # Not using all of this output right now but nice to have it handy in case we want to output any of it later
+        $script:installedAppNames = $installedApps.DisplayName
+        $script:installedAppDate = $installedApps.InstallDate
+        $script:installedAppUninstallString = $installedApps.UninstallString
+        If ($installedApps) {
+            If ($installedApps.Count -gt 1) {
+                [array]$script:logOutput += "Multiple applications found with the word(s) [$AppName] in the display name in Add/Remove programs. See list below..."
+                [array]$script:logOutput += $installedAppNames
+            }
+            'Success'
+        } Else {
+            'Failed'
+        }
+    }
 
 
     # Create all the dirs we need for a successful download/install

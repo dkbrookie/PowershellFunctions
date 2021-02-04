@@ -66,6 +66,18 @@ Function Install-EXE {
         [boolean]$Wait = $true
     )
 
+
+    # Lingering powershell tasks can hold up a successful installation, so here we're saying if a powershell
+    # process has been running for more than 90min, and the user is NT Authority\SYSTEM, kill it
+    [array]$processes = Get-Process -Name powershell -IncludeUserName | Where { $_.UserName -eq 'NT AUTHORITY\SYSTEM' }
+    ForEach ($process in $processes) {
+        $timeOpen = New-TimeSpan -Start (Get-Process -Id $process.ID).StartTime
+        If ($timeOpen.TotalMinutes -gt 90) {
+            Stop-Process -Id $process.Id -Force
+        }
+    }
+
+
     # To ensure successful downloads we need to set TLS protocal type to Tls1.2. Downloads regularly fail via Powershell without this step.
     Try {
         # Oddly, this command works to enable TLS12 on even Powershellv2 when it shows as unavailable. This also still works for Win8+
