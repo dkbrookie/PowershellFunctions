@@ -75,7 +75,7 @@ Function Install-EXE {
             $timeOpen = New-TimeSpan -Start (Get-Process -Id $process.ID).StartTime
             If ($timeOpen.TotalMinutes -gt 90) {
                 Try {
-                    [array]$script:logOutput += "Foudn the process [$($process.Name)] has been running for 90+ minutes. Killing this off to ensure a successful installation..."
+                    [array]$script:logOutput += "Found the process [$($process.Name)] has been running for 90+ minutes. Killing this off to ensure a successful installation..."
                     Stop-Process -Id $process.Id -Force
                     [array]$script:logOutput += "[$($process.Name)] has been successfully stopped."
                 } Catch {
