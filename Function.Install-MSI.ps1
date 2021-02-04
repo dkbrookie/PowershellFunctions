@@ -151,6 +151,16 @@ Function Install-MSI {
 
 
     Try {
+        If ((Get-Process -Name msiexec)) {
+            [array]$script:logOutput += "Detected msiexec is already running in the background. End tasking this to ensure a successful MSI deployment..."
+             Stop-Process -Name msiexec -Force
+            [array]$script:logOutput += "msiexec ended successfully."
+        }
+    } Catch {
+        [array]$script:logOutput += "Encountered an error when attempting to end msiexec. Installation attempt still proceeding, but msiexec already running may cause issues with the install."
+    }
+
+    Try {
         [array]$script:logOutput += "Beginning installation of $AppName..."
         If ($Arguments) {
             If ($Wait) {
