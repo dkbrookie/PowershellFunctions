@@ -80,7 +80,13 @@ Function Install-MSI {
         ForEach ($process in $processes) {
             $timeOpen = New-TimeSpan -Start (Get-Process -Id $process.ID).StartTime
             If ($timeOpen.TotalMinutes -gt 90) {
-                Stop-Process -Id $process.Id -Force
+                Try {
+                    [array]$script:logOutput += "Foudn the process [$($process.Name)] has been running for 90+ minutes. Killing this off to ensure a successful installation..."
+                    Stop-Process -Id $process.Id -Force
+                    [array]$script:logOutput += "[$($process.Name)] has been successfully stopped."
+                } Catch {
+                    [array]$script:logOutput += "There was an error when trying to end the $($process.Name)] process."
+                }
             }
         }
     }
@@ -199,8 +205,11 @@ Function Install-MSI {
             [array]$script:logOutput += "$AppName is not reporting back as installed in Add/Remove Programs."
         }
     } Catch {
-        [array]$script:logOutput += "Failed to install $AppName. Full error output: $Error"
+        [array]$script:logOutput += "Failed to install $AppName."
     }
+
+
+    [array]$script:logOutput += "For potential troubleshooting needs, here is the full error output: $Error"
 
 
     ## Delete the installer file
