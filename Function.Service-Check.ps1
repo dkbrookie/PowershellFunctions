@@ -223,7 +223,7 @@ Function Service-Check {
             If ($FileOutput -eq 'Y') {
             Set-Content -Value "Status=$status|logOutput=$logOutput|uptime=$uptime|successfulRestarts=$successfulRestarts|failedRestarts=$failedRestarts" -Path $outputFile
             } Else {
-                "Status=$status|logOutput=$logOutput|uptime=$uptime|successfulRestarts=$successfulRestarts|failedRestarts=$failedRestarts"
+                "logOutput=$logOutput|Status=$status|uptime=$uptime|successfulRestarts=$successfulRestarts|failedRestarts=$failedRestarts"
             }
         }
     } Else {
