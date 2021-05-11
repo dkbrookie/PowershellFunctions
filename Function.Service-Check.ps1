@@ -60,7 +60,7 @@ Function Service-Check {
         ,[Parameter(
             HelpMessage='Set to Y if you want the final output to go to a text file at $env:windir\LTSvc\serviceMonitor\[reuslt].txt. By default this is set to N and will output to console.'
         )]
-        [ValidateSet('AD','Apache','Autodesk','Citrix XenApp','Connectwise Control Endpoint','Connectwise Control Server','Connectwise Manage','DHCP','DNS','EleVia','Exchange','Hyper-V','IIS','ManageEngine AD Password','Microsoft Dynamics','MSSQL','MySQL','Perch Log Shipper','PostgreSQL','Print','ProjectWise','Quickbooks','Sentinel Licensing Server','SentinelOne','Sharepoint','Trimble','Umbrella','Veeam Agent','Veeam B&R','Windows Server','Windows Workstation')]
+        [ValidateSet('AD','Apache','Autodesk','Citrix XenApp','Connectwise Control Endpoint','Connectwise Control Server','Connectwise Manage','DHCP','DNS','EleVia','Exchange','Hyper-V','IIS','ManageEngine Password Self Reset','Microsoft Dynamics','MSSQL','MySQL','Perch Log Shipper','PostgreSQL','Print','ProjectWise','Quickbooks','Sentinel Licensing Server','SentinelOne','Sharepoint','Trimble','Umbrella','Veeam Agent','Veeam B&R','Windows Server','Windows Workstation')]
         [array]$Role
         ,[int]$AcceptableUptime = 15
         ,[Parameter(
@@ -100,7 +100,7 @@ Function Service-Check {
         'Exchange' {[array]$ServiceList += 'EdgeCredentialSvc','HostControllerService','IMAP4Svc','MSComplianceAudit','MSExchangeAB','MSExchangeADAM','MSExchangeADTopology','MSExchangeAntispamUpdate','MSExchangeCompliance','MSExchangeDagMgmt','MSExchangeDelivery','MSExchangeDiagnostics','MSExchangeEdgeCredential','MSExchangeEdgeSync','MSExchangeFastSearch','MSExchangeFBA','MSExchangeFDS','MSExchangeFrontEndTransport','MSExchangeHM','MSExchangeHMRecovery','MSExchangeIMAP4','MSExchangeIMAP4BE','MSExchangeIS','MSExchangeMailboxReplication','MSExchangeMailSubmission','MSExchangeMGMT','MSExchangeMailboxAssistants','MSExchangeMTA','MSExchangeNotificationsBroker','MSExchangePOP3','MSExchangePOP3BE','MSExchangeProtectedServiceHost','MSExchangeRepl','MSExchangeRPC','MSExchangeSA','MSExchangeSearch','MSExchangeServiceHost','MSExchangeSubmission','MSExchangeThrottling','MSExchangeTransport','MSExchangeTransportLogSearch','MSExchangeUM','MSExchangeUMCR','MSSpeechService','POP3Svc','RESvc','SMTPSVC','WSBExchange'}
         'Hyper-V' {[array]$ServiceList += 'vmms','vhdsvc','nvspwmi'}
         'IIS' {[array]$ServiceList += 'IISAdmin','W3SVC'}
-        'ManageEngine AD Password' {[array]$ServiceList += 'ADSelfServicePlus','ADManager Plus','ADAudit Plus','ManageEngineAnalyticsPlusServer'}
+        'ManageEngine Password Self Reset' {[array]$ServiceList += 'ADSelfServicePlus','ADManager Plus','ADAudit Plus','ManageEngineAnalyticsPlusServer'}
         'Microsoft Dynamics' {[array]$ServiceList += 'MicrosoftDynamicsNavServer','MicrosoftDynamicsNavWS'}
         'MSSQL' {[array]$ServiceList += 'MSSQLSERVER','SQLBrowser','SQLWriter','MsDtsServer100','MsDtsServer 110','MsDtsServer120','MsDtsServer130','MsDtsServer140','MSSQLServerOLAPService','SQLServerAgent'}
         'MySQL' {[array]$ServiceList += 'MySQL'}
