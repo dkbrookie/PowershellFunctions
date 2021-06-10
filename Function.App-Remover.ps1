@@ -122,6 +122,10 @@ Function App-Remover {
                 [array]$logOutput += Start-Process $uninstallString -ArgumentList '/verysilent' -Wait -EA 0
                 [array]$logOutput += "Attempting $uninstallString /silent..."
                 [array]$logOutput += Start-Process $uninstallString -ArgumentList '/silent' -Wait -EA 0
+                [array]$logOutput += "Attempting $uninstallString /quiet..."
+                [array]$logOutput += Start-Process $uninstallString -ArgumentList '/quiet' -Wait -EA 0
+                [array]$logOutput += "Attempting $uninstallString /q..."
+                [array]$logOutput += Start-Process $uninstallString -ArgumentList '/q' -Wait -EA 0
             }
             If ($uninstallString -like '*msiexec*' -and $uninstallString -notlike '*/qn*' -and $uninstallString -notlike '*/norestart*') {
                 [array]$logOutput += "Attempting $uninstallString /qn /norestart..."
