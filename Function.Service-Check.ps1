@@ -60,7 +60,7 @@ Function Service-Check {
         ,[Parameter(
             HelpMessage='Set to Y if you want the final output to go to a text file at $env:windir\LTSvc\serviceMonitor\[reuslt].txt. By default this is set to N and will output to console.'
         )]
-        [ValidateSet('AD','Apache','Autodesk','Citrix XenApp','Connectwise Control Endpoint','Connectwise Control Server','Connectwise Manage','DHCP','DNS','EleVia','Exchange','Hyper-V','IIS','Lighthouse','ManageEngine Password Self Reset','Microsoft Dynamics','MSSQL','MySQL','Perch Log Shipper','PostgreSQL','Print','ProjectWise','Quickbooks','Sentinel Licensing Server','SentinelOne','Sharepoint','Trimble','Umbrella','Veeam Agent','Veeam B&R','Windows Server','Windows Workstation')]
+        [ValidateSet('AD','Apache','Autodesk','Citrix XenApp','Connectwise Control Endpoint','Connectwise Control Server','Connectwise Manage','DHCP','DNS','EleVia','Exchange','Hyper-V','IIS','Lighthouse','ManageEngine Password Self Reset','Microsoft Dynamics','MSSQL','MySQL','Perch Log Shipper','PostgreSQL','Print','ProjectWise','Quickbooks','Sentinel Licensing Server','SentinelOne','Sharepoint','Trimble','Umbrella','Veeam Agent','Veeam B&R','Webroot','Windows Server','Windows Workstation')]
         [array]$Role
         ,[int]$AcceptableUptime = 15
         ,[Parameter(
@@ -118,6 +118,7 @@ Function Service-Check {
         'Umbrella' {[array]$ServiceList += 'Umbrella_RC'}
         'Veeam Agent' {[array]$ServiceList += 'VeeamEndpointBackupSvc' }
         'Veeam B&R' {[array]$ServiceList += 'VeeamBackupSvc','VeeamBrokerSvc','VeeamCatalogSvc','VeeamCloudSvc','VeeamDeploySvc','VeeamDistributionSvc','VeeamFilesysVssSvc','VeeamManagementAgentSvc','VeeamMBPDeploymentService','VeeamMountSvc','VeeamNFSSvc','VeeamTransportSvc' }
+        'Webroot' {[array]$ServiceList += 'WRSVC'}
         'Windows Server' {[array]$ServiceList += 'EventLog','Schedule','ProfSvc','LSM'}
         'Windows Workstation' {[array]$ServiceList += 'DHCP','spooler','EventLog','Schedule','ProfSvc','LSM','NetLogon','LanmanWorkstation','Dnscache','SamSs','PlugPlay','CryptSvc','Server','Workstation'}
     }

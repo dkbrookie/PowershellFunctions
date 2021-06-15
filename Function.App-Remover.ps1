@@ -71,7 +71,7 @@ Function App-Remover {
     # MSIExec removal attempt
     $appGUID = (Get-WmiObject Win32_Product | Where-Object { $_.Name -like "*$AppName*" }).IdentifyingNumber
     If ($appGUID) {
-        [array]$logOutput += "Attempting to remove $AppName with the found GUID of $appGUID using MSIExec /uninstall..."
+        [array]$logOutput += "Attempting: Start-Process msiexec.exe -ArgumentList /x $appGUID /qn /norestart /l $LogPath -Wait"
         [array]$logOutput += Start-Process msiexec.exe -ArgumentList "/x ""$appGUID"" /qn /norestart /l ""$LogPath""" -Wait
         $appStatus = Get-InstalledApplications -ApplicationName $AppName
         If ($appStatus -eq 'NotInstalled') {
@@ -111,33 +111,32 @@ Function App-Remover {
     ForEach ($app in $installedApps) {
         $appGUID = $app.PSChildName
         $uninstallString = $app.UninstallString
-        [array]$logOutput += "Attemping to remove $appGUID..."
-            [array]$logOutput += Start-Process msiexec.exe -ArgumentList "/x ""$appGUID"" /qn /norestart /l ""$LogPath""" -Wait
-            If ($uninstallString -like '*.exe*' -and $uninstallString -notlike '*msiexec*') {
-                [array]$logOutput += "Attempting $uninstallString /s..."
-                [array]$logOutput += Start-Process $uninstallString -ArgumentList '/s' -Wait -EA 0
-                [array]$logOutput += "Attempting $uninstallString /S..."
-                [array]$logOutput += Start-Process $uninstallString -ArgumentList '/S' -Wait -EA 0
-                [array]$logOutput += "Attempting $uninstallString /verysilent..."
-                [array]$logOutput += Start-Process $uninstallString -ArgumentList '/verysilent' -Wait -EA 0
-                [array]$logOutput += "Attempting $uninstallString /silent..."
-                [array]$logOutput += Start-Process $uninstallString -ArgumentList '/silent' -Wait -EA 0
-            }
-            If ($uninstallString -like '*msiexec*' -and $uninstallString -notlike '*/qn*' -and $uninstallString -notlike '*/norestart*') {
-                [array]$logOutput += "Attempting $uninstallString /qn /norestart..."
-                $uninstallString = $uninstallstring + ' /qn /norestart'
-            } Else {
-                [array]$logOutput += "Attempting $uninstallString..."
-                [array]$logOutput += &cmd.exe /c "$uninstallString"
-            }
+        [array]$logOutput += Start-Process msiexec.exe -ArgumentList "/x ""$appGUID"" /qn /norestart /l ""$LogPath""" -Wait
+        If ($uninstallString -like '*.exe*' -and $uninstallString -notlike '*msiexec*') {
+            [array]$logOutput += "Attempting: $uninstallString /s..."
+            [array]$logOutput += Start-Process $uninstallString -ArgumentList '/s' -Wait -EA 0
+            [array]$logOutput += "Attempting: $uninstallString /S..."
+            [array]$logOutput += Start-Process $uninstallString -ArgumentList '/S' -Wait -EA 0
+            [array]$logOutput += "Attempting: $uninstallString /verysilent..."
+            [array]$logOutput += Start-Process $uninstallString -ArgumentList '/verysilent' -Wait -EA 0
+            [array]$logOutput += "Attempting: $uninstallString /silent..."
+            [array]$logOutput += Start-Process $uninstallString -ArgumentList '/silent' -Wait -EA 0
         }
-        $appStatus = Get-InstalledApplications -ApplicationName $AppName
-        If ($appStatus -eq 'NotInstalled') {
-            [array]$logOutput += "$AppName has been successfully removed! Exiting script"
-            $logOutput
-            Break
+        If ($uninstallString -like '*msiexec*' -and $uninstallString -notlike '*/qn*' -and $uninstallString -notlike '*/norestart*') {
+            [array]$logOutput += "Attempting: $uninstallString /qn /norestart..."
+            $uninstallString = $uninstallstring + ' /qn /norestart'
         } Else {
-            [array]$logOutput += "$AppName has failed to uninstall using the manual reg search paired with the MSIExec /x method"
+            [array]$logOutput += "Attempting: $uninstallString..."
+            [array]$logOutput += &cmd.exe /c "$uninstallString"
+        }
+    }
+    $appStatus = Get-InstalledApplications -ApplicationName $AppName
+    If ($appStatus -eq 'NotInstalled') {
+        [array]$logOutput += "$AppName has been successfully removed! Exiting script"
+        $logOutput
+        Break
+    } Else {
+        [array]$logOutput += "$AppName has failed to uninstall using the manual reg search paired with the MSIExec /x method"
     }
 
     $logOutput
