@@ -111,16 +111,29 @@ Function App-Remover {
     ForEach ($app in $installedApps) {
         $appGUID = $app.PSChildName
         $uninstallString = $app.UninstallString
-        [array]$logOutput += Start-Process msiexec.exe -ArgumentList "/x ""$appGUID"" /qn /norestart /l ""$LogPath""" -Wait
-        If ($uninstallString -like '*.exe*' -and $uninstallString -notlike '*msiexec*') {
-            [array]$logOutput += "Attempting: $uninstallString /s..."
-            [array]$logOutput += Start-Process $uninstallString -ArgumentList '/s' -Wait -EA 0
-            [array]$logOutput += "Attempting: $uninstallString /S..."
-            [array]$logOutput += Start-Process $uninstallString -ArgumentList '/S' -Wait -EA 0
-            [array]$logOutput += "Attempting: $uninstallString /verysilent..."
-            [array]$logOutput += Start-Process $uninstallString -ArgumentList '/verysilent' -Wait -EA 0
-            [array]$logOutput += "Attempting: $uninstallString /silent..."
-            [array]$logOutput += Start-Process $uninstallString -ArgumentList '/silent' -Wait -EA 0
+        [array]$logOutput += "Attemping to remove $appGUID..."
+            [array]$logOutput += Start-Process msiexec.exe -ArgumentList "/x ""$appGUID"" /qn /norestart /l ""$LogPath""" -Wait
+            If ($uninstallString -like '*.exe*' -and $uninstallString -notlike '*msiexec*') {
+                [array]$logOutput += "Attempting $uninstallString /s..."
+                [array]$logOutput += Start-Process $uninstallString -ArgumentList '/s' -Wait -EA 0
+                [array]$logOutput += "Attempting $uninstallString /S..."
+                [array]$logOutput += Start-Process $uninstallString -ArgumentList '/S' -Wait -EA 0
+                [array]$logOutput += "Attempting $uninstallString /verysilent..."
+                [array]$logOutput += Start-Process $uninstallString -ArgumentList '/verysilent' -Wait -EA 0
+                [array]$logOutput += "Attempting $uninstallString /silent..."
+                [array]$logOutput += Start-Process $uninstallString -ArgumentList '/silent' -Wait -EA 0
+                [array]$logOutput += "Attempting $uninstallString /quiet..."
+                [array]$logOutput += Start-Process $uninstallString -ArgumentList '/quiet' -Wait -EA 0
+                [array]$logOutput += "Attempting $uninstallString /q..."
+                [array]$logOutput += Start-Process $uninstallString -ArgumentList '/q' -Wait -EA 0
+            }
+            If ($uninstallString -like '*msiexec*' -and $uninstallString -notlike '*/qn*' -and $uninstallString -notlike '*/norestart*') {
+                [array]$logOutput += "Attempting $uninstallString /qn /norestart..."
+                $uninstallString = $uninstallstring + ' /qn /norestart'
+            } Else {
+                [array]$logOutput += "Attempting $uninstallString..."
+                [array]$logOutput += &cmd.exe /c "$uninstallString"
+            }
         }
         If ($uninstallString -like '*msiexec*' -and $uninstallString -notlike '*/qn*' -and $uninstallString -notlike '*/norestart*') {
             [array]$logOutput += "Attempting: $uninstallString /qn /norestart..."
