@@ -60,7 +60,7 @@ Function Service-Check {
         ,[Parameter(
             HelpMessage='Set to Y if you want the final output to go to a text file at $env:windir\LTSvc\serviceMonitor\[reuslt].txt. By default this is set to N and will output to console.'
         )]
-        [ValidateSet('AD','Apache','Autodesk','Citrix XenApp','Connectwise Control Endpoint','Connectwise Control Server','Connectwise Manage','DHCP','DNS','EleVia','Exchange','Hyper-V','IIS','Lighthouse','ManageEngine Password Self Reset','Microsoft Dynamics','MSSQL','MySQL','Perch Log Shipper','PostgreSQL','Print','ProjectWise','Quickbooks','Sentinel Licensing Server','SentinelOne','Sharepoint','Trimble','Umbrella','Veeam Agent','Veeam B&R','Webroot','Windows Server','Windows Workstation')]
+        [ValidateSet('AD','Apache','Autodesk','AutoElevate','Citrix XenApp','Connectwise Control Endpoint','Connectwise Control Server','Connectwise Manage','DHCP','DNS','EleVia','Exchange','Hyper-V','IIS','Lighthouse','ManageEngine Password Self Reset','Microsoft Dynamics','MSSQL','MySQL','Perch Log Shipper','PostgreSQL','Print','ProjectWise','Quickbooks','Sentinel Licensing Server','SentinelOne','Sharepoint','Trimble','Umbrella','Veeam Agent','Veeam B&R','Webroot','Windows Server','Windows Workstation')]
         [array]$Role
         ,[int]$AcceptableUptime = 15
         ,[Parameter(
@@ -87,40 +87,41 @@ Function Service-Check {
 
     ## Here we define which services we want to check per role
     Switch ([array]$Role) {
-        'AD' {[array]$ServiceList += 'ADWS','NTDS','Netlogon','W32Time','LanmanServer','RpcSs','kdc'}
-        'Apache' {[array]$ServiceList += 'Apache*'}
-        'Autodesk' {[array]$ServiceList += 'Autodesk'}
-        'Citrix XenApp' {[array]$ServiceList += 'Citrix Encryption Service','Citrix Licensing','CitrixCseEngine','CitrixHealthMon','Citrix_GTLicensingProv','TSGateway','sshd'}
-        'Connectwise Control Endpoint' {[array]$ServiceList += 'ScreenConnect Client (dc46be1169788118)'}
-        'Connectwise Control Server' {[array]$ServiceList += 'ScreenConnect Relay','ScreenConnect Session Manager','ScreenConnect Web Server'}
-        'Connectwise Manage' {[array]$ServiceList += 'EmailRobot','CwManageSmtpRelay','NsnClientService','OutlookSync','ConnectWiseUpdaterService','ConnectWiseApiCallbackService','ConnectWiseEmailAuditService'}
-        'DHCP' {[array]$ServiceList += 'DHCPServer','DHCP'}
-        'DNS' {[array]$ServiceList += 'Dnscache','DNS'}
-        'EleVia' {[array]$ServiceList += 'EleVia Email Service','EleVia Invoice Watcher'}
-        'Exchange' {[array]$ServiceList += 'EdgeCredentialSvc','HostControllerService','IMAP4Svc','MSComplianceAudit','MSExchangeAB','MSExchangeADAM','MSExchangeADTopology','MSExchangeAntispamUpdate','MSExchangeCompliance','MSExchangeDagMgmt','MSExchangeDelivery','MSExchangeDiagnostics','MSExchangeEdgeCredential','MSExchangeEdgeSync','MSExchangeFastSearch','MSExchangeFBA','MSExchangeFDS','MSExchangeFrontEndTransport','MSExchangeHM','MSExchangeHMRecovery','MSExchangeIMAP4','MSExchangeIMAP4BE','MSExchangeIS','MSExchangeMailboxReplication','MSExchangeMailSubmission','MSExchangeMGMT','MSExchangeMailboxAssistants','MSExchangeMTA','MSExchangeNotificationsBroker','MSExchangePOP3','MSExchangePOP3BE','MSExchangeProtectedServiceHost','MSExchangeRepl','MSExchangeRPC','MSExchangeSA','MSExchangeSearch','MSExchangeServiceHost','MSExchangeSubmission','MSExchangeThrottling','MSExchangeTransport','MSExchangeTransportLogSearch','MSExchangeUM','MSExchangeUMCR','MSSpeechService','POP3Svc','RESvc','SMTPSVC','WSBExchange'}
-        'Hyper-V' {[array]$ServiceList += 'vmms','vhdsvc','nvspwmi'}
-        'IIS' {[array]$ServiceList += 'IISAdmin','W3SVC'}
-        'Lighthouse' {[array]$ServiceList += 'LICENCESERVER','DBSERVER'}
-        'ManageEngine Password Self Reset' {[array]$ServiceList += 'ADSelfServicePlus','ADManager Plus','ADAudit Plus','ManageEngineAnalyticsPlusServer'}
-        'Microsoft Dynamics' {[array]$ServiceList += 'MicrosoftDynamicsNavServer','MicrosoftDynamicsNavWS'}
-        'MSSQL' {[array]$ServiceList += 'MSSQLSERVER','SQLBrowser','SQLWriter','MsDtsServer100','MsDtsServer 110','MsDtsServer120','MsDtsServer130','MsDtsServer140','MSSQLServerOLAPService','SQLServerAgent'}
-        'MySQL' {[array]$ServiceList += 'MySQL'}
-        'Perch Log Shipper' {[array] $ServiceList += 'auditbeat','winlogbeat','sysmon','perch-auditbeat','perch-winlogbeat'}
-        'PostgreSQL' {[array]$ServiceList += 'postgresql','postgresql-x64-*'}
-        'Print' {[array]$ServiceList += 'Spooler'}
-        'ProjectWise' {[array]$ServiceList += 'PWFTSrv','PWConSrv','ProjectWise IMF Printer Driver Service','PWAppSrv','Bentley Orchestration Shepherd','PWAutSrv','BentleyLogging','BentleyGeoWebPublisherLoggingService','BentleyGeoWebPublisherImaging','BentleyGeoWebPublisherAutomationService','BentleyGeoWebPublisherServer','DgnIndexingService'}
-        'Quickbooks' {[array]$ServiceList += 'QuickbooksDB*'}
-        'Roar' {[array]$ServiceList += 'roaragent'}
-        'Sentinel Licensing Server' {[array]$ServiceList += 'hasplms','Sentinel RMS License Manager','SentinelKeysServer','SentinelProtectionServer','SentinelSecurityRuntime'}
-        'SentinelOne' {[array]$ServiceList += 'SentinelAgent','SentinelHelperService','LogProcessorService','SentinelStaticEngine'}
-        'SharePoint' {[array]$ServiceList += 'SPAdmin*','SPTimer*','SPTrace*','SPWriter*'}
-        'Trimble' {[array]$ServiceList += 'Trimble Mapping And GIS License Service'}
-        'Umbrella' {[array]$ServiceList += 'Umbrella_RC'}
-        'Veeam Agent' {[array]$ServiceList += 'VeeamEndpointBackupSvc' }
-        'Veeam B&R' {[array]$ServiceList += 'VeeamBackupSvc','VeeamBrokerSvc','VeeamCatalogSvc','VeeamCloudSvc','VeeamDeploySvc','VeeamDistributionSvc','VeeamFilesysVssSvc','VeeamManagementAgentSvc','VeeamMBPDeploymentService','VeeamMountSvc','VeeamNFSSvc','VeeamTransportSvc' }
-        'Webroot' {[array]$ServiceList += 'WRSVC'}
-        'Windows Server' {[array]$ServiceList += 'EventLog','Schedule','ProfSvc','LSM'}
-        'Windows Workstation' {[array]$ServiceList += 'DHCP','spooler','EventLog','Schedule','ProfSvc','LSM','NetLogon','LanmanWorkstation','Dnscache','SamSs','PlugPlay','CryptSvc','Server','Workstation'}
+        'AD'                                {[array]$ServiceList += 'ADWS','NTDS','Netlogon','W32Time','LanmanServer','RpcSs','kdc'}
+        'Apache'                            {[array]$ServiceList += 'Apache*'}
+        'Autodesk'                          {[array]$ServiceList += 'AESMService','AEDelayedStartService'}
+        'AutoElevate'                       {[array]$ServiceList += 'Autodesk'}
+        'Citrix XenApp'                     {[array]$ServiceList += 'Citrix Encryption Service','Citrix Licensing','CitrixCseEngine','CitrixHealthMon','Citrix_GTLicensingProv','TSGateway','sshd'}
+        'Connectwise Control Endpoint'      {[array]$ServiceList += 'ScreenConnect Client (dc46be1169788118)'}
+        'Connectwise Control Server'        {[array]$ServiceList += 'ScreenConnect Relay','ScreenConnect Session Manager','ScreenConnect Web Server'}
+        'Connectwise Manage'                {[array]$ServiceList += 'EmailRobot','CwManageSmtpRelay','NsnClientService','OutlookSync','ConnectWiseUpdaterService','ConnectWiseApiCallbackService','ConnectWiseEmailAuditService'}
+        'DHCP'                              {[array]$ServiceList += 'DHCPServer','DHCP'}
+        'DNS'                               {[array]$ServiceList += 'Dnscache','DNS'}
+        'EleVia'                            {[array]$ServiceList += 'EleVia Email Service','EleVia Invoice Watcher'}
+        'Exchange'                          {[array]$ServiceList += 'EdgeCredentialSvc','HostControllerService','IMAP4Svc','MSComplianceAudit','MSExchangeAB','MSExchangeADAM','MSExchangeADTopology','MSExchangeAntispamUpdate','MSExchangeCompliance','MSExchangeDagMgmt','MSExchangeDelivery','MSExchangeDiagnostics','MSExchangeEdgeCredential','MSExchangeEdgeSync','MSExchangeFastSearch','MSExchangeFBA','MSExchangeFDS','MSExchangeFrontEndTransport','MSExchangeHM','MSExchangeHMRecovery','MSExchangeIMAP4','MSExchangeIMAP4BE','MSExchangeIS','MSExchangeMailboxReplication','MSExchangeMailSubmission','MSExchangeMGMT','MSExchangeMailboxAssistants','MSExchangeMTA','MSExchangeNotificationsBroker','MSExchangePOP3','MSExchangePOP3BE','MSExchangeProtectedServiceHost','MSExchangeRepl','MSExchangeRPC','MSExchangeSA','MSExchangeSearch','MSExchangeServiceHost','MSExchangeSubmission','MSExchangeThrottling','MSExchangeTransport','MSExchangeTransportLogSearch','MSExchangeUM','MSExchangeUMCR','MSSpeechService','POP3Svc','RESvc','SMTPSVC','WSBExchange'}
+        'Hyper-V'                           {[array]$ServiceList += 'vmms','vhdsvc','nvspwmi'}
+        'IIS'                               {[array]$ServiceList += 'IISAdmin','W3SVC'}
+        'Lighthouse'                        {[array]$ServiceList += 'LICENCESERVER','DBSERVER'}
+        'ManageEngine Password Self Reset'  {[array]$ServiceList += 'ADSelfServicePlus','ADManager Plus','ADAudit Plus','ManageEngineAnalyticsPlusServer'}
+        'Microsoft Dynamics'                {[array]$ServiceList += 'MicrosoftDynamicsNavServer','MicrosoftDynamicsNavWS'}
+        'MSSQL'                             {[array]$ServiceList += 'MSSQLSERVER','SQLBrowser','SQLWriter','MsDtsServer100','MsDtsServer 110','MsDtsServer120','MsDtsServer130','MsDtsServer140','MSSQLServerOLAPService','SQLServerAgent'}
+        'MySQL'                             {[array]$ServiceList += 'MySQL'}
+        'Perch Log Shipper'                 {[array]$ServiceList += 'auditbeat','winlogbeat','sysmon','perch-auditbeat','perch-winlogbeat'}
+        'PostgreSQL'                        {[array]$ServiceList += 'postgresql','postgresql-x64-*'}
+        'Print'                             {[array]$ServiceList += 'Spooler'}
+        'ProjectWise'                       {[array]$ServiceList += 'PWFTSrv','PWConSrv','ProjectWise IMF Printer Driver Service','PWAppSrv','Bentley Orchestration Shepherd','PWAutSrv','BentleyLogging','BentleyGeoWebPublisherLoggingService','BentleyGeoWebPublisherImaging','BentleyGeoWebPublisherAutomationService','BentleyGeoWebPublisherServer','DgnIndexingService'}
+        'Quickbooks'                        {[array]$ServiceList += 'QuickbooksDB*'}
+        'Roar'                              {[array]$ServiceList += 'roaragent'}
+        'Sentinel Licensing Server'         {[array]$ServiceList += 'hasplms','Sentinel RMS License Manager','SentinelKeysServer','SentinelProtectionServer','SentinelSecurityRuntime'}
+        'SentinelOne'                       {[array]$ServiceList += 'SentinelAgent','SentinelHelperService','LogProcessorService','SentinelStaticEngine'}
+        'SharePoint'                        {[array]$ServiceList += 'SPAdmin*','SPTimer*','SPTrace*','SPWriter*'}
+        'Trimble'                           {[array]$ServiceList += 'Trimble Mapping And GIS License Service'}
+        'Umbrella'                          {[array]$ServiceList += 'Umbrella_RC'}
+        'Veeam Agent'                       {[array]$ServiceList += 'VeeamEndpointBackupSvc' }
+        'Veeam B&R'                         {[array]$ServiceList += 'VeeamBackupSvc','VeeamBrokerSvc','VeeamCatalogSvc','VeeamCloudSvc','VeeamDeploySvc','VeeamDistributionSvc','VeeamFilesysVssSvc','VeeamManagementAgentSvc','VeeamMBPDeploymentService','VeeamMountSvc','VeeamNFSSvc','VeeamTransportSvc' }
+        'Webroot'                           {[array]$ServiceList += 'WRSVC'}
+        'Windows Server'                    {[array]$ServiceList += 'EventLog','Schedule','ProfSvc','LSM'}
+        'Windows Workstation'               {[array]$ServiceList += 'DHCP','spooler','EventLog','Schedule','ProfSvc','LSM','NetLogon','LanmanWorkstation','Dnscache','SamSs','PlugPlay','CryptSvc','Server','Workstation'}
     }
 
     ## Get total uptime. Reason being, if the machine hasn't been on long it's going to be expected for services
