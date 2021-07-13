@@ -90,7 +90,7 @@ Function Service-Check {
         'AD'                                { [array]$ServiceList += 'ADWS','NTDS','Netlogon','W32Time','LanmanServer','RpcSs','kdc' }
         'Apache'                            { [array]$ServiceList += 'Apache*' }
         'Autodesk'                          { [array]$ServiceList += 'Autodesk' }
-        'AutoElevate'                       { [array]$ServiceList += 'AESMService','AEDelayedStartService' }
+        'AutoElevate'                       { [array]$ServiceList += 'AESMService' }
         'Citrix XenApp'                     { [array]$ServiceList += 'Citrix Encryption Service','Citrix Licensing','CitrixCseEngine','CitrixHealthMon','Citrix_GTLicensingProv','TSGateway','sshd' }
         'Connectwise Control Endpoint'      { [array]$ServiceList += 'ScreenConnect Client (dc46be1169788118)' }
         'Connectwise Control Server'        { [array]$ServiceList += 'ScreenConnect Relay','ScreenConnect Session Manager','ScreenConnect Web Server' }
