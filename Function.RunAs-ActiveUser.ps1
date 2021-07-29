@@ -273,4 +273,10 @@ namespace DKB.ProcessExtensions
 
 Add-Type -ReferencedAssemblies System.Windows.Forms, System.Runtime.InteropServices -TypeDefinition $Source -Language CSharp
 
-[DKB.ProcessExtensions.ProcessExtensions]::StartProcessAsCurrentUser("msg.exe * test test")
+# Displays a pop up dialog to the currently active user. Depends on active user existing.
+function Notify-ActiveUser (
+    [string]
+    $Message
+    ) {
+    [DKB.ProcessExtensions.ProcessExtensions]::StartProcessAsCurrentUser("msg.exe * $Message")
+}
