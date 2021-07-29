@@ -264,33 +264,6 @@ namespace DKB.ProcessExtensions
             }
             return true;
         }
-
-        public static bool ShowMessageToCurrentUser(string message)
-        {
-            var hUserToken = IntPtr.Zero;
-            var pEnv = IntPtr.Zero;
-            int iResultOfCreateProcessAsUser;
-
-            try
-            {
-                if (!GetSessionUserToken(ref hUserToken))
-                {
-                    throw new Exception("StartProcessAsCurrentUser: GetSessionUserToken failed.");
-                }
-
-                MessageBox.Show(message);
-                iResultOfCreateProcessAsUser = Marshal.GetLastWin32Error();
-            }
-            finally
-            {
-                CloseHandle(hUserToken);
-                if (pEnv != IntPtr.Zero)
-                {
-                    DestroyEnvironmentBlock(pEnv);
-                }
-            }
-            return true;
-        }
     }
 }
 
@@ -299,4 +272,4 @@ namespace DKB.ProcessExtensions
 
 Add-Type -ReferencedAssemblies System.Windows.Forms, System.Runtime.InteropServices -TypeDefinition $Source -Language CSharp
 
-[DKB.ProcessExtensions.ProcessExtensions]::ShowMessageToCurrentUser('test test')
+[DKB.ProcessExtensions.ProcessExtensions]::StartProcessAsCurrentUser('notepad.exe')
