@@ -142,7 +142,7 @@ Function App-Remover {
             [array]$logOutput += "Attempting: $uninstallString..."
             [array]$logOutput += &cmd.exe /c "$uninstallString"
         }
-    }
+    
     $appStatus = Get-InstalledApplications -ApplicationName $AppName
     If ($appStatus -eq 'NotInstalled') {
         [array]$logOutput += "$AppName has been successfully removed! Exiting script"
