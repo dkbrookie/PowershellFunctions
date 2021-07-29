@@ -209,7 +209,7 @@ namespace DKB.ProcessExtensions
             return bResult;
         }
 
-        public static bool StartProcessAsCurrentUser(string appPath, string cmdLine = null, string workDir = null, bool visible = true)
+        public static bool StartProcessAsCurrentUser(string cmdLine, string workDir = null, bool visible = true)
         {
             var hUserToken = IntPtr.Zero;
             var startInfo = new STARTUPINFO();
@@ -235,8 +235,9 @@ namespace DKB.ProcessExtensions
                     throw new Exception("StartProcessAsCurrentUser: CreateEnvironmentBlock failed.");
                 }
 
-                if (!CreateProcessAsUser(hUserToken,
-                    appPath, // Application Name
+                if (!CreateProcessAsUser(
+                    hUserToken,
+                    null, // Application Name
                     cmdLine, // Command Line
                     IntPtr.Zero,
                     IntPtr.Zero,
@@ -272,4 +273,4 @@ namespace DKB.ProcessExtensions
 
 Add-Type -ReferencedAssemblies System.Windows.Forms, System.Runtime.InteropServices -TypeDefinition $Source -Language CSharp
 
-[DKB.ProcessExtensions.ProcessExtensions]::StartProcessAsCurrentUser('notepad.exe')
+[DKB.ProcessExtensions.ProcessExtensions]::StartProcessAsCurrentUser("msg.exe * test test")
