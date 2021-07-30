@@ -277,7 +277,12 @@ function Notify-ActiveUser (
     [string]
     $Message
     ) {
-        $psCommand = "Add-Type -AssemblyName PresentationFramework; [System.Windows.MessageBox]::Show('$Message')"
-        $cmdCommand = "Powershell.exe -nologo -WindowStyle Hidden -Command `"& { $psCommand }`""
+        $psCommand = {
+            param($Message)
+            Add-Type -AssemblyName PresentationFramework
+            [System.Windows.MessageBox]::Show($Message)
+        }
+
+        $cmdCommand = "Powershell.exe -nologo -WindowStyle Hidden -Command `"Invoke-Command -ArgumentList $Message { $psCommand }`""
         [DKB.ProcessExtensions.ProcessExtensions]::StartProcessAsCurrentUser($cmdCommand)
 }
