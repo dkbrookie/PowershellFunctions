@@ -284,7 +284,7 @@ function Notify-ActiveUser (
             [System.Windows.MessageBox]::Show($Message)
         }
 
-        $cmdCommand = "Powershell.exe -nologo -WindowStyle Hidden -Command `"Invoke-Command -ArgumentList $Message { $psCommand }`""
+        $cmdCommand = "Powershell.exe -nologo -WindowStyle Hidden -Command `"Invoke-Command -ArgumentList '$Message' { $psCommand }`""
         [DKB.ProcessExtensions.ProcessExtensions]::StartProcessAsCurrentUser($cmdCommand)
 }
 
