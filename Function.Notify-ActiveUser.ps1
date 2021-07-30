@@ -208,7 +208,7 @@ namespace DKB.ProcessExtensions
             return bResult;
         }
 
-        public static bool StartProcessAsCurrentUser(string cmdLine, string workDir = null, bool visible = true)
+        public static void StartProcessAsCurrentUser(string cmdLine, string workDir = null, bool visible = true)
         {
             var hUserToken = IntPtr.Zero;
             var startInfo = new STARTUPINFO();
@@ -262,7 +262,6 @@ namespace DKB.ProcessExtensions
                 CloseHandle(procInfo.hThread);
                 CloseHandle(procInfo.hProcess);
             }
-            return true;
         }
     }
 }
