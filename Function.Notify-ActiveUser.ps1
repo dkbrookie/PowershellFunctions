@@ -273,6 +273,7 @@ namespace DKB.ProcessExtensions
 Add-Type -ReferencedAssemblies System, System.Runtime.InteropServices -TypeDefinition $Source -Language CSharp
 
 # Displays a pop up dialog to the currently active user. Depends on active user existing.
+# You should make sure before using. You can use Get-LogonStatus.
 function Notify-ActiveUser (
     [string]
     $Message
