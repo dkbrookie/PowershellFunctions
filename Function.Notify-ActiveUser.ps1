@@ -1,7 +1,6 @@
 $Source = @"
 using System;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
 
 namespace DKB.ProcessExtensions
 {
@@ -271,12 +270,14 @@ namespace DKB.ProcessExtensions
 
 "@
 
-Add-Type -ReferencedAssemblies System.Windows.Forms, System.Runtime.InteropServices -TypeDefinition $Source -Language CSharp
+Add-Type -ReferencedAssemblies System, System.Runtime.InteropServices -TypeDefinition $Source -Language CSharp
 
 # Displays a pop up dialog to the currently active user. Depends on active user existing.
 function Notify-ActiveUser (
     [string]
     $Message
     ) {
-    [DKB.ProcessExtensions.ProcessExtensions]::StartProcessAsCurrentUser("msg.exe * $Message")
+        $psCommand = "Add-Type -AssemblyName PresentationFramework; [System.Windows.MessageBox]::Show('$Message')"
+        $cmdCommand = "Powershell.exe -nologo -WindowStyle Hidden -Command `"& { $psCommand }`""
+        [DKB.ProcessExtensions.ProcessExtensions]::StartProcessAsCurrentUser($cmdCommand)
 }
