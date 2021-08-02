@@ -69,7 +69,13 @@ Function New-WPFMessageBox {
 
         [Parameter(Mandatory=$false,Position=13)]
         [ValidateSet('Warning', 'Notification', 'Success', 'Error', 'Custom')]
-        [string]$Type = 'Notification'
+        [string]$Type = 'Notification',
+
+        [Parameter(Mandatory=$false,Position=14)]
+        [string]$bgImagePath = "$env:windir\LTSvc\logo.png",
+
+        [Parameter(Mandatory=$false,Position=15)]
+        [string]$iconPath = "$env:windir\LTSvc\labTech.ico"
     )
 
     # Dynamically Populated parameters
@@ -215,29 +221,30 @@ Function New-WPFMessageBox {
         Add-Type -AssemblyName PresentationFramework
 
         Function New-ContentPanel ([string]$TextBlockText) {
-            $bgImage = "$env:windir\LTSvc\dkblogo.png"
-
-            $uri = New-Object system.uri($bgImage)
-            $imagesource = New-Object System.Windows.Media.Imaging.BitmapImage $uri
-            $background = New-Object System.Windows.Media.ImageBrush $imagesource
-            $viewbox = New-Object System.Windows.Rect 0,0,1.5,1.5
-            $viewport = New-Object System.Windows.Rect 0.1,0,1,1
-            $TextBlock = New-Object System.Windows.Controls.TextBlock
-            $TextBlock.Padding = New-Object System.Windows.Thickness 10, 100, 10, 10
             $StackPanel = New-Object System.Windows.Controls.StackPanel
+            $StackPanel.Orientation = "Vertical"
 
-            $background.Viewbox = $viewbox
-            $background.Viewport = $viewport
-
+            $TextBlock = New-Object System.Windows.Controls.TextBlock
             $TextBlock.Text = $TextBlockText
             $TextBlock.FontFamily = "Verdana"
             $TextBlock.VerticalAlignment = "Center"
             $TextBlock.FontSize = 16
 
-            $StackPanel.Orientation = "Horizontal"
-            $background.Stretch = 'Uniform'
+            If (Test-Path -Path $bgImagePath) {
+                $backgroundImageBox = New-Object System.Windows.Controls.StackPanel
+                $backgroundImageBox.Orientation = "Horizontal"
+
+                $uri = New-Object System.Uri($bgImagePath)
+                $imagesource = New-Object System.Windows.Media.Imaging.BitmapImage $uri
+                $background = New-Object System.Windows.Media.ImageBrush $imagesource
+                $backgroundImageBox.Height = 106
+                $backgroundImageBox.Width = 194
+                $backgroundImageBox.Margin = 40
+                $backgroundImageBox.Background = $background
+                $StackPanel.AddChild($backgroundImageBox)
+            }
+
             $StackPanel.AddChild($TextBlock)
-            $StackPanel.Background = $background
 
             Return $StackPanel
         }
@@ -281,7 +288,7 @@ Function New-WPFMessageBox {
 <Window
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Name="Window" Title="" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterScreen" WindowStyle="None" ResizeMode="NoResize" AllowsTransparency="True" Background="Transparent" Opacity="1">
+        x:Name="Window" Title="Notification" SizeToContent="WidthAndHeight" MaxWidth="1200" MaxHeight="800" MinWidth="400" MinHeight="200" WindowStartupLocation="CenterScreen" WindowStyle="None" ResizeMode="NoResize" AllowsTransparency="True" Background="Transparent" Opacity="1">
     <Window.Resources>
         <Style TargetType="{x:Type Button}">
             <Setter Property="Template">
@@ -297,7 +304,7 @@ Function New-WPFMessageBox {
             </Setter>
         </Style>
     </Window.Resources>
-    <Border x:Name="MainBorder" Margin="10" CornerRadius="$CornerRadius" BorderThickness="$BorderThickness" BorderBrush="$($PSBoundParameters.BorderBrush)" Padding="0" >
+    <Border x:Name="MainBorder" Margin="40" CornerRadius="$CornerRadius" BorderThickness="$BorderThickness" BorderBrush="$($PSBoundParameters.BorderBrush)" Padding="40" >
         <Border.Effect>
             <DropShadowEffect x:Name="DSE" Color="Black" Direction="270" BlurRadius="$BlurRadius" ShadowDepth="$ShadowDepth" Opacity="0.6" />
         </Border.Effect>
@@ -311,20 +318,20 @@ Function New-WPFMessageBox {
                 </BeginStoryboard>
             </EventTrigger>
         </Border.Triggers>
-        <Grid >
+        <Grid>
             <Border Name="Mask" CornerRadius="$CornerRadius" Background="$($PSBoundParameters.ContentBackground)" />
             <Grid x:Name="Grid" Background="$($PSBoundParameters.ContentBackground)">
                 <Grid.OpacityMask>
                     <VisualBrush Visual="{Binding ElementName=Mask}"/>
                 </Grid.OpacityMask>
                 <StackPanel Name="StackPanel">
-                    <DockPanel Name="IconPanel" Margin="0,0" Background="$($PSBoundParameters.TitleBackground)">
-                        <Image Margin="5" Name="Icon" Width="50" Height="50" Source="$env:windir\LTSvc\labTech.ico"></Image>
-                        <TextBlock Margin="-55,0,0,0" Width="Auto" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="$($PSBoundParameters.FontFamily)" FontSize="$TitleFontSize" Foreground="$($PSBoundParameters.TitleTextForeground)" FontWeight="$($PSBoundParameters.TitleFontWeight)" Background="$($PSBoundParameters.TitleBackground)">
+                    <DockPanel Name="IconPanel" Background="$($PSBoundParameters.TitleBackground)">
+                        <Image DockPanel.ZIndex="1" Margin="5" Name="Icon" Width="50" Height="50" Source="$iconPath"></Image>
+                        <TextBlock TextWrapping="Wrap" Margin="-55,0,0,0" Padding="5" Width="Auto" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="$($PSBoundParameters.FontFamily)" FontSize="$TitleFontSize" Foreground="$($PSBoundParameters.TitleTextForeground)" FontWeight="$($PSBoundParameters.TitleFontWeight)" Background="$($PSBoundParameters.TitleBackground)">
                             $TitleText
                         </TextBlock>
                     </DockPanel>
-                    <DockPanel Name="ContentHost" Margin="0,10,0,10">
+                    <DockPanel Name="ContentHost" Margin="20">
                     </DockPanel>
                     <DockPanel Name="ButtonHost" LastChildFill="False" HorizontalAlignment="Center">
                     </DockPanel>
@@ -459,7 +466,6 @@ Function New-WPFMessageBox {
             })
         }
 
-
         # Stop the dispatcher timer if exists
         If ($OnClosed) {
             $Window.Add_Closed({
@@ -476,7 +482,6 @@ Function New-WPFMessageBox {
                 }
             })
         }
-
 
         # If a window host is provided assign it as the owner
         If ($WindowHost) {
@@ -513,6 +518,5 @@ Function New-WPFMessageBox {
 
         # Display the window
         $null = $window.Dispatcher.InvokeAsync{$window.ShowDialog()}.Wait()
-
     }
 }
