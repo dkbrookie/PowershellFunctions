@@ -91,7 +91,6 @@ Function New-WPFMessageBox {
         $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter($ContentBackground, [string], $AttributeCollection)
         $RuntimeParameterDictionary.Add($ContentBackground, $RuntimeParameter)
 
-
         # FontFamily
         $FontFamily = 'FontFamily'
         $AttributeCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
@@ -131,7 +130,6 @@ Function New-WPFMessageBox {
         $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter($ContentFontWeight, [string], $AttributeCollection)
         $RuntimeParameterDictionary.Add($ContentFontWeight, $RuntimeParameter)
 
-
         # ContentTextForeground
         $ContentTextForeground = 'ContentTextForeground'
         $AttributeCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
@@ -170,7 +168,6 @@ Function New-WPFMessageBox {
         $PSBoundParameters.BorderBrush = "Black"
         $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter($BorderBrush, [string], $AttributeCollection)
         $RuntimeParameterDictionary.Add($BorderBrush, $RuntimeParameter)
-
 
         # TitleBackground
         $TitleBackground = 'TitleBackground'
@@ -374,71 +371,59 @@ Function New-WPFMessageBox {
         }
 
         # Add buttons
-        If ($ButtonType -eq "OK")
-        {
+        If ($ButtonType -eq "OK") {
             Add-Button -ButtonContent "OK"
         }
 
-        If ($ButtonType -eq "OK-Cancel")
-        {
+        If ($ButtonType -eq "OK-Cancel") {
             Add-Button -ButtonContent "OK"
             Add-Button -ButtonContent "Cancel"
         }
 
-        If ($ButtonType -eq "Abort-Retry-Ignore")
-        {
+        If ($ButtonType -eq "Abort-Retry-Ignore") {
             Add-Button -ButtonContent "Abort"
             Add-Button -ButtonContent "Retry"
             Add-Button -ButtonContent "Ignore"
         }
 
-        If ($ButtonType -eq "Yes-No-Cancel")
-        {
+        If ($ButtonType -eq "Yes-No-Cancel") {
             Add-Button -ButtonContent "Yes"
             Add-Button -ButtonContent "No"
             Add-Button -ButtonContent "Cancel"
         }
 
-        If ($ButtonType -eq "Yes-No")
-        {
+        If ($ButtonType -eq "Yes-No") {
             Add-Button -ButtonContent "Yes"
             Add-Button -ButtonContent "No"
         }
 
-        If ($ButtonType -eq "Retry-Cancel")
-        {
+        If ($ButtonType -eq "Retry-Cancel") {
             Add-Button -ButtonContent "Retry"
             Add-Button -ButtonContent "Cancel"
         }
 
-        If ($ButtonType -eq "Cancel-TryAgain-Continue")
-        {
+        If ($ButtonType -eq "Cancel-TryAgain-Continue") {
             Add-Button -ButtonContent "Cancel"
             Add-Button -ButtonContent "TryAgain"
             Add-Button -ButtonContent "Continue"
         }
 
-        If ($ButtonType -eq "None" -and $CustomButtons)
-        {
-            Foreach ($CustomButton in $CustomButtons)
-            {
+        If ($ButtonType -eq "None" -and $CustomButtons) {
+            Foreach ($CustomButton in $CustomButtons) {
                 Add-Button -ButtonContent "$CustomButton"
             }
         }
 
         # Remove the title bar if no title is provided
-        If ($TitleText -eq "")
-        {
+        If ($TitleText -eq "") {
             $TitleBar = $Window.FindName('TitleBar')
             $Window.FindName('StackPanel').Children.Remove($TitleBar)
         }
 
         # Add the Content
-        If ($StackPanel -is [String])
-        {
+        If ($StackPanel -is [String]) {
             # Replace double quotes with single to avoid quote issues in strings
-            If ($StackPanel -match '"')
-            {
+            If ($StackPanel -match '"') {
                 $StackPanel = $StackPanel.Replace('"',"'")
             }
 
@@ -446,15 +431,12 @@ Function New-WPFMessageBox {
             $ContentTextBox = [Windows.Markup.XamlReader]::Load((New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $ContentTextXaml))
             $Window.FindName('ContentHost').AddChild($ContentTextBox)
         }
-        Else
-        {
+        Else {
             # ...or add a WPF element as a child
-            Try
-            {
+            Try {
                 $Window.FindName('ContentHost').AddChild($Stackpanel)
             }
-            Catch
-            {
+            Catch {
                 $_
             }
         }
@@ -465,15 +447,13 @@ Function New-WPFMessageBox {
         })
 
         # Activate the window on loading
-        If ($OnLoaded)
-        {
+        If ($OnLoaded) {
             $Window.Add_Loaded({
                 $This.Activate()
                 Invoke-Command $OnLoaded
             })
         }
-        Else
-        {
+        Else {
             $Window.Add_Loaded({
                 $This.Activate()
             })
@@ -481,21 +461,17 @@ Function New-WPFMessageBox {
 
 
         # Stop the dispatcher timer if exists
-        If ($OnClosed)
-        {
+        If ($OnClosed) {
             $Window.Add_Closed({
-                If ($DispatcherTimer)
-                {
+                If ($DispatcherTimer){
                     $DispatcherTimer.Stop()
                 }
                 Invoke-Command $OnClosed
             })
         }
-        Else
-        {
+        Else {
             $Window.Add_Closed({
-                If ($DispatcherTimer)
-                {
+                If ($DispatcherTimer) {
                     $DispatcherTimer.Stop()
                 }
             })
@@ -503,19 +479,16 @@ Function New-WPFMessageBox {
 
 
         # If a window host is provided assign it as the owner
-        If ($WindowHost)
-        {
+        If ($WindowHost) {
             $Window.Owner = $WindowHost
             $Window.WindowStartupLocation = "CenterOwner"
         }
 
         # If a timeout value is provided, use a dispatcher timer to close the window when timeout is reached
-        If ($Timeout)
-        {
+        If ($Timeout) {
             $Stopwatch = New-object System.Diagnostics.Stopwatch
             $TimerCode = {
-                If ($Stopwatch.Elapsed.TotalSeconds -ge $Timeout)
-                {
+                If ($Stopwatch.Elapsed.TotalSeconds -ge $Timeout) {
                     $Stopwatch.Stop()
                     $Window.Close()
                 }
@@ -528,8 +501,7 @@ Function New-WPFMessageBox {
         }
 
         # Play a sound
-        If ($($PSBoundParameters.Sound))
-        {
+        If ($($PSBoundParameters.Sound)) {
             $SoundFile = "$env:SystemDrive\Windows\Media\$($PSBoundParameters.Sound).wav"
             $SoundPlayer = New-Object System.Media.SoundPlayer -ArgumentList $SoundFile
             $SoundPlayer.Add_LoadCompleted({
