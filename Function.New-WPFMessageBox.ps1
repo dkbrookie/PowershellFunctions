@@ -65,13 +65,15 @@ Function New-WPFMessageBox {
 
         # Code for Window Closed event,
         [Parameter(Mandatory=$false,Position=13)]
-        [scriptblock]$OnClosed
+        [scriptblock]$OnClosed,
 
+        [Parameter(Mandatory=$false,Position=13)]
+        [ValidateSet('Warning', 'Notification', 'Success', 'Error', 'Custom')]
+        [string]$Type = 'Notification'
     )
 
     # Dynamically Populated parameters
     DynamicParam {
-
         # Add assemblies for use in PS Console
         Add-Type -AssemblyName System.Drawing, PresentationCore
 
@@ -214,6 +216,38 @@ Function New-WPFMessageBox {
 
     Begin {
         Add-Type -AssemblyName PresentationFramework
+
+        If ('Custom' -eq $Type) {
+            $Stackpanel = $Content
+            $TitleText = $Title
+        }
+
+        # $bgImage = "$env:windir\LTSvc\dkblogo.png"
+        # $uri = new-object system.uri($bgImage)
+        # $imagesource = new-object System.Windows.Media.Imaging.BitmapImage $uri
+        # $background = new-object System.Windows.Media.ImageBrush $imagesource
+        # $background.Stretch = 'Uniform'
+
+
+        # $viewbox = New-Object System.Windows.Rect 0,0,1.5,1.5
+        # $background.Viewbox = $viewbox
+
+        # $viewport = New-Object System.Windows.Rect 0.1,0,1,1
+        # $background.Viewport = $viewport
+
+        # $padding = New-Object System.Windows.Thickness 10, 100, 10, 10
+
+        # $TextBlock = New-Object System.Windows.Controls.TextBlock
+        # $TextBlock.Text = "The file could not be deleted at this time!"
+        # $TextBlock.Padding = $padding
+        # $TextBlock.FontFamily = "Verdana"
+        # $TextBlock.FontSize = 16
+        # $TextBlock.VerticalAlignment = "Center"
+
+        # $StackPanel = New-Object System.Windows.Controls.StackPanel
+        # $StackPanel.Orientation = "Horizontal"
+        # $StackPanel.AddChild($TextBlock)
+        # $StackPanel.Background = $background
     }
 
     Process {
@@ -261,11 +295,11 @@ Function New-WPFMessageBox {
                 </Grid.OpacityMask>
                 <StackPanel Name="StackPanel">
                     <DockPanel Name="IconPanel" Margin="0,0" Background="$($PSBoundParameters.TitleBackground)">
-                        <Image Name="Icon" Width="50" Height="50" Margin="5,5" HorizontalAlignment="Left" Source="$env:windir\LTSvc\labTech.ico"></Image>
-                        <TextBlock Margin="30, 10" Padding="2" FontFamily="$($PSBoundParameters.FontFamily)" FontSize="$TitleFontSize" Foreground="$($PSBoundParameters.TitleTextForeground)" FontWeight="$($PSBoundParameters.TitleFontWeight)" Background="$($PSBoundParameters.TitleBackground)">
-                            $Title
+                        <Image Margin="5" Name="Icon" Width="50" Height="50" Source="$env:windir\LTSvc\labTech.ico"></Image>
+                        <TextBlock Margin="-55,0,0,0" Width="Auto" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="$($PSBoundParameters.FontFamily)" FontSize="$TitleFontSize" Foreground="$($PSBoundParameters.TitleTextForeground)" FontWeight="$($PSBoundParameters.TitleFontWeight)" Background="$($PSBoundParameters.TitleBackground)">
+                            $TitleText
                         </TextBlock>
-                        </DockPanel>
+                    </DockPanel>
                     <DockPanel Name="ContentHost" Margin="0,10,0,10">
                     </DockPanel>
                     <DockPanel Name="ButtonHost" LastChildFill="False" HorizontalAlignment="Center">
@@ -286,7 +320,7 @@ Function New-WPFMessageBox {
 "@
 
 [XML]$ContentTextXaml = @"
-<TextBlock xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Text="$Content" Foreground="$($PSBoundParameters.ContentTextForeground)" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="$($PSBoundParameters.FontFamily)" FontSize="$ContentFontSize" FontWeight="$($PSBoundParameters.ContentFontWeight)" TextWrapping="Wrap" Height="Auto" MaxWidth="500" MinWidth="50" Padding="10"/>
+<TextBlock xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Text="$Stackpanel" Foreground="$($PSBoundParameters.ContentTextForeground)" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="$($PSBoundParameters.FontFamily)" FontSize="$ContentFontSize" FontWeight="$($PSBoundParameters.ContentFontWeight)" TextWrapping="Wrap" Height="Auto" MaxWidth="500" MinWidth="50" Padding="10"/>
 "@
 
     # Load the window from XAML
@@ -294,10 +328,10 @@ Function New-WPFMessageBox {
 
     # Custom function to add a button
     Function Add-Button {
-        Param($Content)
+        Param($ButtonContent)
         $Button = [Windows.Markup.XamlReader]::Load((New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $ButtonXaml))
         $ButtonText = [Windows.Markup.XamlReader]::Load((New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $ButtonTextXaml))
-        $ButtonText.Text = "$Content"
+        $ButtonText.Text = "$ButtonContent"
         $Button.Content = $ButtonText
         $Button.Add_MouseEnter({
             $This.Content.FontSize = "17"
@@ -306,7 +340,7 @@ Function New-WPFMessageBox {
             $This.Content.FontSize = "16"
         })
         $Button.Add_Click({
-            New-Variable -Name WPFMessageBoxOutput -Value $($This.Content.Text) -Option ReadOnly -Scope Script -Force
+            New-Variable -Name WPFMessageBoxOutput -Value $($This.ButtonContent.Text) -Option ReadOnly -Scope Script -Force
             $Window.Close()
         })
         $Window.FindName('ButtonHost').AddChild($Button)
@@ -315,70 +349,70 @@ Function New-WPFMessageBox {
     # Add buttons
     If ($ButtonType -eq "OK")
     {
-        Add-Button -Content "OK"
+        Add-Button -ButtonContent "OK"
     }
 
     If ($ButtonType -eq "OK-Cancel")
     {
-        Add-Button -Content "OK"
-        Add-Button -Content "Cancel"
+        Add-Button -ButtonContent "OK"
+        Add-Button -ButtonContent "Cancel"
     }
 
     If ($ButtonType -eq "Abort-Retry-Ignore")
     {
-        Add-Button -Content "Abort"
-        Add-Button -Content "Retry"
-        Add-Button -Content "Ignore"
+        Add-Button -ButtonContent "Abort"
+        Add-Button -ButtonContent "Retry"
+        Add-Button -ButtonContent "Ignore"
     }
 
     If ($ButtonType -eq "Yes-No-Cancel")
     {
-        Add-Button -Content "Yes"
-        Add-Button -Content "No"
-        Add-Button -Content "Cancel"
+        Add-Button -ButtonContent "Yes"
+        Add-Button -ButtonContent "No"
+        Add-Button -ButtonContent "Cancel"
     }
 
     If ($ButtonType -eq "Yes-No")
     {
-        Add-Button -Content "Yes"
-        Add-Button -Content "No"
+        Add-Button -ButtonContent "Yes"
+        Add-Button -ButtonContent "No"
     }
 
     If ($ButtonType -eq "Retry-Cancel")
     {
-        Add-Button -Content "Retry"
-        Add-Button -Content "Cancel"
+        Add-Button -ButtonContent "Retry"
+        Add-Button -ButtonContent "Cancel"
     }
 
     If ($ButtonType -eq "Cancel-TryAgain-Continue")
     {
-        Add-Button -Content "Cancel"
-        Add-Button -Content "TryAgain"
-        Add-Button -Content "Continue"
+        Add-Button -ButtonContent "Cancel"
+        Add-Button -ButtonContent "TryAgain"
+        Add-Button -ButtonContent "Continue"
     }
 
     If ($ButtonType -eq "None" -and $CustomButtons)
     {
         Foreach ($CustomButton in $CustomButtons)
         {
-            Add-Button -Content "$CustomButton"
+            Add-Button -ButtonContent "$CustomButton"
         }
     }
 
     # Remove the title bar if no title is provided
-    If ($Title -eq "")
+    If ($TitleText -eq "")
     {
         $TitleBar = $Window.FindName('TitleBar')
         $Window.FindName('StackPanel').Children.Remove($TitleBar)
     }
 
     # Add the Content
-    If ($Content -is [String])
+    If ($StackPanel -is [String])
     {
         # Replace double quotes with single to avoid quote issues in strings
-        If ($Content -match '"')
+        If ($StackPanel -match '"')
         {
-            $Content = $Content.Replace('"',"'")
+            $StackPanel = $StackPanel.Replace('"',"'")
         }
 
         # Use a text box for a string value...
@@ -390,7 +424,7 @@ Function New-WPFMessageBox {
         # ...or add a WPF element as a child
         Try
         {
-            $Window.FindName('ContentHost').AddChild($Content)
+            $Window.FindName('ContentHost').AddChild($Stackpanel)
         }
         Catch
         {
