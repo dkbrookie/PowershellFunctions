@@ -277,11 +277,13 @@ Add-Type -ReferencedAssemblies System, System.Runtime.InteropServices -TypeDefin
 # You should make sure before using. You can use Get-LogonStatus.
 function Notify-ActiveUser (
     [string]
-    $Message
+    $Message,
+    [string]
+    $Type
     ) {
         $psCommand = {
             param($Message)
-            New-WPFMessageBox -Content $Message -Type Warning
+            New-WPFMessageBox -Content $Message -Type $Type
         }
 
         $cmdCommand = "$ENV:windir\System32\WindowsPowerShell\v1.0\powershell.exe -WindowStyle Minimized -Command `"Invoke-Command -ArgumentList '$Message' { $psCommand }`""
