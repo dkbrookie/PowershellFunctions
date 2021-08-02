@@ -289,3 +289,5 @@ function Notify-ActiveUser (
         $cmdCommand = "$ENV:windir\System32\WindowsPowerShell\v1.0\powershell.exe -WindowStyle Minimized -Command `"Invoke-Command -ArgumentList '$Message' { $psCommand }`""
         [DKB.ProcessExtensions.ProcessExtensions]::StartProcessAsCurrentUser($cmdCommand)
 }
+
+Notify-ActiveUser -Message "This call is regarding your car's extended Warranty." -Type "Warning"
