@@ -10,9 +10,9 @@ Function New-WPFMessageBox {
     [CmdletBinding()]
     Param
     (
-        # The popup Content
+        # The popup Content - Accepts either string or System.Windows.Controls.StackPanel
         [Parameter(Mandatory=$True,Position=0)]
-        [Object]$Content,
+        $Content,
 
         # The window title
         [Parameter(Mandatory=$false,Position=1)]
@@ -33,7 +33,7 @@ Function New-WPFMessageBox {
 
         # Title font size
         [Parameter(Mandatory=$false,Position=5)]
-        [int]$TitleFontSize = 14,
+        [int]$TitleFontSize = 28,
 
         # BorderThickness
         [Parameter(Mandatory=$false,Position=6)]
@@ -84,7 +84,7 @@ Function New-WPFMessageBox {
         $ParameterAttribute.Mandatory = $False
         $AttributeCollection.Add($ParameterAttribute)
         $RuntimeParameterDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
-        $arrSet = [System.Drawing.Brushes] | Get-Member -Static -MemberType Property | Select -ExpandProperty Name
+        $arrSet = [System.Drawing.Brushes] | Get-Member -Static -MemberType Property | Select-Object  -ExpandProperty Name
         $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($arrSet)
         $AttributeCollection.Add($ValidateSetAttribute)
         $PSBoundParameters.ContentBackground = "White"
@@ -98,7 +98,7 @@ Function New-WPFMessageBox {
         $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
         $ParameterAttribute.Mandatory = $False
         $AttributeCollection.Add($ParameterAttribute)
-        $arrSet = [System.Drawing.FontFamily]::Families.Name | Select -Skip 1
+        $arrSet = [System.Drawing.FontFamily]::Families.Name | Select-Object  -Skip 1
         $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($arrSet)
         $AttributeCollection.Add($ValidateSetAttribute)
         $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter($FontFamily, [string], $AttributeCollection)
@@ -111,7 +111,7 @@ Function New-WPFMessageBox {
         $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
         $ParameterAttribute.Mandatory = $False
         $AttributeCollection.Add($ParameterAttribute)
-        $arrSet = [System.Windows.FontWeights] | Get-Member -Static -MemberType Property | Select -ExpandProperty Name
+        $arrSet = [System.Windows.FontWeights] | Get-Member -Static -MemberType Property | Select-Object  -ExpandProperty Name
         $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($arrSet)
         $AttributeCollection.Add($ValidateSetAttribute)
         $PSBoundParameters.TitleFontWeight = "Normal"
@@ -124,7 +124,7 @@ Function New-WPFMessageBox {
         $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
         $ParameterAttribute.Mandatory = $False
         $AttributeCollection.Add($ParameterAttribute)
-        $arrSet = [System.Windows.FontWeights] | Get-Member -Static -MemberType Property | Select -ExpandProperty Name
+        $arrSet = [System.Windows.FontWeights] | Get-Member -Static -MemberType Property | Select-Object  -ExpandProperty Name
         $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($arrSet)
         $AttributeCollection.Add($ValidateSetAttribute)
         $PSBoundParameters.ContentFontWeight = "Normal"
@@ -138,7 +138,7 @@ Function New-WPFMessageBox {
         $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
         $ParameterAttribute.Mandatory = $False
         $AttributeCollection.Add($ParameterAttribute)
-        $arrSet = [System.Drawing.Brushes] | Get-Member -Static -MemberType Property | Select -ExpandProperty Name
+        $arrSet = [System.Drawing.Brushes] | Get-Member -Static -MemberType Property | Select-Object  -ExpandProperty Name
         $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($arrSet)
         $AttributeCollection.Add($ValidateSetAttribute)
         $PSBoundParameters.ContentTextForeground = "Black"
@@ -151,7 +151,7 @@ Function New-WPFMessageBox {
         $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
         $ParameterAttribute.Mandatory = $False
         $AttributeCollection.Add($ParameterAttribute)
-        $arrSet = [System.Drawing.Brushes] | Get-Member -Static -MemberType Property | Select -ExpandProperty Name
+        $arrSet = [System.Drawing.Brushes] | Get-Member -Static -MemberType Property | Select-Object  -ExpandProperty Name
         $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($arrSet)
         $AttributeCollection.Add($ValidateSetAttribute)
         $PSBoundParameters.TitleTextForeground = "Black"
@@ -164,7 +164,7 @@ Function New-WPFMessageBox {
         $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
         $ParameterAttribute.Mandatory = $False
         $AttributeCollection.Add($ParameterAttribute)
-        $arrSet = [System.Drawing.Brushes] | Get-Member -Static -MemberType Property | Select -ExpandProperty Name
+        $arrSet = [System.Drawing.Brushes] | Get-Member -Static -MemberType Property | Select-Object  -ExpandProperty Name
         $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($arrSet)
         $AttributeCollection.Add($ValidateSetAttribute)
         $PSBoundParameters.BorderBrush = "Black"
@@ -178,7 +178,7 @@ Function New-WPFMessageBox {
         $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
         $ParameterAttribute.Mandatory = $False
         $AttributeCollection.Add($ParameterAttribute)
-        $arrSet = [System.Drawing.Brushes] | Get-Member -Static -MemberType Property | Select -ExpandProperty Name
+        $arrSet = [System.Drawing.Brushes] | Get-Member -Static -MemberType Property | Select-Object  -ExpandProperty Name
         $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($arrSet)
         $AttributeCollection.Add($ValidateSetAttribute)
         $PSBoundParameters.TitleBackground = "White"
@@ -191,7 +191,7 @@ Function New-WPFMessageBox {
         $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
         $ParameterAttribute.Mandatory = $False
         $AttributeCollection.Add($ParameterAttribute)
-        $arrSet = [System.Drawing.Brushes] | Get-Member -Static -MemberType Property | Select -ExpandProperty Name
+        $arrSet = [System.Drawing.Brushes] | Get-Member -Static -MemberType Property | Select-Object  -ExpandProperty Name
         $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($arrSet)
         $AttributeCollection.Add($ValidateSetAttribute)
         $PSBoundParameters.ButtonTextForeground = "Black"
@@ -205,7 +205,7 @@ Function New-WPFMessageBox {
         $ParameterAttribute.Mandatory = $False
         #$ParameterAttribute.Position = 14
         $AttributeCollection.Add($ParameterAttribute)
-        $arrSet = (Get-ChildItem "$env:SystemDrive\Windows\Media" -Filter Windows* | Select -ExpandProperty Name).Replace('.wav','')
+        $arrSet = (Get-ChildItem "$env:SystemDrive\Windows\Media" -Filter Windows* | Select-Object  -ExpandProperty Name).Replace('.wav','')
         $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($arrSet)
         $AttributeCollection.Add($ValidateSetAttribute)
         $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter($Sound, [string], $AttributeCollection)
@@ -217,41 +217,68 @@ Function New-WPFMessageBox {
     Begin {
         Add-Type -AssemblyName PresentationFramework
 
+        Function New-ContentPanel ([string]$TextBlockText) {
+            $bgImage = "$env:windir\LTSvc\dkblogo.png"
+
+            $uri = New-Object system.uri($bgImage)
+            $imagesource = New-Object System.Windows.Media.Imaging.BitmapImage $uri
+            $background = New-Object System.Windows.Media.ImageBrush $imagesource
+            $viewbox = New-Object System.Windows.Rect 0,0,1.5,1.5
+            $viewport = New-Object System.Windows.Rect 0.1,0,1,1
+            $TextBlock = New-Object System.Windows.Controls.TextBlock
+            $TextBlock.Padding = New-Object System.Windows.Thickness 10, 100, 10, 10
+            $StackPanel = New-Object System.Windows.Controls.StackPanel
+
+            $background.Viewbox = $viewbox
+            $background.Viewport = $viewport
+
+            $TextBlock.Text = $TextBlockText
+            $TextBlock.FontFamily = "Verdana"
+            $TextBlock.VerticalAlignment = "Center"
+            $TextBlock.FontSize = 16
+
+            $StackPanel.Orientation = "Horizontal"
+            $background.Stretch = 'Uniform'
+            $StackPanel.AddChild($TextBlock)
+            $StackPanel.Background = $background
+
+            Return $StackPanel
+        }
+
+        # If type is 'custom', don't need to make a stackpanel, it has been provided.
         If ('Custom' -eq $Type) {
             $Stackpanel = $Content
             $TitleText = $Title
+        } Else {
+            # Otherwise, create a stackpanel.
+            $Stackpanel = New-ContentPanel -TextBlockText $Content
+
+            Switch ($Type) {
+                'Warning' {
+                    $PSBoundParameters.TitleBackground = 'Orange'
+                    $TitleText = "WARNING!"
+                }
+
+                'Success' {
+                    $PSBoundParameters.TitleBackground = 'Green'
+                    $TitleText = "SUCCESS!"
+                }
+
+                'Error' {
+                    $PSBoundParameters.TitleBackground = 'Red'
+                    $TitleText = "ERROR!"
+                }
+
+                Default {
+                    # Default is 'Notification'
+                    $PSBoundParameters.TitleBackground = 'LightSkyBlue'
+                    $TitleText = "Notification"
+                }
+            }
         }
-
-        # $bgImage = "$env:windir\LTSvc\dkblogo.png"
-        # $uri = new-object system.uri($bgImage)
-        # $imagesource = new-object System.Windows.Media.Imaging.BitmapImage $uri
-        # $background = new-object System.Windows.Media.ImageBrush $imagesource
-        # $background.Stretch = 'Uniform'
-
-
-        # $viewbox = New-Object System.Windows.Rect 0,0,1.5,1.5
-        # $background.Viewbox = $viewbox
-
-        # $viewport = New-Object System.Windows.Rect 0.1,0,1,1
-        # $background.Viewport = $viewport
-
-        # $padding = New-Object System.Windows.Thickness 10, 100, 10, 10
-
-        # $TextBlock = New-Object System.Windows.Controls.TextBlock
-        # $TextBlock.Text = "The file could not be deleted at this time!"
-        # $TextBlock.Padding = $padding
-        # $TextBlock.FontFamily = "Verdana"
-        # $TextBlock.FontSize = 16
-        # $TextBlock.VerticalAlignment = "Center"
-
-        # $StackPanel = New-Object System.Windows.Controls.StackPanel
-        # $StackPanel.Orientation = "Horizontal"
-        # $StackPanel.AddChild($TextBlock)
-        # $StackPanel.Background = $background
     }
 
     Process {
-
 # Define the XAML markup
 [XML]$Xaml = @"
 <Window
