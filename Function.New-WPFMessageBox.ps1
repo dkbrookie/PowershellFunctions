@@ -350,197 +350,197 @@ Function New-WPFMessageBox {
 <TextBlock xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Text="$Stackpanel" Foreground="$($PSBoundParameters.ContentTextForeground)" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="$($PSBoundParameters.FontFamily)" FontSize="$ContentFontSize" FontWeight="$($PSBoundParameters.ContentFontWeight)" TextWrapping="Wrap" Height="Auto" MaxWidth="500" MinWidth="50" Padding="10"/>
 "@
 
-    # Load the window from XAML
-    $Window = [Windows.Markup.XamlReader]::Load((New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $xaml))
+        # Load the window from XAML
+        $Window = [Windows.Markup.XamlReader]::Load((New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $xaml))
 
-    # Custom function to add a button
-    Function Add-Button {
-        Param($ButtonContent)
-        $Button = [Windows.Markup.XamlReader]::Load((New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $ButtonXaml))
-        $ButtonText = [Windows.Markup.XamlReader]::Load((New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $ButtonTextXaml))
-        $ButtonText.Text = "$ButtonContent"
-        $Button.Content = $ButtonText
-        $Button.Add_MouseEnter({
-            $This.Content.FontSize = "17"
-        })
-        $Button.Add_MouseLeave({
-            $This.Content.FontSize = "16"
-        })
-        $Button.Add_Click({
-            New-Variable -Name WPFMessageBoxOutput -Value $($This.ButtonContent.Text) -Option ReadOnly -Scope Script -Force
-            $Window.Close()
-        })
-        $Window.FindName('ButtonHost').AddChild($Button)
-    }
-
-    # Add buttons
-    If ($ButtonType -eq "OK")
-    {
-        Add-Button -ButtonContent "OK"
-    }
-
-    If ($ButtonType -eq "OK-Cancel")
-    {
-        Add-Button -ButtonContent "OK"
-        Add-Button -ButtonContent "Cancel"
-    }
-
-    If ($ButtonType -eq "Abort-Retry-Ignore")
-    {
-        Add-Button -ButtonContent "Abort"
-        Add-Button -ButtonContent "Retry"
-        Add-Button -ButtonContent "Ignore"
-    }
-
-    If ($ButtonType -eq "Yes-No-Cancel")
-    {
-        Add-Button -ButtonContent "Yes"
-        Add-Button -ButtonContent "No"
-        Add-Button -ButtonContent "Cancel"
-    }
-
-    If ($ButtonType -eq "Yes-No")
-    {
-        Add-Button -ButtonContent "Yes"
-        Add-Button -ButtonContent "No"
-    }
-
-    If ($ButtonType -eq "Retry-Cancel")
-    {
-        Add-Button -ButtonContent "Retry"
-        Add-Button -ButtonContent "Cancel"
-    }
-
-    If ($ButtonType -eq "Cancel-TryAgain-Continue")
-    {
-        Add-Button -ButtonContent "Cancel"
-        Add-Button -ButtonContent "TryAgain"
-        Add-Button -ButtonContent "Continue"
-    }
-
-    If ($ButtonType -eq "None" -and $CustomButtons)
-    {
-        Foreach ($CustomButton in $CustomButtons)
-        {
-            Add-Button -ButtonContent "$CustomButton"
-        }
-    }
-
-    # Remove the title bar if no title is provided
-    If ($TitleText -eq "")
-    {
-        $TitleBar = $Window.FindName('TitleBar')
-        $Window.FindName('StackPanel').Children.Remove($TitleBar)
-    }
-
-    # Add the Content
-    If ($StackPanel -is [String])
-    {
-        # Replace double quotes with single to avoid quote issues in strings
-        If ($StackPanel -match '"')
-        {
-            $StackPanel = $StackPanel.Replace('"',"'")
-        }
-
-        # Use a text box for a string value...
-        $ContentTextBox = [Windows.Markup.XamlReader]::Load((New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $ContentTextXaml))
-        $Window.FindName('ContentHost').AddChild($ContentTextBox)
-    }
-    Else
-    {
-        # ...or add a WPF element as a child
-        Try
-        {
-            $Window.FindName('ContentHost').AddChild($Stackpanel)
-        }
-        Catch
-        {
-            $_
-        }
-    }
-
-    # Enable window to move when dragged
-    $Window.FindName('Grid').Add_MouseLeftButtonDown({
-        $Window.DragMove()
-    })
-
-    # Activate the window on loading
-    If ($OnLoaded)
-    {
-        $Window.Add_Loaded({
-            $This.Activate()
-            Invoke-Command $OnLoaded
-        })
-    }
-    Else
-    {
-        $Window.Add_Loaded({
-            $This.Activate()
-        })
-    }
-
-
-    # Stop the dispatcher timer if exists
-    If ($OnClosed)
-    {
-        $Window.Add_Closed({
-            If ($DispatcherTimer)
-            {
-                $DispatcherTimer.Stop()
-            }
-            Invoke-Command $OnClosed
-        })
-    }
-    Else
-    {
-        $Window.Add_Closed({
-            If ($DispatcherTimer)
-            {
-                $DispatcherTimer.Stop()
-            }
-        })
-    }
-
-
-    # If a window host is provided assign it as the owner
-    If ($WindowHost)
-    {
-        $Window.Owner = $WindowHost
-        $Window.WindowStartupLocation = "CenterOwner"
-    }
-
-    # If a timeout value is provided, use a dispatcher timer to close the window when timeout is reached
-    If ($Timeout)
-    {
-        $Stopwatch = New-object System.Diagnostics.Stopwatch
-        $TimerCode = {
-            If ($Stopwatch.Elapsed.TotalSeconds -ge $Timeout)
-            {
-                $Stopwatch.Stop()
+        # Custom function to add a button
+        Function Add-Button {
+            Param($ButtonContent)
+            $Button = [Windows.Markup.XamlReader]::Load((New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $ButtonXaml))
+            $ButtonText = [Windows.Markup.XamlReader]::Load((New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $ButtonTextXaml))
+            $ButtonText.Text = "$ButtonContent"
+            $Button.Content = $ButtonText
+            $Button.Add_MouseEnter({
+                $This.Content.FontSize = "17"
+            })
+            $Button.Add_MouseLeave({
+                $This.Content.FontSize = "16"
+            })
+            $Button.Add_Click({
+                New-Variable -Name WPFMessageBoxOutput -Value $($This.ButtonContent.Text) -Option ReadOnly -Scope Script -Force
                 $Window.Close()
+            })
+            $Window.FindName('ButtonHost').AddChild($Button)
+        }
+
+        # Add buttons
+        If ($ButtonType -eq "OK")
+        {
+            Add-Button -ButtonContent "OK"
+        }
+
+        If ($ButtonType -eq "OK-Cancel")
+        {
+            Add-Button -ButtonContent "OK"
+            Add-Button -ButtonContent "Cancel"
+        }
+
+        If ($ButtonType -eq "Abort-Retry-Ignore")
+        {
+            Add-Button -ButtonContent "Abort"
+            Add-Button -ButtonContent "Retry"
+            Add-Button -ButtonContent "Ignore"
+        }
+
+        If ($ButtonType -eq "Yes-No-Cancel")
+        {
+            Add-Button -ButtonContent "Yes"
+            Add-Button -ButtonContent "No"
+            Add-Button -ButtonContent "Cancel"
+        }
+
+        If ($ButtonType -eq "Yes-No")
+        {
+            Add-Button -ButtonContent "Yes"
+            Add-Button -ButtonContent "No"
+        }
+
+        If ($ButtonType -eq "Retry-Cancel")
+        {
+            Add-Button -ButtonContent "Retry"
+            Add-Button -ButtonContent "Cancel"
+        }
+
+        If ($ButtonType -eq "Cancel-TryAgain-Continue")
+        {
+            Add-Button -ButtonContent "Cancel"
+            Add-Button -ButtonContent "TryAgain"
+            Add-Button -ButtonContent "Continue"
+        }
+
+        If ($ButtonType -eq "None" -and $CustomButtons)
+        {
+            Foreach ($CustomButton in $CustomButtons)
+            {
+                Add-Button -ButtonContent "$CustomButton"
             }
         }
-        $DispatcherTimer = New-Object -TypeName System.Windows.Threading.DispatcherTimer
-        $DispatcherTimer.Interval = [TimeSpan]::FromSeconds(1)
-        $DispatcherTimer.Add_Tick($TimerCode)
-        $Stopwatch.Start()
-        $DispatcherTimer.Start()
-    }
 
-    # Play a sound
-    If ($($PSBoundParameters.Sound))
-    {
-        $SoundFile = "$env:SystemDrive\Windows\Media\$($PSBoundParameters.Sound).wav"
-        $SoundPlayer = New-Object System.Media.SoundPlayer -ArgumentList $SoundFile
-        $SoundPlayer.Add_LoadCompleted({
-            $This.Play()
-            $This.Dispose()
+        # Remove the title bar if no title is provided
+        If ($TitleText -eq "")
+        {
+            $TitleBar = $Window.FindName('TitleBar')
+            $Window.FindName('StackPanel').Children.Remove($TitleBar)
+        }
+
+        # Add the Content
+        If ($StackPanel -is [String])
+        {
+            # Replace double quotes with single to avoid quote issues in strings
+            If ($StackPanel -match '"')
+            {
+                $StackPanel = $StackPanel.Replace('"',"'")
+            }
+
+            # Use a text box for a string value...
+            $ContentTextBox = [Windows.Markup.XamlReader]::Load((New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $ContentTextXaml))
+            $Window.FindName('ContentHost').AddChild($ContentTextBox)
+        }
+        Else
+        {
+            # ...or add a WPF element as a child
+            Try
+            {
+                $Window.FindName('ContentHost').AddChild($Stackpanel)
+            }
+            Catch
+            {
+                $_
+            }
+        }
+
+        # Enable window to move when dragged
+        $Window.FindName('Grid').Add_MouseLeftButtonDown({
+            $Window.DragMove()
         })
-        $SoundPlayer.LoadAsync()
-    }
 
-    # Display the window
-    $null = $window.Dispatcher.InvokeAsync{$window.ShowDialog()}.Wait()
+        # Activate the window on loading
+        If ($OnLoaded)
+        {
+            $Window.Add_Loaded({
+                $This.Activate()
+                Invoke-Command $OnLoaded
+            })
+        }
+        Else
+        {
+            $Window.Add_Loaded({
+                $This.Activate()
+            })
+        }
+
+
+        # Stop the dispatcher timer if exists
+        If ($OnClosed)
+        {
+            $Window.Add_Closed({
+                If ($DispatcherTimer)
+                {
+                    $DispatcherTimer.Stop()
+                }
+                Invoke-Command $OnClosed
+            })
+        }
+        Else
+        {
+            $Window.Add_Closed({
+                If ($DispatcherTimer)
+                {
+                    $DispatcherTimer.Stop()
+                }
+            })
+        }
+
+
+        # If a window host is provided assign it as the owner
+        If ($WindowHost)
+        {
+            $Window.Owner = $WindowHost
+            $Window.WindowStartupLocation = "CenterOwner"
+        }
+
+        # If a timeout value is provided, use a dispatcher timer to close the window when timeout is reached
+        If ($Timeout)
+        {
+            $Stopwatch = New-object System.Diagnostics.Stopwatch
+            $TimerCode = {
+                If ($Stopwatch.Elapsed.TotalSeconds -ge $Timeout)
+                {
+                    $Stopwatch.Stop()
+                    $Window.Close()
+                }
+            }
+            $DispatcherTimer = New-Object -TypeName System.Windows.Threading.DispatcherTimer
+            $DispatcherTimer.Interval = [TimeSpan]::FromSeconds(1)
+            $DispatcherTimer.Add_Tick($TimerCode)
+            $Stopwatch.Start()
+            $DispatcherTimer.Start()
+        }
+
+        # Play a sound
+        If ($($PSBoundParameters.Sound))
+        {
+            $SoundFile = "$env:SystemDrive\Windows\Media\$($PSBoundParameters.Sound).wav"
+            $SoundPlayer = New-Object System.Media.SoundPlayer -ArgumentList $SoundFile
+            $SoundPlayer.Add_LoadCompleted({
+                $This.Play()
+                $This.Dispose()
+            })
+            $SoundPlayer.LoadAsync()
+        }
+
+        # Display the window
+        $null = $window.Dispatcher.InvokeAsync{$window.ShowDialog()}.Wait()
 
     }
 }
