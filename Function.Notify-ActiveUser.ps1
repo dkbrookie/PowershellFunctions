@@ -271,6 +271,8 @@ namespace DKB.ProcessExtensions
 
 Add-Type -ReferencedAssemblies System, System.Runtime.InteropServices -TypeDefinition $Source -Language CSharp
 
+(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.New-WPFMessageBox.ps1') | Invoke-Expression
+
 # Displays a pop up dialog to the currently active user. Depends on active user existing.
 # You should make sure before using. You can use Get-LogonStatus.
 function Notify-ActiveUser (
@@ -279,8 +281,7 @@ function Notify-ActiveUser (
     ) {
         $psCommand = {
             param($Message)
-            Add-Type -AssemblyName PresentationFramework
-            [System.Windows.MessageBox]::Show($Message)
+            New-WPFMessageBox -Content $Message -Type Warning
         }
 
         $cmdCommand = "$ENV:windir\System32\WindowsPowerShell\v1.0\powershell.exe -WindowStyle Minimized -Command `"Invoke-Command -ArgumentList '$Message' { $psCommand }`""
