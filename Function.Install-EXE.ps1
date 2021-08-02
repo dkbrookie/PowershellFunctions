@@ -63,7 +63,7 @@ Function Install-EXE {
         [Parameter(
             HelpMessage = 'Sets the -Wait flag on the Start-Process command of the installer EXE, meaning it will wait for the EXE to continue before moving on if this is set to $true. This is set to $true by default.'
         )]
-        [boolean]$Wait = $true
+        [string]$Wait = 'Yes'
     )
 
 
@@ -162,7 +162,7 @@ Function Install-EXE {
     Try {
         [array]$script:logOutput += "Beginning installation of $AppName..."
         If ($Arguments) {
-            If ($Wait) {
+            If ($Wait -eq 'Yes') {
                 # Install with arguments and wait
                 Start-Process $FileEXEPath -Wait -ArgumentList "$Arguments"
             } Else {
@@ -170,7 +170,7 @@ Function Install-EXE {
                 Start-Process $FileEXEPath -ArgumentList "$Arguments"
             }
         } Else {
-            If ($Wait) {
+            If ($Wait -eq 'Yes') {
                 # Install with no arguments and wait
                 Start-Process $FileEXEPath -Wait
             } Else {
