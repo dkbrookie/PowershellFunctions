@@ -280,11 +280,19 @@ function Notify-ActiveUser (
         $scriptsPath = "$ENV:windir\LTSvc\scripts"
         $BATPath = "$scriptsPath\launch_notification.bat"
         $VBSPath = "$ENV:windir\LTSvc\scripts\launch_notification.vbs"
-        $psCommand = { param($Message, $Type);(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.New-WPFMessageBox.ps1') | Invoke-Expression;New-WPFMessageBox -Content $Message -Type $Type; }
+        $psCommand = {param($Message, $Type);(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.New-WPFMessageBox.ps1') | Invoke-Expression;New-WPFMessageBox -Content $Message -Type $Type;}
 
         If (!$Message) {
             Write-Output "Message is not defined!"
             Throw "Message is not defined!"
+        }
+
+        If (Test-Path -Path $BATPath) {
+            Remove-Item -Path $BATPath
+        }
+
+        If (Test-Path -Path $VBSPath) {
+            Remove-Item -Path $VBSPath
         }
 
         # Create the BAT file that launches Powershell
