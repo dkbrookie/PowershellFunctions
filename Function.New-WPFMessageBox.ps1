@@ -516,6 +516,8 @@ Function New-WPFMessageBox {
             $SoundPlayer.LoadAsync()
         }
 
+        $window.TopMost = $True
+
         # Display the window
         $null = $window.Dispatcher.InvokeAsync{$window.ShowDialog()}.Wait()
     }
