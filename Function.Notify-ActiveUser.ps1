@@ -291,3 +291,5 @@ function Notify-ActiveUser (
             [DKB.ProcessExtensions.ProcessExtensions]::StartProcessAsCurrentUser($cmdCommand)
         }
 }
+
+Notify-ActiveUser -Message "ERROR: Your PC is not reaching peak performance. Please uninstall all applications to continue." -Type Error
