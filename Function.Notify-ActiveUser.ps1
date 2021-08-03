@@ -265,13 +265,9 @@ namespace DKB.ProcessExtensions
         }
     }
 }
-
-
 "@
 
 Add-Type -ReferencedAssemblies System, System.Runtime.InteropServices -TypeDefinition $Source -Language CSharp
-
-(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.New-WPFMessageBox.ps1') | Invoke-Expression
 
 # Displays a pop up dialog to the currently active user. Depends on active user existing.
 # You should make sure before using. You can use Get-LogonStatus.
@@ -279,15 +275,19 @@ function Notify-ActiveUser (
     [string]
     $Message,
     [string]
-    $Type
+    $Type = "Notification"
     ) {
         $psCommand = {
-            param($Message)
+            param($Message, $Type)
+            (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.New-WPFMessageBox.ps1') | Invoke-Expression
             New-WPFMessageBox -Content $Message -Type $Type
         }
 
-        $cmdCommand = "$ENV:windir\System32\WindowsPowerShell\v1.0\powershell.exe -nologo -WindowStyle Hidden -Command `"Invoke-Command -ArgumentList '$Message' { $psCommand }`""
-        [DKB.ProcessExtensions.ProcessExtensions]::StartProcessAsCurrentUser($cmdCommand)
+        If (!$Message) {
+            Write-Output "Message is not defined!"
+            Throw "Message is not defined!"
+        } Else {
+            $cmdCommand = "$ENV:windir\System32\WindowsPowerShell\v1.0\powershell.exe -nologo -WindowStyle Hidden `"Invoke-Command -ArgumentList '$Message','$Type' -ScriptBlock { $psCommand }`""
+            [DKB.ProcessExtensions.ProcessExtensions]::StartProcessAsCurrentUser($cmdCommand)
+        }
 }
-
-Notify-ActiveUser -Message "This call is regarding your car's extended Warranty." -Type "Warning"
