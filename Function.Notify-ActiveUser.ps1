@@ -277,19 +277,23 @@ function Notify-ActiveUser (
     [string]
     $Type = "Notification"
     ) {
-        $psCommand = {
-            param($Message, $Type)
-            (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.New-WPFMessageBox.ps1') | Invoke-Expression
-            New-WPFMessageBox -Content $Message -Type $Type
-        }
+        $scriptsPath = "$ENV:windir\LTSvc\scripts"
+        $BATPath = "$scriptsPath\launch_notification.bat"
+        $VBSPath = "$ENV:windir\LTSvc\scripts\launch_notification.vbs"
+        $psCommand = { param($Message, $Type);(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.New-WPFMessageBox.ps1') | Invoke-Expression;New-WPFMessageBox -Content $Message -Type $Type; }
 
         If (!$Message) {
             Write-Output "Message is not defined!"
             Throw "Message is not defined!"
-        } Else {
-            $cmdCommand = "$ENV:windir\System32\WindowsPowerShell\v1.0\powershell.exe -nologo -WindowStyle Hidden `"Invoke-Command -ArgumentList '$Message','$Type' -ScriptBlock { $psCommand }`""
-            [DKB.ProcessExtensions.ProcessExtensions]::StartProcessAsCurrentUser($cmdCommand)
         }
+
+        # Create the BAT file that launches Powershell
+        Set-Content -Path $BATPath -Value "$ENV:windir\System32\WindowsPowerShell\v1.0\powershell.exe `"Invoke-Command -ArgumentList '$Message','$Type' -ScriptBlock { $psCommand }`""
+
+        # Create VBS file that launches BAT file
+        Set-Content -Path $VBSPath -Value "Dim WinScriptHost`nSet WinScriptHost = CreateObject(`"WScript.Shell`")`nWinScriptHost.Run Chr(34) & `"$BATPath`" & Chr(34), 0`nSet WinScriptHost = Nothing`n"
+
+        [DKB.ProcessExtensions.ProcessExtensions]::StartProcessAsCurrentUser("wscript $VBSPath")
 }
 
 Notify-ActiveUser -Message "ERROR: Your PC is not reaching peak performance. Please uninstall all applications to continue." -Type Error
