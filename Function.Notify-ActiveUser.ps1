@@ -295,6 +295,8 @@ function Notify-ActiveUser (
             Remove-Item -Path $VBSPath
         }
 
+        $Message = $Message -replace "`n", "``n"
+
         # Create the BAT file that launches Powershell
         Set-Content -Path $BATPath -Value "$ENV:windir\System32\WindowsPowerShell\v1.0\powershell.exe `"Invoke-Command -ArgumentList `"$Message`",`"$Type`" -ScriptBlock { $psCommand }`""
 
