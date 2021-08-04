@@ -295,6 +295,7 @@ function Notify-ActiveUser (
             Remove-Item -Path $VBSPath
         }
 
+        # TODO: Need to handle `r`n also probably? Do some more research. Probably need to transform both `r`n and `n into ``r``n or something like that?
         $Message = $Message -replace ' ', '` '
         $Message = $Message -replace "`n", "``n"
 
