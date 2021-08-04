@@ -280,7 +280,7 @@ function Notify-ActiveUser (
         $scriptsPath = "$ENV:windir\LTSvc\scripts"
         $BATPath = "$scriptsPath\launch_notification.bat"
         $VBSPath = "$ENV:windir\LTSvc\scripts\launch_notification.vbs"
-        $psCommand = {param($Message, $Type);(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.New-WPFMessageBox.ps1') | Invoke-Expression;New-WPFMessageBox -Content $Message -Type $Type;}
+        $psCommand = {param($msg, $msgType);(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.New-WPFMessageBox.ps1') | Invoke-Expression;New-WPFMessageBox -Content $msg -Type $msgType;}
 
         If (!$Message) {
             Write-Output "Message is not defined!"
@@ -295,12 +295,12 @@ function Notify-ActiveUser (
             Remove-Item -Path $VBSPath
         }
 
-        # TODO: Need to handle `r`n also probably? Do some more research. Probably need to transform both `r`n and `n into ``r``n or something like that?
         $Message = $Message -replace ' ', '` '
         $Message = $Message -replace "`n", "``n"
+        $Message = $Message -replace "`r", "``r"
 
         # Create the BAT file that launches Powershell
-        Set-Content -Path $BATPath -Value "$ENV:windir\System32\WindowsPowerShell\v1.0\powershell.exe `"Invoke-Command -ArgumentList `"$Message`",`"$Type`" -ScriptBlock { $psCommand }`""
+        Set-Content -Path $BATPath -Value "$ENV:windir\System32\WindowsPowerShell\v1.0\powershell.exe `"Invoke-Command -ArgumentList @(\`"$Message\`", \`"$Type\`") -ScriptBlock { $psCommand }`""
 
         # Create VBS file that launches BAT file
         Set-Content -Path $VBSPath -Value "Dim WinScriptHost`nSet WinScriptHost = CreateObject(`"WScript.Shell`")`nWinScriptHost.Run Chr(34) & `"$BATPath`" & Chr(34), 0`nSet WinScriptHost = Nothing`n"
