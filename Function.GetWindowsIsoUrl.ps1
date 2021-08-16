@@ -11,5 +11,11 @@
     $fidoScriptBlock = [ScriptBlock]::create(".{$fidoScript} $(&{$args} @params)")
 
 
-    Return Invoke-Command -ScriptBlock $fidoScriptBlock
+    $url = Invoke-Command -ScriptBlock $fidoScriptBlock
+
+    If ($Null -eq $url) {
+        Throw "FIDO (WinISO URL generator script) is not returning a value!! Must fix FIDO!"
+    }
+
+    Return $url
 }
