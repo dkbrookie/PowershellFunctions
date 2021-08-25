@@ -92,10 +92,6 @@ Function Install-EXE {
         )] [string]$InstallArguments,
         [Parameter(
             HelpMessage = 'Sets the -Wait flag on the Start-Process command of the installer EXE, meaning it will wait for the EXE to continue before moving on if this is set to $true. This is set to $true by default.'
-<<<<<<< Updated upstream
-        )]
-        [string]$Wait = 'Yes'
-=======
         )]  [boolean]$InstallWait = $true,
         <# ↓------------------------ Custom Directory ------------------------↓ #>
         [Parameter(
@@ -109,7 +105,6 @@ Function Install-EXE {
             HelpMessage = "When using a custom directory, you also need to specify the name of the EXE in the custom directory."
         )]  [string]$FileEXEPath
         <# ↑------------------------ Custom Directory ------------------------↑ #>
->>>>>>> Stashed changes
     )
 
 
@@ -241,15 +236,9 @@ Function Install-EXE {
     # Since we added the option to NOT wait for the EXE to finish (on the off chance an EXE hangs after install, some do this for some reason) we need to
     # create alternative start-process commands
     Try {
-<<<<<<< Updated upstream
-        [array]$script:logOutput += "Beginning installation of $AppName..."
-        If ($Arguments) {
-            If ($Wait -eq 'Yes') {
-=======
         $output += "Beginning installation of $AppName..."
         If ($InstallArguments) {
             If ($InstallWait) {
->>>>>>> Stashed changes
                 # Install with arguments and wait
                 Start-Process $FileEXEPath -Wait -ArgumentList "$InstallArguments"
             } Else {
@@ -257,11 +246,7 @@ Function Install-EXE {
                 Start-Process $FileEXEPath -ArgumentList "$InstallArguments"
             }
         } Else {
-<<<<<<< Updated upstream
-            If ($Wait -eq 'Yes') {
-=======
             If ($InstallWait) {
->>>>>>> Stashed changes
                 # Install with no arguments and wait
                 Start-Process $FileEXEPath -Wait
             } Else {
