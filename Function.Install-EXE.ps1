@@ -130,17 +130,17 @@ Function Install-EXE {
         # Not using all of this output right now but nice to have it handy in case we want to output any of it later.
         # Also need to sort out if I want to keep using script: scope here or just output to straight string at a
         # later time
-        $script:installedAppNames = $installedApps.DisplayName
-        $script:installedAppDate = $installedApps.InstallDate
-        $script:installedAppUninstallString = $installedApps.UninstallString
+        # $script:installedAppNames = $installedApps.DisplayName
+        # $script:installedAppDate = $installedApps.InstallDate
+        # $script:installedAppUninstallString = $installedApps.UninstallString
         If ($installedApps) {
             If ($installedApps.Count -gt 1) {
                 $script:output += "Multiple applications found with the word(s) [$AppName] in the display name in Add/Remove programs. See list below..."
                 $script:output += $installedAppNames
             }
-            'Success'
+            Return 'Success'
         } Else {
-            'Failed'
+            Return 'Failed'
         }
     }
 
