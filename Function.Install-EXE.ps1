@@ -149,6 +149,7 @@ Function Install-EXE {
     $status = Get-InstalledApplications -ApplicationName $AppName
     If ($status -eq 'Success') {
         $output += "The application name [$AppName] is already installed! Script complete."
+        $output = $output -join "`n"
         Write-Output $output
         Break
     }
@@ -269,7 +270,7 @@ Function Install-EXE {
 
 
     # Delete the installer file
-    Remove-Item $FileDir -Force -Confirm:$false
+    Remove-Item $FileDir -Force -Recurse
 
 
     $output = $output -join "`n"
