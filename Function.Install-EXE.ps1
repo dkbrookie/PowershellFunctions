@@ -33,7 +33,7 @@ Function Install-EXE {
     These arguments are speciifc to the EXE that needs to be extracted, generally something similar to '-unpack 
     C:\extractfolder.
 
-    .PARAMETER InstallerArguments
+    .PARAMETER Arguments
     Here you can define all arguments you want to use on the EXE.
 
     .PARAMETER Wait
