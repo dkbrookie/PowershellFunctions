@@ -17,14 +17,21 @@ Function Install-EXE {
     .PARAMETER FileDownloadLink
     This will be the download link to the EXE file. Make sure to include the FULL URL including the http://
 
-    .PARAMETER FileDir
-    This is the directory the download files and install logs will be saved to. If you leave this undefined,
-    it will default to %windir%\LTSvc\packages\Software\AppName
+    .PARAMETER ExtractInstaller
+    Some exe installers are actually a two step process where the first exe you download and launch just
+    unpacks the real installer (and sometimes various other files), then you run that extractead exe to 
+    install the application. This parameter is to account for that nuance, so if set to $true will then
+    require you to answer additional questions about the extraction process in -PathToExtractedExe and
+    -ExtractrArguments.
 
-    .PARAMETER FileEXEPath
-    The full path to the EXE installer. If you had a specific location to the EXE file you would define it here.
-    Keep in mind you do not have to define the -FileDownloadLink flag, so if you already had a local file or a
-    network share file you can just define the path to it here.
+    .PARAMETER PathToExtractedExe
+    Enter the path including the name of the EXE beginning after $env:windir\LTSvc\packages\software\$AppName\. 
+    Example: "foldername1\foldername2\unpacker.exe" would set the directory to "$env:windir\LTSvc\packages\
+    software\$AppName\foldername1\foldername2\unpacker.exe".
+
+    .PARAMETER ExtractArguments
+    These arguments are speciifc to the EXE that needs to be extracted, generally something similar to '-unpack 
+    C:\extractfolder.
 
     .PARAMETER Arguments
     Here you can define all arguments you want to use on the EXE.
@@ -34,52 +41,135 @@ Function Install-EXE {
     the installer EXE, meaning it will wait for the EXE to continue before moving on if this is set to $true. Set
     to $true if undefined.
 
+    .PARAMETER FileDir
+    This is the directory the download files and install logs will be saved to. If you leave this undefined,
+    it will default to %windir%\LTSvc\packages\Software\AppName
+
+    .PARAMETER FileEXEPath
+    The full path to the EXE installer. If you had a specific location to the EXE file you would define it here.
+    Keep in mind you do not have to define the -FileDownloadLink flag, so if you already had a local file or a
+    network share file you can just define the path to it here.
+
     .EXAMPLE
+    Standard install
     C:\PS> Install-EXE -AppName 'Microsoft Edge' -FileDownloadURL 'https://domain.com/file/file.EXE' -Arguments '/silent'
     C:\PS> Install-EXE -AppName 'Microsoft Edge' -FileDownloadURL 'https://domain.com/file/file.EXE' -FileEXEPath 'C:\windows\ltsvc\packages\software\Microsoft Edge\Microsoft Edge.EXE' -Arguments '/s'
+
+    Extraction before install
+    C:\PS> Install-EXE -AppName 'Autodesk DWG TrueView 2022 - English' -FileDownloadLink 'https://efulfillment.autodesk.com/NetSWDLD/2022/ACD/D7A6621A-1A6A-3DAC-BBD2-9EB566035195/SFX/DWGTrueView_2022_English_64bit_dlm.sfx.exe' -ExtractInstaller $true -PathToExtractedExe 'DWGTrueView_2022_English_64bit_dlm\Setup.exe' -ExtractArguments "-suppresslaunch -d ""C:\windows\ltsvc\packages\software\Autodesk DWG TrueView""" -InstallArguments '--silent'
     #>
 
 
-    [CmdletBinding()]
-
+    [CmdletBinding(DefaultParametersetName='none')]
 
     Param(
         [Parameter(
             Mandatory = $true,
             HelpMessage = "Please enter the name of the application you want to install exactly as seen in Add/Remove programs."
-        )]
-        [string]$AppName,
+        )]  [string]$AppName,
         [Parameter(
             Mandatory = $true,
             HelpMessage = "Please enter the full download URL for the installation EXE. This should look something like 'https://website.com/folder/exefile.exe'."
-        )]
-        [string]$FileDownloadLink,
-        [string]$FileDir,
-        [string]$FileEXEPath,
+        )]  [string]$FileDownloadLink,
+        <# ↓------------------------ Extract EXE ------------------------↓ #>
+        [Parameter(
+            ParameterSetName = 'extract',
+            Mandatory = $false
+        )]  [boolean]$ExtractInstaller = $false,
+        [Parameter(
+            ParameterSetName = 'extract',
+            Mandatory = $true,
+            HelpMessage = 'Enter the path including the name of the EXE beginning after $env:windir\LTSvc\packages\software\$AppName\. Example: "foldername1\foldername2\unpacker.exe" would set the directory to "$env:windir\LTSvc\packages\software\$AppName\foldername1\foldername2\unpacker.exe".'
+        )]  [string]$PathToExtractedExe,
+        [Parameter(
+            ParameterSetName = 'extract',
+            Mandatory = $true,
+            HelpMessage = "These arguments are speciifc to the EXE that needs to be extracted, generally something similar to '-unpack C:\extractfolder."
+        )]  [string]$ExtractArguments,
+        <# ↑------------------------ Extract EXE ------------------------↑ #>
         [Parameter(
             HelpMessage = "Enter all arguments to install the EXE, such as /s or /silent."
-        )]
-        [string]$Arguments,
+        )] [string]$Arguments,
         [Parameter(
             HelpMessage = 'Sets the -Wait flag on the Start-Process command of the installer EXE, meaning it will wait for the EXE to continue before moving on if this is set to $true. This is set to $true by default.'
-        )]
-        [string]$Wait = 'Yes'
+        )]  [boolean]$Wait = $true,
+        <# ↓------------------------ Custom Directory ------------------------↓ #>
+        [Parameter(
+            ParameterSetName = 'dir',
+            Mandatory = $false,
+            HelpMessage = "If you want to use a custom directory, please specify it here."
+        )]  [string]$FileDir,
+        [Parameter(
+            ParameterSetName = 'dir',
+            Mandatory = $true,
+            HelpMessage = "When using a custom directory, you also need to specify the name of the EXE in the custom directory."
+        )]  [string]$FileEXEPath
+        <# ↑------------------------ Custom Directory ------------------------↑ #>
     )
 
 
+    # Define vars
+    [array]$output = @()
+
+    
+    # Quick function to check for successful application install after the installer runs. This is used near the end of the function.
+    Function Get-InstalledApplications ($ApplicationName) {
+        # Define vars
+        [array]$installedApps = @()
+
+        # Applications may be in either of these locations depending on if x86 or x64
+        $installedApps += Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
+        $installedApps += Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
+        If ((Get-PSDrive -PSProvider Registry).Name -notcontains 'HKU') {
+            New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS | Out-Null
+        }
+        # Applications can also install to single user profiles, so we're checking user profiles too
+        $installedApps += Get-ItemProperty "HKU:\*\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
+        $installedApps += Get-ItemProperty "HKU:\*\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
+
+        # Not using all of this output right now but nice to have it handy in case we want to output any of it later.
+        # Also need to sort out if I want to keep using script: scope here or just output to straight string at a
+        # later time
+        # $script:installedAppNames = $installedApps.DisplayName
+        # $script:installedAppDate = $installedApps.InstallDate
+        # $script:installedAppUninstallString = $installedApps.UninstallString
+        If ($installedApps) {
+            If ($installedApps.Count -gt 1) {
+                $script:output += "Multiple applications found with the word(s) [$AppName] in the display name in Add/Remove programs. See list below..."
+                $script:output += $installedAppNames
+            }
+            Return 'Success'
+        } Else {
+            Return 'Failed'
+        }
+    }
+
+
+    # Check to see if the application is already installed. If it is, exit the script.
+    $status = Get-InstalledApplications -ApplicationName $AppName
+    If ($status -eq 'Success') {
+        $output += "The application name [$AppName] is already installed! Script complete."
+        $output = $output -join "`n"
+        Write-Output $output
+        Break
+    }
+
+
     # Lingering powershell tasks can hold up a successful installation, so here we're saying if a powershell
-    # process has been running for more than 90min, and the user is NT Authority\SYSTEM, kill it
-    [array]$processes = Get-Process -Name powershell -IncludeUserName | Where { $_.UserName -eq 'NT AUTHORITY\SYSTEM' }
+    # process has been running for more than 90min, and the user is NT Authority\SYSTEM, kill it. System is 
+    # significant because it implies the installation was started from a script and not a user, so we're
+    # cleaning up without killing processes from the logged in user.
+    [array]$processes = Get-Process -Name powershell -IncludeUserName -EA 0 | Where-Object { $_.UserName -eq 'NT AUTHORITY\SYSTEM' }
     If ($processes) {
         ForEach ($process in $processes) {
             $timeOpen = New-TimeSpan -Start (Get-Process -Id $process.ID).StartTime
             If ($timeOpen.TotalMinutes -gt 90) {
                 Try {
-                    [array]$script:logOutput += "Found the process [$($process.Name)] has been running for 90+ minutes. Killing this off to ensure a successful installation..."
+                    $output += "Found the process [$($process.Name)] has been running for 90+ minutes. Killing this off to ensure a successful installation..."
                     Stop-Process -Id $process.Id -Force
-                    [array]$script:logOutput += "[$($process.Name)] has been successfully stopped."
+                    $output += "[$($process.Name)] has been successfully stopped."
                 } Catch {
-                    [array]$script:logOutput += "There was an error when trying to end the $($process.Name)] process."
+                    $output += "There was an error when trying to end the $($process.Name)] process."
                 }
             }
         }
@@ -90,47 +180,20 @@ Function Install-EXE {
     Try {
         # Oddly, this command works to enable TLS12 on even Powershellv2 when it shows as unavailable. This also still works for Win8+
         [Net.ServicePointManager]::SecurityProtocol = [Enum]::ToObject([Net.SecurityProtocolType], 3072)
-        [array]$script:logOutput += "Successfully enabled TLS1.2 to ensure successful file downloads."
+        $output += "Successfully enabled TLS1.2 to ensure successful file downloads."
     } Catch {
-        [array]$script:logOutput += "Encountered an error while attempting to enable TLS1.2 to ensure successful file downloads. This can sometimes be due to dated Powershell. Checking Powershell version..."
+        $output += "Encountered an error while attempting to enable TLS1.2 to ensure successful file downloads. This can sometimes be due to dated Powershell. Checking Powershell version..."
         # Generally enabling TLS1.2 fails due to dated Powershell so we're doing a check here to help troubleshoot failures later
         $psVers = $PSVersionTable.PSVersion
         If ($psVers.Major -lt 3) {
-            [array]$script:logOutput += "Powershell version installed is only $psVers which has known issues with this script directly related to successful file downloads. Script will continue, but may be unsuccessful."
-        }
-    }
-    
-
-    # Quick function to check for successful application install after the installer runs. This is used near the end of the function.
-    Function Get-InstalledApplications ($ApplicationName) {
-        # Applications may be in either of these locations depending on if x86 or x64
-        [array]$installedApps = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
-        [array]$installedApps += Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
-        If ((Get-PSDrive -PSProvider Registry).Name -notcontains 'HKU') {
-            New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS | Out-Null
-        }
-        # Applications can also install to single user profiles, so we're checking user profiles too
-        [array]$installedApps += Get-ItemProperty "HKU:\*\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
-        [array]$installedApps += Get-ItemProperty "HKU:\*\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
-        # Not using all of this output right now but nice to have it handy in case we want to output any of it later
-        $script:installedAppNames = $installedApps.DisplayName
-        $script:installedAppDate = $installedApps.InstallDate
-        $script:installedAppUninstallString = $installedApps.UninstallString
-        If ($installedApps) {
-            If ($installedApps.Count -gt 1) {
-                [array]$script:logOutput += "Multiple applications found with the word(s) [$AppName] in the display name in Add/Remove programs. See list below..."
-                [array]$script:logOutput += $installedAppNames
-            }
-            'Success'
-        } Else {
-            'Failed'
+            $output += "Powershell version installed is only $psVers which has known issues with this script directly related to successful file downloads. Script will continue, but may be unsuccessful."
         }
     }
 
 
     # Create all the dirs we need for a successful download/install
     Try {
-        # Check for the directory variable and set it if it doensn't exist
+        # Check for the directory variable and set it if it doesn't exist
         If (!$FileDir) {
             $FileDir = "$env:windir\LTSvc\packages\software\$AppName"
         }
@@ -138,9 +201,13 @@ Function Install-EXE {
         If(!(Test-Path $FileDir)) {
             New-Item -ItemType Directory $FileDir | Out-Null
         }
+        # Set the path to extraction EXE if the variable was defined
+        If ($PathToExtractedExe) {
+            $PathToExtractedExe = $FileDir + '\' + $PathToExtractedExe
+        }
         # Set the path for the EXE installer
         If (!$FileEXEPath) {
-            $FileEXEPath = "$FileDir\$($AppName).EXE"
+            $FileEXEPath = "$FileDir\$($AppName).exe"
         }
 
         # Download the EXE if it doens't exist, delete it and downlaod a new one of it does
@@ -153,16 +220,26 @@ Function Install-EXE {
             (New-Object System.Net.WebClient).DownloadFile($FileDownloadLink,$FileEXEPath)
         }
     } Catch {
-        [array]$script:logOutput += "Failed to download $FileDownloadLink to $FileEXEPath. Unable to proceed with install without the installer file, exiting script."
+        $output += "Failed to download $FileDownloadLink to $FileEXEPath. Unable to proceed with install without the installer file, exiting script."
+    }
+
+
+    # Extract EXE first check
+    If ($ExtractInstaller) {
+        # This means yes we need to extract an EXE before install
+        Start-Process $FileEXEPath -ArgumentList "$ExtractArguments" -Wait
+        # Update the installer EXE path to the path of the extracted EXE. The file we downloaded was just for extracting,
+        # the file we just unpacked is what we execute to install
+        $FileEXEPath = $PathToExtractedExe
     }
 
 
     # Since we added the option to NOT wait for the EXE to finish (on the off chance an EXE hangs after install, some do this for some reason) we need to
-    # set alternate start-process commands
+    # create alternative start-process commands
     Try {
-        [array]$script:logOutput += "Beginning installation of $AppName..."
+        $output += "Beginning installation of $AppName..."
         If ($Arguments) {
-            If ($Wait -eq 'Yes') {
+            If ($Wait) {
                 # Install with arguments and wait
                 Start-Process $FileEXEPath -Wait -ArgumentList "$Arguments"
             } Else {
@@ -170,7 +247,7 @@ Function Install-EXE {
                 Start-Process $FileEXEPath -ArgumentList "$Arguments"
             }
         } Else {
-            If ($Wait -eq 'Yes') {
+            If ($Wait) {
                 # Install with no arguments and wait
                 Start-Process $FileEXEPath -Wait
             } Else {
@@ -180,22 +257,22 @@ Function Install-EXE {
         }
         $status = Get-InstalledApplications -ApplicationName $AppName
         If ($status -eq 'Success') {
-            [array]$script:logOutput += "Verified the application name [$AppName] is now successfully showing in Add/Remove programs as installed! Script complete."
+            $output += "Verified the application [$AppName] was successfully installed! Script complete."
         } Else {
-            [array]$script:logOutput += "$AppName is not reporting back as installed in Add/Remove Programs."
+            $output += "$AppName is not reporting back as installed in Add/Remove Programs."
         }
     } Catch {
-        [array]$script:logOutput += "Failed to install $AppName."
+        $output += "Failed to install $AppName."
     }
 
 
-    [array]$script:logOutput += "For potential troubleshooting needs, here is the full error output: $Error"
+    $output += "For potential troubleshooting needs, here is the full error output: $Error"
 
 
     # Delete the installer file
-    Remove-Item $FileEXEPath -Force
+    Remove-Item $FileDir -Force -Recurse
 
 
-    [array]$script:logOutput = [array]$script:logOutput -join "`n"
-    $script:logOutput
+    $output = $output -join "`n"
+    Write-Output $output
 }
