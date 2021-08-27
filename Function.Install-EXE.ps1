@@ -89,10 +89,10 @@ Function Install-EXE {
         <# ↑------------------------ Extract EXE ------------------------↑ #>
         [Parameter(
             HelpMessage = "Enter all arguments to install the EXE, such as /s or /silent."
-        )] [string]$InstallArguments,
+        )] [string]$Arguments,
         [Parameter(
             HelpMessage = 'Sets the -Wait flag on the Start-Process command of the installer EXE, meaning it will wait for the EXE to continue before moving on if this is set to $true. This is set to $true by default.'
-        )]  [boolean]$InstallWait = $true,
+        )]  [boolean]$Wait = $true,
         <# ↓------------------------ Custom Directory ------------------------↓ #>
         [Parameter(
             ParameterSetName = 'dir',
@@ -238,16 +238,16 @@ Function Install-EXE {
     # create alternative start-process commands
     Try {
         $output += "Beginning installation of $AppName..."
-        If ($InstallArguments) {
-            If ($InstallWait) {
+        If ($Arguments) {
+            If ($Wait) {
                 # Install with arguments and wait
-                Start-Process $FileEXEPath -Wait -ArgumentList "$InstallArguments"
+                Start-Process $FileEXEPath -Wait -ArgumentList "$Arguments"
             } Else {
                 # Install with arguments and no wait
-                Start-Process $FileEXEPath -ArgumentList "$InstallArguments"
+                Start-Process $FileEXEPath -ArgumentList "$Arguments"
             }
         } Else {
-            If ($InstallWait) {
+            If ($Wait) {
                 # Install with no arguments and wait
                 Start-Process $FileEXEPath -Wait
             } Else {
