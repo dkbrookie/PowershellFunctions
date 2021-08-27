@@ -29,7 +29,7 @@ Function Install-EXE {
     Example: "foldername1\foldername2\unpacker.exe" would set the directory to "$env:windir\LTSvc\packages\
     software\$AppName\foldername1\foldername2\unpacker.exe".
 
-    .PARAMETER ExtractrArguments
+    .PARAMETER ExtractArguments
     These arguments are speciifc to the EXE that needs to be extracted, generally something similar to '-unpack 
     C:\extractfolder.
 
