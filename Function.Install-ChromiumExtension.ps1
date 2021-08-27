@@ -1,4 +1,4 @@
-Function Install-ChromeExtension {
+Function Install-ChromiumExtension {
     <#
     Chrome
         1: Google Chrome - Adblock Plus - cfhdojbkjhnklbpkdaibdccddilifddb
