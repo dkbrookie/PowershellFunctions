@@ -1,14 +1,36 @@
 Function Install-ChromiumExtension {
     <#
     Chrome
-        1: Google Chrome - Adblock Plus - cfhdojbkjhnklbpkdaibdccddilifddb
-        2: Google Chrome - LastPass - hdokiejnpimakedhajhdlcegeplioahd
-        3: Google Chrome - Qure4u CareManager - mdofmedkjabchieldhdbknompappgppd
+        ExtensionName: Google Chrome - Adblock Plus
+        GPOInstallNumber: 1
+        ExtensionID: cfhdojbkjhnklbpkdaibdccddilifddb
+        Comptaible: Yes
+
+        ExtensionName: Google Chrome - LastPass
+        GPOInstallNumber: 2
+        ExtensionID: hdokiejnpimakedhajhdlcegeplioahd
+        Comptaible: Yes
+
+        ExtensionName: Google Chrome - Qure4u CareManager
+        GPOInstallNumber: 3
+        ExtensionID: mdofmedkjabchieldhdbknompappgppd
+        Comptaible: Yes
     
     Edge
-        1: Microsoft Edge - Adblock Plus - gmgoamodcdcjnbaobigkjelfplakmdhh
-        2: Microsoft Edge - LastPass - bbcinlkgjjkejfdpemiealijmmooekmp
-        3: INCOMPATIBLE - Microsoft Edge - Qure4u CareManager - mdofmedkjabchieldhdbknompappgppd
+        ExtensionName: Google Chrome - Adblock Plus
+        GPOInstallNumber: 1
+        ExtensionID: gmgoamodcdcjnbaobigkjelfplakmdhh
+        Comptaible: Yes
+
+        ExtensionName: Google Chrome - LastPass
+        GPOInstallNumber: 2
+        ExtensionID: bbcinlkgjjkejfdpemiealijmmooekmp
+        Comptaible: Yes
+
+        ExtensionName: Google Chrome - Qure4u CareManager
+        GPOInstallNumber: 3
+        ExtensionID: mdofmedkjabchieldhdbknompappgppd
+        Comptaible: No
     #>
 
     [CmdletBinding(DefaultParametersetName='none')]
@@ -46,6 +68,7 @@ Function Install-ChromiumExtension {
 
 
     # Set vars
+    $output = @()
     $baseAddRemoveDir = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall"
     $addRemoveDir = $baseAddRemoveDir + '\' + $ExtensionName
     Switch ($Browser) {
