@@ -38,7 +38,7 @@ Function Install-ChromiumExtension {
     Param(
         [Parameter(
             Mandatory = $true,
-            HelpMessage = "Please enter the name of the extension you want to install exactly as seen you want it to be seen in Add/Remove Programs."
+            HelpMessage = "Choose the browser to install an extension to."
         )]
         [ValidateSet(
             'Google Chrome','Microsoft Edge'
