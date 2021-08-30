@@ -53,7 +53,7 @@ function Get-Win10VersionComparison {
     function Get-OutputMessage {
         param([bool]$Result)
 
-        $msg1 = "The current Windows version on this machine, $version, is "
+        $msg1 = "The current Windows version, $version, is "
         $msg2 = "$variableMsg the requested version, $checkAgainst"
 
         If ($Result) {
