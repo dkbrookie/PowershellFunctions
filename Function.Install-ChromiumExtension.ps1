@@ -21,7 +21,7 @@ Function Install-ChromiumExtension {
         [ValidateSet(
             'Google Chrome','Microsoft Edge'
         )]
-          [string]$Browser,
+            [string]$Browser,
         [Parameter(
             Mandatory = $true,
             HelpMessage = "Please enter the name of the extension you want to install exactly as seen you want it to be seen in Add/Remove Programs."
@@ -37,12 +37,17 @@ Function Install-ChromiumExtension {
         [Parameter(
             Mandatory = $true,
             HelpMessage = "This appears in Add/Remove progams under the version number."
-        )]  [string]$InstallVersion
+        )]  [string]$InstallVersion,
+        [Parameter(
+            Mandatory = $false,
+            HelpMessage = "Type the name of the add/remove item to remove EXACTLY as seen in add/remove programs. Removes previous entry for custom enforced extensions installed before installing the new plugin. Note this is only removing the add/remove program entry, not actually removing the plugin enforcement on the browser (unnecessary)."
+        )]  [string]$RemovePrevious
     )
 
 
     # Set vars
-    $addRemoveDir= "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\$ExtensionName"
+    $baseAddRemoveDir = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall"
+    $addRemoveDir = $baseAddRemoveDir + '\' + "$ExtensionName"
     Switch ($Browser) {
         'Google Chrome' {
                 $baseDir = 'HKLM:\SOFTWARE\Policies\Google'
@@ -59,20 +64,29 @@ Function Install-ChromiumExtension {
     If (!(Test-Path $gpoDir -EA 0)) {
         New-Item -Path $gpoDir -EA 0 | Out-Null
     } Else {
-        Write-Output 'Verified GPO reg keys exist'
+        $output += 'Verified GPO reg keys exist'
     }
 
 
+    # Create the GPO enforcement reg value for the apropriate browser
     If ((Get-ItemProperty $gpoDir -Name $GPOInstallNumber -EA 0).$GPOInstallNumber -ne $ExtensionID) {
         Set-ItemProperty -Path $gpoDir -Name $GPOInstallNumber -Value $ExtensionID | Out-Null
-        Write-Output "Successfully set [$ExtensionName] GPO reg auto deploy"
+        $output += "Successfully set [$ExtensionName] GPO reg auto deploy"
     } Else {
-        Write-Output "Confirmed the [$ExtensionName] reg entry is present"
+        $output += "Confirmed the [$ExtensionName] reg entry is present"
     }
 
 
-    ## Create an entry in the Uninstall key in registry so this appears in Add/Remove Programs. This
-    ## lets us track which machines have this installed and which ones don't via AUtomate
+    # Remove previous versions of the custom enforced extensions
+    If ($RemovePrevious) {
+        $RemovePrevious = $baseAddRemoveDir + '\' + $RemovePrevious
+        If ((Test-Path -Path $RemovePrevious)) {
+            Remove-Item -Path $RemovePrevious -Force -EA 0 | Out-Null
+        }
+    }
+
+    # Create an entry in the Uninstall key in registry so this appears in Add/Remove Programs. This
+    # lets us track which machines have this installed and which ones don't via AUtomate
     $addRemoveDir = "HKLM:\SOftware\Microsoft\Windows\CurrentVersion\Uninstall\$ExtensionName"
     If (!(Test-Path $addRemoveDir-EA)) {
         New-Item $addRemoveDir -EA 0 | Out-Null
@@ -81,7 +95,7 @@ Function Install-ChromiumExtension {
         New-ItemProperty -Path $addRemoveDir -PropertyType String -Name 'DisplayVersion' -Value $InstallVersion -EA 0 | Out-Null
         New-ItemProperty -Path $addRemoveDir -PropertyType String -Name 'Publisher' -Value 'DKBInnovative' -EA 0 | Out-Null
         New-ItemProperty -Path $addRemoveDir -PropertyType String -Name 'UninstallString' -Value 'C:\dontuninstallme' -EA 0 | Out-Null
-        Write-Output "Successfully added [$ExtensionName] item in Add/Remove Programs"
+        $output += "Successfully added [$ExtensionName] item in Add/Remove Programs"
     }
 
 
