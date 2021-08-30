@@ -47,7 +47,7 @@ Function Install-ChromiumExtension {
 
     # Set vars
     $baseAddRemoveDir = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall"
-    $addRemoveDir = $baseAddRemoveDir + '\' + "$ExtensionName"
+    $addRemoveDir = $baseAddRemoveDir + '\' + $ExtensionName
     Switch ($Browser) {
         'Google Chrome' {
                 $baseDir = 'HKLM:\SOFTWARE\Policies\Google'
