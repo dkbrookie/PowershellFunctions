@@ -63,7 +63,11 @@ Function Install-ChromiumExtension {
         [Parameter(
             Mandatory = $false,
             HelpMessage = "Type the name of the add/remove item to remove EXACTLY as seen in add/remove programs. Removes previous entry for custom enforced extensions installed before installing the new plugin. Note this is only removing the add/remove program entry, not actually removing the plugin enforcement on the browser (unnecessary)."
-        )]  [string]$RemovePrevious
+        )]  [string]$RemovePrevious,
+        [Parameter(
+            Mandatory = $false,
+            HelpMessage = "Type the name of the Publisher to display in Add/Remove programs. If left blank, the default is DKBInnovative."
+        )]  [string]$Publisher = 'DKBInnovative'
     )
 
 
@@ -116,7 +120,7 @@ Function Install-ChromiumExtension {
         New-ItemProperty -Path $addRemoveDir -PropertyType String -Name 'DisplayIcon' -Value 'C:\Windows\LTSvc\labtech.ico' -EA 0 | Out-Null
         New-ItemProperty -Path $addRemoveDir -PropertyType String -Name 'DisplayName' -Value $ExtensionName -EA 0 | Out-Null
         New-ItemProperty -Path $addRemoveDir -PropertyType String -Name 'DisplayVersion' -Value $InstallVersion -EA 0 | Out-Null
-        New-ItemProperty -Path $addRemoveDir -PropertyType String -Name 'Publisher' -Value 'DKBInnovative' -EA 0 | Out-Null
+        New-ItemProperty -Path $addRemoveDir -PropertyType String -Name 'Publisher' -Value $Publisher -EA 0 | Out-Null
         New-ItemProperty -Path $addRemoveDir -PropertyType String -Name 'UninstallString' -Value 'C:\dontuninstallme' -EA 0 | Out-Null
         $output += "Successfully added [$ExtensionName] item in Add/Remove Programs"
     }
