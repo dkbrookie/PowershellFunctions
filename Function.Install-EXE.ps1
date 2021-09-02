@@ -52,7 +52,9 @@ Function Install-EXE {
 
     .Parameter AdditionalDownloadLinks
     If the install process requires additional files, please include all URLs here to download to root dir separated 
-    by commas. Exampe: 'https://test.com/file.dll','https://test.com/otherfile.ini'
+    by commas. Exampe: 'https://test.com/file.dll','https://test.com/otherfile.ini'. Keep in mind that the download
+    URL NEEDS to end with the file extension. In the examples above, the downloaded file would be named 'file.dll'
+    and 'otherfile.ini'. This is because we're taking everything after the '/' as the file name + extension.
 
     .EXAMPLE
     Standard install
