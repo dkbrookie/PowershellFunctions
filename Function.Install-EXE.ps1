@@ -50,6 +50,10 @@ Function Install-EXE {
     Keep in mind you do not have to define the -FileDownloadLink flag, so if you already had a local file or a
     network share file you can just define the path to it here.
 
+    .Parameter AdditionalDownloadLinks
+    If the install process requires additional files, please include all URLs here to download to root dir separated 
+    by commas. Exampe: 'https://test.com/file.dll','https://test.com/otherfile.ini'
+
     .EXAMPLE
     Standard install
     C:\PS> Install-EXE -AppName 'Microsoft Edge' -FileDownloadURL 'https://domain.com/file/file.EXE' -Arguments '/silent'
@@ -103,8 +107,13 @@ Function Install-EXE {
             ParameterSetName = 'dir',
             Mandatory = $true,
             HelpMessage = "When using a custom directory, you also need to specify the name of the EXE in the custom directory."
-        )]  [string]$FileEXEPath
+        )]  [string]$FileEXEPath,
         <# ↑------------------------ Custom Directory ------------------------↑ #>
+        [Parameter(
+            Mandatory = $false,
+            HelpMessage = "If the install process requires additional files, please include all URLs here to download to root dir separated by commas. Exampe: 'https://test.com/file.dll','https://test.com/otherfile.ini'"
+        )]
+        [array]$AdditionalDownloadLinks
     )
 
 
@@ -208,6 +217,16 @@ Function Install-EXE {
         # Set the path for the EXE installer
         If (!$FileEXEPath) {
             $FileEXEPath = "$FileDir\$($AppName).exe"
+        }
+
+        # Download additional files if any are defined
+        If ($AdditionalDownloadLinks) {
+            ForEach ($additionalDownloadLink in $AdditionalDownloadLinks) {
+                # Get the file name including the extension from the download URL
+                $additionalFileName = ($AdditionalDownloadLink.Split('/'))[-1]
+                $additionalFilePath = $FileDir + '\' + $additionalFileName
+                (New-Object System.Net.WebClient).DownloadFile($additionalDownloadLink,$additionalFilePath)
+            }
         }
 
         # Download the EXE if it doens't exist, delete it and downlaod a new one of it does

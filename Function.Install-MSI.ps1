@@ -39,9 +39,14 @@ Function Install-MSI {
     the installer MSI, meaning it will wait for the MSI to continue before moving on if this is set to $true. Set
     to $true if undefined.
 
+    .Parameter AdditionalDownloadLinks
+    If the install process requires additional files, please include all URLs here to download to root dir separated 
+    by commas. Exampe: 'https://test.com/file.dll','https://test.com/otherfile.ini'
+
     .EXAMPLE
-    C:\PS> Install-MSI -AppName "SuperApp" -FileDownloadURL "https://domain.com/file/file.msi"
-    C:\PS> Install-MSI -AppName "SuperApp" -FileDownloadURL "https://domain.com/file/file.msi" -FileMSIPath "C:\windows\ltsvc\packages\softwar\superapp\superapp.msi" -LogPath "C:\install log.txt"
+    C:\PS> Install-MSI -AppName 'SuperApp' -FileDownloadURL 'https://domain.com/file/file.msi' -Arguments '/qn /norestart'
+    C:\PS> Install-MSI -AppName 'SuperApp' -FileDownloadURL 'https://domain.com/file/file.msi' -Arguments '/qn /norestart' -FileMSIPath "C:\windows\ltsvc\packages\softwar\superapp\superapp.msi" -LogPath "C:\install log.txt"
+    C:\PS> Install-MSI -AppName 'SuperApp' -FileDownloadURL 'https://domain.com/file/file.msi' -Arguments '/qn /norestart' -AdditionalDownloadLinks 'https://test.com/file.dll','https://test.com/otherfile.ini'
     #>
 
 
@@ -67,9 +72,15 @@ Function Install-MSI {
             HelpMessage="DO NOT use /i or /l, these are already specified! Enter all other arguments to install the MSI, such as /qn and /norestart"
         )][string]$Arguments,
         [Parameter(
+            Mandatory = $false,
             HelpMessage = 'Sets the -Wait flag on the Start-Process command of the installer MSI, meaning it will wait for the MSI to continue before moving on if this is set to $true. This is set to $true by default.'
         )]
-        [boolean]$Wait = $true
+        [boolean]$Wait = $true,
+        [Parameter(
+            Mandatory = $false,
+            HelpMessage = "If the install process requires additional files, please include all URLs here to download to root dir separated by commas. Exampe: 'https://test.com/file.dll','https://test.com/otherfile.ini'"
+        )]
+        [array]$AdditionalDownloadLinks
     )
 
 
@@ -134,22 +145,32 @@ Function Install-MSI {
     }
 
 
-    # Create all the dirs we need for a successful download/install
+    # Create all the dirs we need for a successful download/install, and download required files
     Try {
-        ## Check for the directory variable and set it if it doensn't exist
+        # Check for the directory variable and set it if it doensn't exist
         If (!$FileDir) {
             $FileDir = "$env:windir\LTSvc\packages\software\$AppName"
         }
-        ## Create the directory if it doesn't exist
+        # Create the directory if it doesn't exist
         If(!(Test-Path $FileDir)) {
             New-Item -ItemType Directory $FileDir | Out-Null
         }
-        ## Set the path for the MSI installer
+        # Set the path for the MSI installer
         If (!$FileMSIPath) {
-            $FileMSIPath = "$FileDir\$($AppName).msi"
+            $FileMSIPath = $FileDir + '\' + $AppName + '.msi'
         }
 
-        ## Download the MSI if it doens't exist, delete it and downlaod a new one of it does
+        # Download additional files if any are defined
+        If ($AdditionalDownloadLinks) {
+            ForEach ($additionalDownloadLink in $AdditionalDownloadLinks) {
+                # Get the file name including the extension from the download URL
+                $additionalFileName = ($AdditionalDownloadLink.Split('/'))[-1]
+                $additionalFilePath = $FileDir + '\' + $additionalFileName
+                (New-Object System.Net.WebClient).DownloadFile($additionalDownloadLink,$additionalFilePath)
+            }
+        }
+
+        # Download the MSI if it doens't exist, delete it and downlaod a new one of it does
         If(!(Test-Path $FileMSIPath -PathType Leaf)) {
             (New-Object System.Net.WebClient).DownloadFile($FileDownloadLink,$FileMSIPath)
         # If the file already exists, delete it so we can download a fresh copy. It may be a different version so this ensures we're
@@ -159,9 +180,9 @@ Function Install-MSI {
             (New-Object System.Net.WebClient).DownloadFile($FileDownloadLink,$FileMSIPath)
         }
 
-        ## Set the path for logs if it doesn't exist
+        # Set the path for logs if it doesn't exist
         If (!$LogPath) {
-            $LogPath = "$FileDir\Install Log - $($AppName).txt"
+            $LogPath = $FileDir + '\Install Log - ' + $AppName + '.txt'
         }
     } Catch {
         [array]$script:logOutput += "Failed to download $FileDownloadLink to $FileMSIPath. Unable to proceed with install without the installer file, exiting script."
