@@ -118,7 +118,7 @@ Function Install-EXE {
 
 
     # Define vars
-    [array]$output = @()
+    $output = @()
 
     
     # Quick function to check for successful application install after the installer runs. This is used near the end of the function.

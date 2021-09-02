@@ -84,6 +84,10 @@ Function Install-MSI {
     )
 
 
+    # Define vars
+    $output = @()
+
+
     # Lingering powershell tasks can hold up a successful installation, so here we're saying if a powershell
     # process has been running for more than 90min, and the user is NT Authority\SYSTEM, kill it
     [array]$processes = Get-Process -Name powershell -IncludeUserName | Where { $_.UserName -eq 'NT AUTHORITY\SYSTEM' }
@@ -92,11 +96,11 @@ Function Install-MSI {
             $timeOpen = New-TimeSpan -Start (Get-Process -Id $process.ID).StartTime
             If ($timeOpen.TotalMinutes -gt 90) {
                 Try {
-                    [array]$script:logOutput += "Foudn the process [$($process.Name)] has been running for 90+ minutes. Killing this off to ensure a successful installation..."
+                    $output += "Foudn the process [$($process.Name)] has been running for 90+ minutes. Killing this off to ensure a successful installation..."
                     Stop-Process -Id $process.Id -Force
-                    [array]$script:logOutput += "[$($process.Name)] has been successfully stopped."
+                    $output += "[$($process.Name)] has been successfully stopped."
                 } Catch {
-                    [array]$script:logOutput += "There was an error when trying to end the $($process.Name)] process."
+                    $output += "There was an error when trying to end the $($process.Name)] process."
                 }
             }
         }
@@ -107,13 +111,13 @@ Function Install-MSI {
     Try {
         # Oddly, this command works to enable TLS12 on even Powershellv2 when it shows as unavailable. This also still works for Win8+
         [Net.ServicePointManager]::SecurityProtocol = [Enum]::ToObject([Net.SecurityProtocolType], 3072)
-        [array]$script:logOutput += "Successfully enabled TLS1.2 to ensure successful file downloads."
+        $output += "Successfully enabled TLS1.2 to ensure successful file downloads."
     } Catch {
-        [array]$script:logOutput += "Encountered an error while attempting to enable TLS1.2 to ensure successful file downloads. This can sometimes be due to dated Powershell. Checking Powershell version..."
+        $output += "Encountered an error while attempting to enable TLS1.2 to ensure successful file downloads. This can sometimes be due to dated Powershell. Checking Powershell version..."
         # Generally enabling TLS1.2 fails due to dated Powershell so we're doing a check here to help troubleshoot failures later
         $psVers = $PSVersionTable.PSVersion
         If ($psVers.Major -lt 3) {
-            [array]$script:logOutput += "Powershell version installed is only $psVers which has known issues with this script directly related to successful file downloads. Script will continue, but may be unsuccessful."
+            $output += "Powershell version installed is only $psVers which has known issues with this script directly related to successful file downloads. Script will continue, but may be unsuccessful."
         }
     }
     
@@ -135,12 +139,12 @@ Function Install-MSI {
         $script:installedAppUninstallString = $installedApps.UninstallString
         If ($installedApps) {
             If ($installedApps.Count -gt 1) {
-                [array]$script:logOutput += "Multiple applications found with the word(s) [$AppName] in the display name in Add/Remove programs. See list below..."
-                [array]$script:logOutput += $installedAppNames
+                $script:output += "Multiple applications found with the word(s) [$AppName] in the display name in Add/Remove programs. See list below..."
+                $script:output += $installedAppNames
             }
-            'Success'
+            Return 'Success'
         } Else {
-            'Failed'
+            Return 'Failed'
         }
     }
 
@@ -185,23 +189,23 @@ Function Install-MSI {
             $LogPath = $FileDir + '\Install Log - ' + $AppName + '.txt'
         }
     } Catch {
-        [array]$script:logOutput += "Failed to download $FileDownloadLink to $FileMSIPath. Unable to proceed with install without the installer file, exiting script."
+        $output += "Failed to download $FileDownloadLink to $FileMSIPath. Unable to proceed with install without the installer file, exiting script."
         Break
     }
 
 
     Try {
         If ((Get-Process -Name msiexec -EA 0)) {
-            [array]$script:logOutput += "Detected msiexec is already running in the background. End tasking this to ensure a successful MSI deployment..."
+            $output += "Detected msiexec is already running in the background. End tasking this to ensure a successful MSI deployment..."
              Stop-Process -Name msiexec -Force
-            [array]$script:logOutput += "msiexec ended successfully."
+            $output += "msiexec ended successfully."
         }
     } Catch {
-        [array]$script:logOutput += "Encountered an error when attempting to end msiexec. Installation attempt still proceeding, but msiexec already running may cause issues with the install."
+        $output += "Encountered an error when attempting to end msiexec. Installation attempt still proceeding, but msiexec already running may cause issues with the install."
     }
 
     Try {
-        [array]$script:logOutput += "Beginning installation of $AppName..."
+        $output += "Beginning installation of $AppName..."
         If ($Arguments) {
             If ($Wait) {
                 # Install with arguments and wait
@@ -221,22 +225,22 @@ Function Install-MSI {
         }
         $status = Get-InstalledApplications -ApplicationName $AppName
         If ($status -eq 'Success') {
-            [array]$script:logOutput += "Verified the application name [$AppName] is now successfully showing in Add/Remove programs as installed! Script complete."
+            $output += "Verified the application name [$AppName] is now successfully showing in Add/Remove programs as installed! Script complete."
         } Else {
-            [array]$script:logOutput += "$AppName is not reporting back as installed in Add/Remove Programs."
+            $output += "$AppName is not reporting back as installed in Add/Remove Programs."
         }
     } Catch {
-        [array]$script:logOutput += "Failed to install $AppName."
+        $output += "Failed to install $AppName."
     }
 
 
-    [array]$script:logOutput += "For potential troubleshooting needs, here is the full error output: $Error"
+    $output += "For potential troubleshooting needs, here is the full error output: $Error"
 
 
-    ## Delete the installer file
-    Remove-Item $FileMSIPath -Force
+    # Delete install files
+    Remove-Item $FileDir -Exclude '*.txt' -Recurse -Force
 
 
-    [array]$script:logOutput = [array]$script:logOutput -join "`n"
-    $script:logOutput
+    $output = $output -join "`n"
+    Write-Output $output
 }
