@@ -249,7 +249,7 @@ Function Install-EXE {
     # 'Empty' instead of $false. This is because of some weird ways Automate handles NULL...this just makes
     # it easier to account for.
     If ($ExtractInstaller -eq 'Empty') {
-        $ExtractArguments = $false
+        $ExtractInstaller = $false
     }
 
     If ($ExtractInstaller) {
