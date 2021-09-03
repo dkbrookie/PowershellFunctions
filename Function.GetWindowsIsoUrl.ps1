@@ -5,6 +5,7 @@
 
     $params = @{
         GetUrl = '$true'
+        Lang = '"English"'
         Rel = $Rel
     }
 
