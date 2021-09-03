@@ -245,7 +245,13 @@ Function Install-EXE {
     }
 
 
-    # Extract EXE first check
+    # If this script is started from Automate with nothing defined for extract installer, it will pass in
+    # 'Empty' instead of $false. This is because of some weird ways Automate handles NULL...this just makes
+    # it easier to account for.
+    If ($ExtractInstaller -eq 'Empty') {
+        $ExtractArguments = $false
+    }
+
     If ($ExtractInstaller) {
         # This means yes we need to extract an EXE before install
         Start-Process $FileEXEPath -ArgumentList "$ExtractArguments" -Wait
