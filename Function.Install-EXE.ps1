@@ -250,6 +250,7 @@ Function Install-EXE {
     # it easier to account for.
     If ($ExtractInstaller -eq 'Empty') {
         $ExtractInstaller = $false
+        $output += 'Found that the variable $ExtractInstaller was set to "Empty" (presumeably from Automate) so have updated $ExtractInstaller to "$false" value.'
     }
 
     If ($ExtractInstaller) {
