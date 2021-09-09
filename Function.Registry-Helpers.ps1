@@ -32,6 +32,9 @@
 
     Get-RegistryValue -Name 'NewValue'
     # Returns 0
+
+    # Can also specify path instead of relying on $regPath
+    Test-RegistryValue -Name 'OtherValue' -Path 'HKLM:\\some\registry\path'
 #>
 
 # Get-RegistryValue gets a registry value if it exists and just returns $null if it doesn't, without sending an error to stderr.
@@ -46,6 +49,10 @@ function Get-RegistryValue {
 
     If ($Path) {
         $regPath = $Path
+    }
+
+    If (!$regPath) {
+        Throw 'Get-RegistryValue could not continue. Path was not specified or was invalid! Please either specify $Path or set $regPath variable before using this function.'
     }
 
     Try {
@@ -64,7 +71,15 @@ function Test-RegistryValue {
         [string]$Path
     )
 
-    $result = Get-RegistryValue -Name $Name -Path $Path
+    If ($Path) {
+        $regPath = $Path
+    }
+
+    If (!$regPath) {
+        Throw 'Test-RegistryValue could not continue. Path was not specified or was invalid! Please either specify $Path or set $regPath variable before using this function.'
+    }
+
+    $result = Get-RegistryValue -Name $Name -Path $regPath
 
     # We want to return $true even if registry value is 0 or an empty string
     If ($result -or ($result -eq 0) -or ($result -eq '')) {
@@ -87,6 +102,10 @@ function Remove-RegistryValue {
         $regPath = $Path
     }
 
+    If (!$regPath) {
+        Throw 'Remove-RegistryValue could not continue. Path was not specified or was invalid! Please either specify $Path or set $regPath variable before using this function.'
+    }
+
     Remove-ItemProperty -Path $regPath -Name $Name -Force -EA 0 | Out-Null
 }
 
@@ -105,6 +124,10 @@ function Write-RegistryValue {
 
     If ($Path) {
         $regPath = $Path
+    }
+
+    If (!$regPath) {
+        Throw 'Write-RegistryValue could not continue. Path was not specified or was invalid! Please either specify $Path or set $regPath variable before using this function.'
     }
 
     $propertyPath = "$regPath\$Name"
