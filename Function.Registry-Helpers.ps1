@@ -2,6 +2,36 @@
     # All functions rely on $regPath being set before this script is called. The intention is for a given script to have a single
     # reg path where it's interacting with keys. This is for the sake of convenience since this scenario pops up often.
     # Each function optionally receives a -Path param which will be used instead if provided, for when this convention doesn't fit.
+
+    .Example
+    # Path doesn't exist yet, but that's OK
+    $regPath = 'HKLM:\\SOFTWARE\LabTech\BlarneyStoneStatus'
+
+    (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Registry-Helpers.ps1') | Invoke-Expression
+
+    Remove-RegistryValue -Name 'NewValue'
+    # Doesn't return anything or error. The intended result is already true.
+
+    Test-RegistryValue -Name 'NewValue'
+    # Returns False
+
+    Write-RegistryValue -Name 'NewValue' -Value 1
+    # Returns 'HKLM:\\SOFTWARE\LabTech\BlarneyStoneStatus didn't exist, so creating it. Setting HKLM:\\SOFTWARE\LabTech\BlarneyStoneStatus\NewValue to 1'
+
+    Test-RegistryValue -Name 'NewValue'
+    # Returns True
+
+    Get-RegistryValue -Name 'NewValue'
+    # Returns 1
+
+    Write-RegistryValue -Name 'NewValue' -Value 0
+    # Returns 'A value already exists at HKLM:\\SOFTWARE\LabTech\BlarneyStoneStatus\NewValue. Overwriting value. Setting HKLM:\\SOFTWARE\LabTech\BlarneyStoneStatus\NewValue to 0.'
+
+    Test-RegistryValue -Name 'NewValue'
+    # Returns True
+
+    Get-RegistryValue -Name 'NewValue'
+    # Returns 0
 #>
 
 # Get-RegistryValue gets a registry value if it exists and just returns $null if it doesn't, without sending an error to stderr.
@@ -34,7 +64,14 @@ function Test-RegistryValue {
         [string]$Path
     )
 
-    Return [bool](Get-RegistryValue -Name $Name -Path $Path)
+    $result = Get-RegistryValue -Name $Name -Path $Path
+
+    # We want to return $true even if registry value is 0 or an empty string
+    If ($result -or ($result -eq 0) -or ($result -eq '')) {
+        Return $true
+    } Else {
+        Return $false
+    }
 }
 
 # Remove-RegistryValue removes a registry value if it exists, and takes no action when it doesn't
@@ -74,9 +111,10 @@ function Write-RegistryValue {
 
     If (!(Test-Path -Path $regPath)) {
         Try {
+            $output += "$regPath didn't exist, so creating it."
             New-Item -Path $regPath -Force -ErrorAction Stop | Out-Null
         } Catch {
-            $output += Get-ErrorMessage $_ "Could not create registry key $regPath."
+            $output += Get-ErrorMessage $_ "Could not create $regPath."
         }
     }
 
@@ -85,10 +123,11 @@ function Write-RegistryValue {
     }
 
     Try {
+        $output += "Setting $propertyPath to $Value"
         New-ItemProperty -Path $regPath -Name $Name -Value $Value -Force -ErrorAction Stop | Out-Null
     } Catch {
         $output += Get-ErrorMessage $_ "Could not create registry property $propertyPath."
     }
 
-    Return $output
+    Return ($output -join ' ')
 }
