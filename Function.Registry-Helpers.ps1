@@ -117,7 +117,8 @@ function Write-RegistryValue {
         [Parameter(Mandatory=$true)]
         [string]$Value,
         [Parameter(Mandatory=$false)]
-        [string]$Path
+        [string]$Path,
+        [string]$Type = 'string'
     )
 
     $output = @()
@@ -147,7 +148,7 @@ function Write-RegistryValue {
 
     Try {
         $output += "Setting $propertyPath to $Value"
-        New-ItemProperty -Path $regPath -Name $Name -Value $Value -Force -ErrorAction Stop | Out-Null
+        New-ItemProperty -Path $regPath -Name $Name -Value $Value -Type $Type -Force -ErrorAction Stop | Out-Null
     } Catch {
         $output += Get-ErrorMessage $_ "Could not create registry property $propertyPath."
     }
