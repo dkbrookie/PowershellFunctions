@@ -82,17 +82,17 @@ Function Install-EXE {
         [Parameter(
             ParameterSetName = 'extract',
             Mandatory = $false
-        )]  [string]$ExtractInstaller = $false,
+        )]  [boolean]$ExtractInstaller,
         [Parameter(
             ParameterSetName = 'extract',
             Mandatory = $true,
             HelpMessage = 'Enter the path including the name of the EXE beginning after $env:windir\LTSvc\packages\software\$AppName\. Example: "foldername1\foldername2\unpacker.exe" would set the directory to "$env:windir\LTSvc\packages\software\$AppName\foldername1\foldername2\unpacker.exe".'
-        )]  [string]$PathToExtractedInstaller = $false,
+        )]  [string]$PathToExtractedInstaller,
         [Parameter(
             ParameterSetName = 'extract',
             Mandatory = $true,
             HelpMessage = "These arguments are speciifc to the EXE that needs to be extracted, generally something similar to '-unpack C:\extractfolder."
-        )]  [string]$ExtractArguments = $false,
+        )]  [string]$ExtractArguments,
         <# ↑------------------------ Extract EXE ------------------------↑ #>
         [Parameter(
             HelpMessage = "Enter all arguments to install the EXE, such as /s or /silent."
@@ -266,6 +266,7 @@ Function Install-EXE {
         Start-Process $InstallFilePath -ArgumentList $ExtractArguments -Wait
         # Update the installer EXE path to the path of the extracted EXE. The file we downloaded was just for extracting,
         # the file we just unpacked is what we execute to install
+        $output += 'Setting the $installFilePath value to the value of $PathToExtractedInstaller...'
         $InstallFilePath = $PathToExtractedInstaller
     }
 
