@@ -319,7 +319,7 @@ Function Install-EXE {
     }
 
 
-    $output += "For potential troubleshooting needs, here is the full error output: Error"
+    $output += "For potential troubleshooting needs, here is the full error output: $Error"
 
 
     $output = $output -join "`n"
