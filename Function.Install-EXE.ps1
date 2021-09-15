@@ -249,6 +249,7 @@ Function Install-EXE {
 
     } Catch {
         $output += "Failed to download $FileDownloadLink to $InstallFilePath. Unable to proceed with install without the installer file, exiting script."
+        Break
     }
 
 
