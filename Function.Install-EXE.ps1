@@ -1,7 +1,8 @@
 Function Install-EXE {
     <#
     .SYNOPSIS
-    Install-EXE allows you to easily download and install an application via EXE
+    Install-EXE allows you to easily download and install an application via EXE, or via MSI if the EXE 
+    contained a zipped MSI installer.
 
     .DESCRIPTION
     This allows you to define as little as just the download link and application name for the  installer and 
@@ -21,20 +22,20 @@ Function Install-EXE {
     Some exe installers are actually a two step process where the first exe you download and launch just
     unpacks the real installer (and sometimes various other files), then you run that extractead exe to 
     install the application. This parameter is to account for that nuance, so if set to $true will then
-    require you to answer additional questions about the extraction process in -PathToExtractedExe and
+    require you to answer additional questions about the extraction process in -PathToExtractedInstaller and
     -ExtractrArguments.
 
-    .PARAMETER PathToExtractedExe
+    .PARAMETER PathToExtractedInstaller
     Enter the path including the name of the EXE beginning after $env:windir\LTSvc\packages\software\$AppName\. 
     Example: "foldername1\foldername2\unpacker.exe" would set the directory to "$env:windir\LTSvc\packages\
-    software\$AppName\foldername1\foldername2\unpacker.exe".
+    software\$AppName\foldername1\foldername2\unpacker.exe" (or .msi).
 
     .PARAMETER ExtractArguments
     These arguments are speciifc to the EXE that needs to be extracted, generally something similar to '-unpack 
     C:\extractfolder.
 
     .PARAMETER Arguments
-    Here you can define all arguments you want to use on the EXE.
+    Here you can define all arguments you want to use on the EXE or MSI here.
 
     .PARAMETER Wait
     Valid values for this argument are $true or $false. This sets the -Wait flag on the Start-Process command of 
@@ -45,7 +46,7 @@ Function Install-EXE {
     This is the directory the download files and install logs will be saved to. If you leave this undefined,
     it will default to %windir%\LTSvc\packages\Software\AppName
 
-    .PARAMETER FileEXEPath
+    .PARAMETER InstallFilePath
     The full path to the EXE installer. If you had a specific location to the EXE file you would define it here.
     Keep in mind you do not have to define the -FileDownloadLink flag, so if you already had a local file or a
     network share file you can just define the path to it here.
@@ -59,10 +60,10 @@ Function Install-EXE {
     .EXAMPLE
     Standard install
     C:\PS> Install-EXE -AppName 'Microsoft Edge' -FileDownloadURL 'https://domain.com/file/file.EXE' -Arguments '/silent'
-    C:\PS> Install-EXE -AppName 'Microsoft Edge' -FileDownloadURL 'https://domain.com/file/file.EXE' -FileEXEPath 'C:\windows\ltsvc\packages\software\Microsoft Edge\Microsoft Edge.EXE' -Arguments '/s'
+    C:\PS> Install-EXE -AppName 'Microsoft Edge' -FileDownloadURL 'https://domain.com/file/file.EXE' -InstallFilePath 'C:\windows\ltsvc\packages\software\Microsoft Edge\Microsoft Edge.EXE' -Arguments '/s'
 
     Extraction before install
-    C:\PS> Install-EXE -AppName 'Autodesk DWG TrueView 2022 - English' -FileDownloadLink 'https://efulfillment.autodesk.com/NetSWDLD/2022/ACD/D7A6621A-1A6A-3DAC-BBD2-9EB566035195/SFX/DWGTrueView_2022_English_64bit_dlm.sfx.exe' -ExtractInstaller $true -PathToExtractedExe 'DWGTrueView_2022_English_64bit_dlm\Setup.exe' -ExtractArguments "-suppresslaunch -d ""C:\windows\ltsvc\packages\software\Autodesk DWG TrueView""" -InstallArguments '--silent'
+    C:\PS> Install-EXE -AppName 'Autodesk DWG TrueView 2022 - English' -FileDownloadLink 'https://efulfillment.autodesk.com/NetSWDLD/2022/ACD/D7A6621A-1A6A-3DAC-BBD2-9EB566035195/SFX/DWGTrueView_2022_English_64bit_dlm.sfx.exe' -ExtractInstaller $true -PathToExtractedInstaller 'DWGTrueView_2022_English_64bit_dlm\Setup.exe' -ExtractArguments "-suppresslaunch -d ""C:\windows\ltsvc\packages\software\Autodesk DWG TrueView""" -InstallArguments '--silent'
     #>
 
 
@@ -81,12 +82,12 @@ Function Install-EXE {
         [Parameter(
             ParameterSetName = 'extract',
             Mandatory = $false
-        )]  [boolean]$ExtractInstaller = $false,
+        )]  [string]$ExtractInstaller = $false,
         [Parameter(
             ParameterSetName = 'extract',
             Mandatory = $true,
             HelpMessage = 'Enter the path including the name of the EXE beginning after $env:windir\LTSvc\packages\software\$AppName\. Example: "foldername1\foldername2\unpacker.exe" would set the directory to "$env:windir\LTSvc\packages\software\$AppName\foldername1\foldername2\unpacker.exe".'
-        )]  [string]$PathToExtractedExe,
+        )]  [string]$PathToExtractedInstaller,
         [Parameter(
             ParameterSetName = 'extract',
             Mandatory = $true,
@@ -108,8 +109,8 @@ Function Install-EXE {
         [Parameter(
             ParameterSetName = 'dir',
             Mandatory = $true,
-            HelpMessage = "When using a custom directory, you also need to specify the name of the EXE in the custom directory."
-        )]  [string]$FileEXEPath,
+            HelpMessage = "When using a custom directory, you also need to specify the name of the install file (including extension) in the custom directory."
+        )]  [string]$InstallFilePath,
         <# ↑------------------------ Custom Directory ------------------------↑ #>
         [Parameter(
             Mandatory = $false,
@@ -125,15 +126,18 @@ Function Install-EXE {
     
     # Quick function to check for successful application install after the installer runs. This is used near the end of the function.
     Function Get-InstalledApplications ($ApplicationName) {
+
         # Define vars
         [array]$installedApps = @()
 
         # Applications may be in either of these locations depending on if x86 or x64
         $installedApps += Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
         $installedApps += Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
+
         If ((Get-PSDrive -PSProvider Registry).Name -notcontains 'HKU') {
             New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS | Out-Null
         }
+
         # Applications can also install to single user profiles, so we're checking user profiles too
         $installedApps += Get-ItemProperty "HKU:\*\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
         $installedApps += Get-ItemProperty "HKU:\*\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
@@ -202,23 +206,26 @@ Function Install-EXE {
     }
 
 
-    # Create all the dirs we need for a successful download/install
+    # Create all the dirs we need for a successful download/install, then download required files
     Try {
+
         # Check for the directory variable and set it if it doesn't exist
         If (!$FileDir) {
             $FileDir = "$env:windir\LTSvc\packages\software\$AppName"
         }
+
         # Create the directory if it doesn't exist
         If(!(Test-Path $FileDir)) {
             New-Item -ItemType Directory $FileDir | Out-Null
         }
+
         # Set the path to extraction EXE if the variable was defined
-        If ($PathToExtractedExe) {
-            $PathToExtractedExe = $FileDir + '\' + $PathToExtractedExe
+        If ($PathToExtractedInstaller) {
+            $PathToExtractedInstaller = $FileDir + '\' + $PathToExtractedInstaller
         }
         # Set the path for the EXE installer
-        If (!$FileEXEPath) {
-            $FileEXEPath = "$FileDir\$($AppName).exe"
+        If (!$InstallFilePath) {
+            $InstallFilePath = "$FileDir\$($AppName).exe"
         }
 
         # Download additional files if any are defined
@@ -231,17 +238,17 @@ Function Install-EXE {
             }
         }
 
-        # Download the EXE if it doens't exist, delete it and downlaod a new one of it does
-        If(!(Test-Path $FileEXEPath -PathType Leaf)) {
-            (New-Object System.Net.WebClient).DownloadFile($FileDownloadLink,$FileEXEPath)
-        # If the file already exists, delete it so we can download a fresh copy. It may be a different version so this ensures we're
-        # working with the installer we intended to.
-        } Else {
-            Remove-Item $FileEXEPath -Force
-            (New-Object System.Net.WebClient).DownloadFile($FileDownloadLink,$FileEXEPath)
+        If((Test-Path $InstallFilePath -PathType Leaf)) {
+            # If the file already exists, delete it so we can download a fresh copy. It may be a different version so this ensures we're
+            # working with the installer we intended to.
+            Remove-Item $InstallFilePath -Force
         }
+
+        # Download the file!
+        (New-Object System.Net.WebClient).DownloadFile($FileDownloadLink,$InstallFilePath)
+
     } Catch {
-        $output += "Failed to download $FileDownloadLink to $FileEXEPath. Unable to proceed with install without the installer file, exiting script."
+        $output += "Failed to download $FileDownloadLink to $InstallFilePath. Unable to proceed with install without the installer file, exiting script."
     }
 
 
@@ -255,10 +262,10 @@ Function Install-EXE {
 
     If ($ExtractInstaller) {
         # This means yes we need to extract an EXE before install
-        Start-Process $FileEXEPath -ArgumentList "$ExtractArguments" -Wait
+        Start-Process $InstallFilePath -ArgumentList $ExtractArguments -Wait
         # Update the installer EXE path to the path of the extracted EXE. The file we downloaded was just for extracting,
         # the file we just unpacked is what we execute to install
-        $FileEXEPath = $PathToExtractedExe
+        $InstallFilePath = $PathToExtractedInstaller
     }
 
 
@@ -266,23 +273,31 @@ Function Install-EXE {
     # create alternative start-process commands
     Try {
         $output += "Beginning installation of $AppName..."
-        If ($Arguments) {
-            If ($Wait) {
-                # Install with arguments and wait
-                Start-Process $FileEXEPath -Wait -ArgumentList "$Arguments"
-            } Else {
-                # Install with arguments and no wait
-                Start-Process $FileEXEPath -ArgumentList "$Arguments"
+        If ($InstallFilePath -like '*.exe') {
+        $output += "Found the installer is a .EXE file, Attempting install with EXE arguments..."
+            $installHash = @{
+                FilePath = $InstallFilePath
+                ArgumentList = $Arguments
+                Wait = $Wait
+            }
+        } ElseIf ($InstallFilePath -like '*.msi') {
+            $output += "Found the installer is a .MSI file, Attempting install with MSI arguments..."
+            $installHash = @{
+                FilePath = "msiexec.exe"
+                ArgumentList = "/i ""$InstallFilePath"" $Arguments"
+                Wait = $Wait
             }
         } Else {
-            If ($Wait) {
-                # Install with no arguments and wait
-                Start-Process $FileEXEPath -Wait
-            } Else {
-                # Install with no arguments and no wait
-                Start-Process $FileEXEPath
-            }
+            $output += "No relevant installation file type was found in $InstallFilePath. Exiting script."
+            $output = $output -join "`n"
+            Write-Output $output
+            Break
         }
+
+        # Time to actually install this thing!
+        Start-Process @installHash
+
+        # Check to see if the installation was successful
         $status = Get-InstalledApplications -ApplicationName $AppName
         If ($status -eq 'Success') {
             $output += "Verified the application [$AppName] was successfully installed! Script complete."
@@ -294,11 +309,17 @@ Function Install-EXE {
     }
 
 
-    $output += "For potential troubleshooting needs, here is the full error output: $Error"
-
-
     # Delete the installer file
-    Remove-Item $FileDir -Force -Recurse
+    Try {
+        $output += "Removing installation files..."
+        Remove-Item $FileDir -Force -Recurse
+        $output += "Successfully removed installation files!"
+    } Catch {
+        $output += "Failed to remove installation files. This isn't necassarily a problem as disk cleanup will try again later, but logging just in case this info is relevant later."
+    }
+
+
+    $output += "For potential troubleshooting needs, here is the full error output: Error"
 
 
     $output = $output -join "`n"
