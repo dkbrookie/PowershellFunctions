@@ -77,19 +77,25 @@ Function Install-ChromiumExtension {
     $addRemoveDir = $baseAddRemoveDir + '\' + $ExtensionName
     Switch ($Browser) {
         'Google Chrome' {
-                $baseDir = 'HKLM:\SOFTWARE\Policies\Google'
-                $gpoDir = $baseDir + '\Chrome\ExtensionInstallForcelist'
+            $browserVendor = 'Google'
+            $browserName = 'Chrome'
             }
-        'Microsoft Edge' { 
-            $baseDir = 'HKLM:\SOFTWARE\Policies\Microsoft'
-            $gpoDir = $baseDir + '\Edge\ExtensionInstallForcelist'
+        'Microsoft Edge' {
+            $browserVendor = 'Microsoft'
+            $browserName = 'Edge'
         }
     }
-    
+
+
+    $baseDir = "HKLM:\SOFTWARE\Policies\$browserVendor"
+    $gpoDir = $baseDir + "\$browserName\ExtensionInstallForcelist"
+ 
 
     # Create reg key for GPOs if they don't exist
     If (!(Test-Path $gpoDir -EA 0)) {
-        New-Item -Path $gpoDir -EA 0 | Out-Null
+        New-Item -Path "HKLM:\SOFTWARE\Policies" -Name $browserVendor -EA 0 | Out-Null
+        New-Item -Path "HKLM:\SOFTWARE\Policies\$browserVendor" -Name $browserName -EA 0 | Out-Null
+        New-Item -Path "HKLM:\SOFTWARE\Policies\$browserVendor\$browserName" -Name 'ExtensionInstallForcelist' -EA 0 | Out-Null
     } Else {
         $output += 'Verified GPO reg keys exist'
     }
