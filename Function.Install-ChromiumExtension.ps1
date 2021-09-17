@@ -17,17 +17,17 @@ Function Install-ChromiumExtension {
         Comptaible: Yes
     
     Edge
-        ExtensionName: Google Chrome - Adblock Plus
+        ExtensionName: Microsoft Edge - Adblock Plus
         GPOInstallNumber: 1
         ExtensionID: gmgoamodcdcjnbaobigkjelfplakmdhh
         Comptaible: Yes
 
-        ExtensionName: Google Chrome - LastPass
+        ExtensionName: Microsoft Edge - LastPass
         GPOInstallNumber: 2
         ExtensionID: bbcinlkgjjkejfdpemiealijmmooekmp
         Comptaible: Yes
 
-        ExtensionName: Google Chrome - Qure4u CareManager
+        ExtensionName: Microsoft Edge - Qure4u CareManager
         GPOInstallNumber: 3
         ExtensionID: mdofmedkjabchieldhdbknompappgppd
         Comptaible: No
