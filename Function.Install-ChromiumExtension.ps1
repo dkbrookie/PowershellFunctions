@@ -79,7 +79,7 @@ Function Install-ChromiumExtension {
         'Google Chrome' {
             $browserVendor = 'Google'
             $browserName = 'Chrome'
-            }
+        }
         'Microsoft Edge' {
             $browserVendor = 'Microsoft'
             $browserName = 'Edge'
@@ -93,11 +93,13 @@ Function Install-ChromiumExtension {
 
     # Create reg key for GPOs if they don't exist
     If (!(Test-Path $gpoDir -EA 0)) {
+        $output += 'Creating required reg keys to enforce GPO settings...'
         New-Item -Path "HKLM:\SOFTWARE\Policies" -Name $browserVendor -EA 0 | Out-Null
         New-Item -Path "HKLM:\SOFTWARE\Policies\$browserVendor" -Name $browserName -EA 0 | Out-Null
         New-Item -Path "HKLM:\SOFTWARE\Policies\$browserVendor\$browserName" -Name 'ExtensionInstallForcelist' -EA 0 | Out-Null
+        $output += "Succesfully created the path $gpoDir!"
     } Else {
-        $output += 'Verified GPO reg keys exist'
+        $output += "Verified the reqired registry GPO key at $gpoDir already exists!"
     }
 
 
