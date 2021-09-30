@@ -5,16 +5,16 @@ Function Service-Check {
 
     .DESCRIPTION
     This script allows you to specify a list of services that you'd like to check if running. If the service(s)
-    are not running, this script will attempt to start them as long as the machine has been booted longer than 
-    15min (This low of uptime could imply the services just aren't done starting yet). If the service is disabled, 
-    it will just inform you the service is disabled with a warning, but will not attempt to enable the service 
-    (generally a disabled service is intentional so automatically re-enabling could cause problems). If the service 
-    fails to start, it will attempt to start it 3 times total, then it will check the running status of that services 
+    are not running, this script will attempt to start them as long as the machine has been booted longer than
+    15min (This low of uptime could imply the services just aren't done starting yet). If the service is disabled,
+    it will just inform you the service is disabled with a warning, but will not attempt to enable the service
+    (generally a disabled service is intentional so automatically re-enabling could cause problems). If the service
+    fails to start, it will attempt to start it 3 times total, then it will check the running status of that services
     dependencies and start the dependencies automatically if you specify the $StartDependencies as $True. This will
     output the results to $env:windir\LTSvc\serviceMonitor\$status.txt ($status will be Success, Warning, or Failed).
 
     .PARAMETER ServiceList
-    Set to Y if you want the final output to go to a text file at $env:windir\LTSvc\serviceMonitor\[reuslt].txt. By 
+    Set to Y if you want the final output to go to a text file at $env:windir\LTSvc\serviceMonitor\[reuslt].txt. By
     default this is set to N and will output to console.
 
     .PARAMETER Role
@@ -25,9 +25,9 @@ Function Service-Check {
 
     .PARAMETER CheckDependencies
     Set to Y if you want to check the status of all dependencies. This is Y unless manually set to N here.
-    
+
     .PARAMETER StartDependencies
-    Set to Y if you want to automatically attempt to start all dependencies with the same logic as the primary service. 
+    Set to Y if you want to automatically attempt to start all dependencies with the same logic as the primary service.
     This is N unless manually set to Y here.
 
     .PARAMETER FileOutput
@@ -42,7 +42,7 @@ Function Service-Check {
     Service-Check -ServiceList DHCP,LTSvcmon,LTService,wuau -AcceptableUptime 30 -StartDependencies $True
     Check and start the AD, DHCP, and DNS services and dependencies. For the output only show $status (Success, Warning, or Failed)
     Service-Check -Role AD,DHCP,DNS -StartDependencies Y -RunAsMonitor Y
-    
+
     .NOTES
     Script output is separated by "|"" so it's easier to parse results in Automate.
 
@@ -106,12 +106,12 @@ Function Service-Check {
         'Microsoft Dynamics'                { [array]$ServiceList += 'MicrosoftDynamicsNavServer','MicrosoftDynamicsNavWS' }
         'MSSQL'                             { [array]$ServiceList += 'MSSQLSERVER','SQLBrowser','SQLWriter','MsDtsServer100','MsDtsServer 110','MsDtsServer120','MsDtsServer130','MsDtsServer140','MSSQLServerOLAPService','SQLServerAgent' }
         'MySQL'                             { [array]$ServiceList += 'MySQL' }
-        'Nessus'                            { [array]$ServiceList += 'Tenable Nessus' }    
+        'Nessus'                            { [array]$ServiceList += 'Tenable Nessus' }
         'Perch Log Shipper'                 { [array]$ServiceList += 'auditbeat','winlogbeat','sysmon','perch-auditbeat','perch-winlogbeat' }
         'PostgreSQL'                        { [array]$ServiceList += 'postgresql','postgresql-x64-*' }
         'Print'                             { [array]$ServiceList += 'Spooler' }
         'ProjectWise'                       { [array]$ServiceList += 'PWFTSrv','PWConSrv','ProjectWise IMF Printer Driver Service','PWAppSrv','Bentley Orchestration Shepherd','PWAutSrv','BentleyLogging','BentleyGeoWebPublisherLoggingService','BentleyGeoWebPublisherImaging','BentleyGeoWebPublisherAutomationService','BentleyGeoWebPublisherServer','DgnIndexingService' }
-        'Quickbooks'                        { [array]$ServiceList += 'QuickbooksDB*' }
+        'Quickbooks'                        { [array]$ServiceList += 'QuickbooksDB*', 'QBCFMonitorService' }
         'Roar'                              { [array]$ServiceList += 'roaragent' }
         'Sentinel Licensing Server'         { [array]$ServiceList += 'hasplms','Sentinel RMS License Manager','SentinelKeysServer','SentinelProtectionServer','SentinelSecurityRuntime' }
         'SentinelOne'                       { [array]$ServiceList += 'SentinelAgent','SentinelHelperService','LogProcessorService','SentinelStaticEngine' }
@@ -181,7 +181,7 @@ Function Service-Check {
                     $dependencyCount = $dependencies.Count
                     $script:logOutput += "$service has $dependencyCount dependency services not currently running. This may be the cause for the service failing to start.`r`n"
                     $dependencies
-                    ## If $StartDependencies is true, try to start all dependencies that are not running 
+                    ## If $StartDependencies is true, try to start all dependencies that are not running
                     If ($StartDependencies) {
                         Try {
                             ForEach ($dependency in $dependencies) {
@@ -252,10 +252,10 @@ Function Service-Restart {
     .DESCRIPTION
     This is just the function to restart the service 3 times if it's stopped. Most of the description for the function
     above is still accurate and this is just some of the bones to make that top function work.
-    
+
     .EXAMPLE
     Service-Restart -ServiceRestart LTService
-    
+
     .NOTES
     This is just for individual services. The function above (Service-Check) runs a loop to cycle through this.
     #>
