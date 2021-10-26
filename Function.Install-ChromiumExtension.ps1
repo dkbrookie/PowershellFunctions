@@ -15,6 +15,16 @@ Function Install-ChromiumExtension {
         GPOInstallNumber: 3
         ExtensionID: mdofmedkjabchieldhdbknompappgppd
         Comptaible: Yes
+
+        ExtensionName: Google Chrome - Windows 10 Accounts
+        GPOInstallNumber: 4
+        ExtensionID: ppnbnpeolgkicgegkbkbjmhlideopiji
+        Comptaible: Yes
+
+        ExtensionName: Google Chrome - PrinterLogic
+        GPOInstallNumber: 5
+        ExtensionID: bfgjjammlemhdcocpejaompfoojnjjfn
+        Comptaible: Yes
     
     Edge
         ExtensionName: Microsoft Edge - Adblock Plus
@@ -31,6 +41,16 @@ Function Install-ChromiumExtension {
         GPOInstallNumber: 3
         ExtensionID: mdofmedkjabchieldhdbknompappgppd
         Comptaible: No
+
+        ExtensionName: Microsoft Edge - Windows 10 Accounts
+        GPOInstallNumber: 4
+        ExtensionID: ppnbnpeolgkicgegkbkbjmhlideopiji
+        Comptaible: Yes
+
+        ExtensionName: Microsoft Edge - PrinterLogic
+        GPOInstallNumber: 5
+        ExtensionID: bfgjjammlemhdcocpejaompfoojnjjfn
+        Comptaible: Yes
     #>
 
     [CmdletBinding(DefaultParametersetName='none')]
