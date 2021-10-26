@@ -49,7 +49,7 @@ Function Install-ChromiumExtension {
 
         ExtensionName: Microsoft Edge - PrinterLogic
         GPOInstallNumber: 5
-        ExtensionID: bfgjjammlemhdcocpejaompfoojnjjfn
+        ExtensionID: cpbdlogdokiacaifpokijfinplmdiapa
         Comptaible: Yes
     #>
 
