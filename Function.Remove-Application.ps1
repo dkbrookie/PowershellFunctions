@@ -38,7 +38,7 @@ Function Remove-Application {
     $output = @()
     $installedAppsArray = @()
     $possibleArguments = '/s','/S','/verysilent','/silent','/quiet','/q','--uninstall'
-    $timeOutLimit = 30
+    $timeOutLimit = 90
     $appGUID = (Get-WmiObject Win32_Product | Where-Object { $_.Name -like "*$ApplicationName*" }).IdentifyingNumber
     If ($appGUID) {
         $msiType = $true
