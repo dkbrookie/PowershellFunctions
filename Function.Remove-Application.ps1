@@ -1,30 +1,23 @@
 Function Remove-Application {
     <#
     .SYNOPSIS
-    Install-MSI allows you to easily downooad and install an application via MSI
+    Remove-Application allows you to easily attempt a silent uninstallation of any application with just
+    the name from add/remove programs.
 
     .DESCRIPTION
-    This allows you to define as little as just the download link for the MSI installer and the rest
-    will be auto filled for you. If you decide to define more flags, like install dir or arguments,
-    you will need to make sure these values are complete and in quotes if there are spaces. See examples
-    for more informaiton.
+    This script will take the name of the application in add/remove programs and attempt several silent 
+    arguments and methods to uninstall the application in the background automatically. The output is
+    very thorough and lets you know all attempts the script made.
 
-    .PARAMETER AppName
-    IMPORTANT: Type the name EXACTLY as shown in Add/Remove programs in Control Panel. This will be used 
-    as the application name searched in Add/Remove programs after installation to verify this was successful,
-    used as the folder name for the setup file, and the name of the installer MSI once downloaded.
+    .PARAMETER ApplicationName
+    IMPORTANT: Type the name EXACTLY as shown in Add/Remove programs in Control Panel.
 
     .PARAMETER LogPath
-    The full path to where you want the installation logs saved. By default, the logs will be saved in the same
-    directory as your install files in %windir%\LTSvc\packages\Software\AppName\Install Log - App Name.txt
-
-    .PARAMETER Arguments
-    Here you can define all arguments you want to use on the MSI. By defualt, /qn and /i will be applied for install
-    and silent, but if you define this parameter then you will need to add /i and /qn manually. See examples...
+    The full path to where you want the uninstallation logs saved. By default, the logs will be saved in the same
+    directory as your install files in %windir%\LTSvc\packages\Software\AppName\Install Log - ApplicationName.txt
 
     .EXAMPLE
-    C:\PS> Install-MSI -ApplicationName "SuperApp" -FileDownloadURL "https://domain.com/file/file.msi"
-    C:\PS> Install-MSI -ApplicationName "SuperApp" -FileDownloadURL "https://domain.com/file/file.msi" -FileMSIPath "C:\windows\ltsvc\packages\softwar\superapp\superapp.msi" -LogPath "C:\install log.txt"
+    C:\PS> Remove-Application -ApplicationName "SuperApp" -FileDownloadURL "https://domain.com/file/file.msi"
     #>
 
 
