@@ -1,4 +1,4 @@
-Function App-Remover {
+Function Remove-Application {
     <#
     .SYNOPSIS
     Install-MSI allows you to easily downooad and install an application via MSI
