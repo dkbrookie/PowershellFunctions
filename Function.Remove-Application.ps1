@@ -17,7 +17,7 @@ Function Remove-Application {
     directory as your install files in %windir%\LTSvc\packages\Software\AppName\Install Log - ApplicationName.txt
 
     .EXAMPLE
-    C:\PS> Remove-Application -ApplicationName "SuperApp" -FileDownloadURL "https://domain.com/file/file.msi"
+    C:\PS> Remove-Application -ApplicationName "SuperApp"
     #>
 
 
@@ -48,7 +48,8 @@ Function Remove-Application {
     }
 
 
-    # Quick function to check for successful application install after the installer runs. This is used near the end of the function.
+    # Quick function to check for the installation status of an application name. This will check both system and user
+    # installed applications
     Function Get-InstalledApplications ($ApplicationName) {
         $installedAppsArray = @()
         # Applications may be in either of these locations depending on if x86 or x64
@@ -155,7 +156,8 @@ Function Remove-Application {
                 #Wait-Process -Timeout $timeOutLimit -ErrorVariable timeOut
                 Start-Sleep ($timeOutLimit + 5)
                 [string]$procName = ($proc).Name
-                Stop-Process -Name $procName -Force | Out-Null
+                Stop-Process -Name $procName -Force -EA 0 | Out-Null
+                Start-Sleep 3
                 $output += "Stopped the [$argument] attempt since it has exceeded the defined timeout limit of [$timeOutLimit] seconds"
                 $appStatus = Get-InstalledApplications -ApplicationName $ApplicationName
                 If ($appStatus -eq 'NotInstalled') {
@@ -175,7 +177,8 @@ Function Remove-Application {
                     # apps popup, and instead it would be in the background and we just determine if the process is running too long, kill
                     # it and try the next one.
                     Start-Sleep ($timeOutLimit + 5)
-                    Stop-Process -Name $procName -Force | Out-Null
+                    Stop-Process -Name $procName -Force -EA 0 | Out-Null
+                    Start-Sleep 3
                     $output += "Stopped the [$argument] attempt since it has exceeded the defined timeout limit of [$timeOutLimit] seconds"
 
 
