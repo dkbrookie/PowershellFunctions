@@ -39,7 +39,7 @@ Function Remove-Application {
     $installedAppsArray = @()
     $possibleArguments = '/s','/S','/verysilent','/silent','/quiet','/q','--uninstall'
     $timeOutLimit = 90
-    $appGUID = (Get-WmiObject Win32_Product | Where-Object { $_.Name -like "*$ApplicationName*" }).IdentifyingNumber
+    $appGUID = (Get-WmiObject Win32_Product | Where-Object { $_.Name -eq "*$ApplicationName*" }).IdentifyingNumber
     If ($appGUID) {
         $msiType = $true
         $output += "Confirmed this is an MSI based uninstall"
@@ -53,14 +53,14 @@ Function Remove-Application {
     Function Get-InstalledApplications ($ApplicationName) {
         $installedAppsArray = @()
         # Applications may be in either of these locations depending on if x86 or x64
-        $installedAppsArray += Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" -EA 0 | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
-        $installedAppsArray += Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" -EA 0 | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
+        $installedAppsArray += Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" -EA 0 | Where-Object { $_.DisplayName -eq "*$ApplicationName*" }
+        $installedAppsArray += Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" -EA 0 | Where-Object { $_.DisplayName -eq "*$ApplicationName*" }
         If ((Get-PSDrive -PSProvider Registry).Name -notcontains 'HKU') {
             New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS | Out-Null
         }
         # Applications can also install to single user profiles, so we're checking user profiles too
-        $installedAppsArray += Get-ItemProperty "HKU:\*\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" -EA 0 | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
-        $installedAppsArray += Get-ItemProperty "HKU:\*\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" -EA 0 | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
+        $installedAppsArray += Get-ItemProperty "HKU:\*\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" -EA 0 | Where-Object { $_.DisplayName -eq "*$ApplicationName*" }
+        $installedAppsArray += Get-ItemProperty "HKU:\*\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" -EA 0 | Where-Object { $_.DisplayName -eq "*$ApplicationName*" }
         # Not using all of this output right now but nice to have it handy in case we want to output any of it later
         $script:installedAppNames = $installedAppsArray.DisplayName
         $script:installedAppDate = $installedAppsArray.InstallDate
@@ -112,14 +112,14 @@ Function Remove-Application {
 
     
     # Manually check reg entries for matching app names
-    $installedAppsArray += Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
-    $installedAppsArray += Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
+    $installedAppsArray += Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -eq "*$ApplicationName*" }
+    $installedAppsArray += Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -eq "*$ApplicationName*" }
     If ((Get-PSDrive -PSProvider Registry).Name -notcontains 'HKU') {
         New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS | Out-Null
     }
     # Applications can also install to single user profiles, so we're checking user profiles too
-    $installedAppsArray += Get-ItemProperty "HKU:\*\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
-    $installedAppsArray += Get-ItemProperty "HKU:\*\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
+    $installedAppsArray += Get-ItemProperty "HKU:\*\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -eq "*$ApplicationName*" }
+    $installedAppsArray += Get-ItemProperty "HKU:\*\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -eq "*$ApplicationName*" }
     # Attempt uninstall switches for all install locations pulled from both general system and user profiles
     ForEach ($app in $installedAppsArray) {
         $uninstallString = $app.UninstallString
