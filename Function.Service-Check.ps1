@@ -60,7 +60,7 @@ Function Service-Check {
         ,[Parameter(
             HelpMessage='Set to Y if you want the final output to go to a text file at $env:windir\LTSvc\serviceMonitor\[reuslt].txt. By default this is set to N and will output to console.'
         )]
-        [ValidateSet('AD','Apache','Autodesk','AutoElevate','Citrix XenApp','Connectwise Control Endpoint','Connectwise Control Server','Connectwise Manage','DHCP','DNS','EleVia','Exchange','Hyper-V','IIS','Lighthouse','ManageEngine Password Self Reset','Microsoft Dynamics','MSSQL','MySQL','Nessus','Perch Log Shipper','PostgreSQL','Print','ProjectWise','Quickbooks','Sentinel Licensing Server','SentinelOne','Sharepoint','Trimble','Umbrella','Veeam Agent','Veeam B&R','Webroot','Windows Server','Windows Workstation')]
+        [ValidateSet('AD','Apache','Autodesk','AutoElevate','Citrix XenApp','Connectwise Control Endpoint','Connectwise Control Server','Connectwise Manage','DHCP','DNS','EleVia','Exchange','Hyper-V','IIS','Lighthouse','ManageEngine Password Self Reset','Microsoft Dynamics','MSSQL','MySQL','Nessus','Perch Log Shipper','PostgreSQL','Print','ProjectWise','Quickbooks','Roar','SCVMM','Sentinel Licensing Server','SentinelOne','Sharepoint','Trimble','Umbrella','Veeam Agent','Veeam B&R','Webroot','Windows Server','Windows Workstation')]
         [array]$Role
         ,[int]$AcceptableUptime = 15
         ,[Parameter(
@@ -113,6 +113,7 @@ Function Service-Check {
         'ProjectWise'                       { [array]$ServiceList += 'PWFTSrv','PWConSrv','ProjectWise IMF Printer Driver Service','PWAppSrv','Bentley Orchestration Shepherd','PWAutSrv','BentleyLogging','BentleyGeoWebPublisherLoggingService','BentleyGeoWebPublisherImaging','BentleyGeoWebPublisherAutomationService','BentleyGeoWebPublisherServer','DgnIndexingService' }
         'Quickbooks'                        { [array]$ServiceList += 'QuickbooksDB*', 'QBCFMonitorService' }
         'Roar'                              { [array]$ServiceList += 'roaragent' }
+        'SCVMM'                             { [array]$ServiceList += 'SCVMMService','SCVMMAgent' }
         'Sentinel Licensing Server'         { [array]$ServiceList += 'hasplms','Sentinel RMS License Manager','SentinelKeysServer','SentinelProtectionServer','SentinelSecurityRuntime' }
         'SentinelOne'                       { [array]$ServiceList += 'SentinelAgent','SentinelHelperService','LogProcessorService','SentinelStaticEngine' }
         'SharePoint'                        { [array]$ServiceList += 'SPAdmin*','SPTimer*','SPTrace*','SPWriter*' }
