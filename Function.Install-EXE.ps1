@@ -131,16 +131,16 @@ Function Install-EXE {
         [array]$installedApps = @()
 
         # Applications may be in either of these locations depending on if x86 or x64
-        $installedApps += Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
-        $installedApps += Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
+        $installedApps += Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -eq "$ApplicationName" }
+        $installedApps += Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -eq "$ApplicationName" }
 
         If ((Get-PSDrive -PSProvider Registry).Name -notcontains 'HKU') {
             New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS | Out-Null
         }
 
         # Applications can also install to single user profiles, so we're checking user profiles too
-        $installedApps += Get-ItemProperty "HKU:\*\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
-        $installedApps += Get-ItemProperty "HKU:\*\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
+        $installedApps += Get-ItemProperty "HKU:\*\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -eq "$ApplicationName" }
+        $installedApps += Get-ItemProperty "HKU:\*\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -eq "$ApplicationName" }
 
         # Not using all of this output right now but nice to have it handy in case we want to output any of it later.
         # Also need to sort out if I want to keep using script: scope here or just output to straight string at a
