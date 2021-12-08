@@ -9,7 +9,7 @@
         Build = $Null
         Version = $Null
         Arch = $osArch
-        OrderOfWin10Versions = @('1507','1511','1607','1703','1709','1803','1809','1903','1909','2004','20H2','21H1')
+        OrderOfWin10Versions = @('1507','1511','1607','1703','1709','1803','1809','1903','1909','2004','20H2','21H1', '21H2')
     }
 
     If ($osName -like 'Microsoft Windows Server 2008*' -and $osName -notlike '*R2*') {
@@ -38,6 +38,7 @@
         $build = ( $rawVersion -band 0x00000000FFFF0000l ) -shr 16
 
         Switch ($build) {
+            19044 { $osObject.Name = $osName; $osObject.SimplifiedName = 'Windows 10'; $osObject.Version = '21H2'; $osObject.Build = '19044'; }
             19043 { $osObject.Name = $osName; $osObject.SimplifiedName = 'Windows 10'; $osObject.Version = '21H1'; $osObject.Build = '19043'; }
             19042 { $osObject.Name = $osName; $osObject.SimplifiedName = 'Windows 10'; $osObject.Version = '20H2'; $osObject.Build = '19042'; }
             19041 { $osObject.Name = $osName; $osObject.SimplifiedName = 'Windows 10'; $osObject.Version = '2004'; $osObject.Build = '19041'; }
@@ -50,6 +51,7 @@
             14393 { $osObject.Name = $osName; $osObject.SimplifiedName = 'Windows 10'; $osObject.Version = '1607'; $osObject.Build = '14393'; }
             10586 { $osObject.Name = $osName; $osObject.SimplifiedName = 'Windows 10'; $osObject.Version = '1511'; $osObject.Build = '10586'; }
             10240 { $osObject.Name = $osName; $osObject.SimplifiedName = 'Windows 10'; $osObject.Version = '1507'; $osObject.Build = '10240'; }
+            Default { $osObject.Name = 'Windows 10 Unkown'; $osObject.SimplifiedName = 'Windows 10'; $osObject.Version = 'Unkown'; $osObject.Build = "$build"; }
         }
     } ElseIf ($osName -like 'Microsoft Windows 8*') {
         $osObject.SimplifiedName = '8.1'
