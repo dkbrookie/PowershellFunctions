@@ -120,7 +120,7 @@ Function Service-Check {
         'Trimble'                           { [array]$ServiceList += 'Trimble Mapping And GIS License Service' }
         'Umbrella'                          { [array]$ServiceList += 'Umbrella_RC' }
         'Veeam Agent'                       { [array]$ServiceList += 'VeeamEndpointBackupSvc' }
-        'Veeam B&R'                         { [array]$ServiceList += 'VeeamBackupSvc','VeeamBrokerSvc','VeeamCatalogSvc','VeeamCloudSvc','VeeamDeploySvc','VeeamDistributionSvc','VeeamFilesysVssSvc','VeeamManagementAgentSvc','VeeamMBPDeploymentService','VeeamMountSvc','VeeamNFSSvc','VeeamTransportSvc' }
+        'Veeam B&R'                         { [array]$ServiceList += 'VeeamBackupSvc','VeeamBrokerSvc','VeeamCatalogSvc','VeeamCloudSvc','VeeamDeploySvc','VeeamDistributionSvc','VeeamFilesysVssSvc','VeeamManagementAgentSvc','VeeamMBPDeploymentService','VeeamMountSvc','VeeamNFSSvc','VeeamTransportSvc','VeeamHvIntegrationSvc','RPcSs' }
         'Webroot'                           { [array]$ServiceList += 'WRSVC' }
         'Windows Server'                    { [array]$ServiceList += 'EventLog','Schedule','ProfSvc','LSM' }
         'Windows Workstation'               { [array]$ServiceList += 'DHCP','spooler','EventLog','Schedule','ProfSvc','LSM','NetLogon','LanmanWorkstation','Dnscache','SamSs','PlugPlay','CryptSvc','Server','Workstation' }
