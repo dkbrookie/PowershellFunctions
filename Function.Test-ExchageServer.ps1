@@ -1,14 +1,18 @@
 # Author: Sheen Ismhael Lim
 # Date Created: Dec 8 2021
 # This script will check the Exchange Server components and will try to set the components to 'Active' with exception to the component 'ServerWideOffline'
+# This script is targeted to only Exchagne 2016 Servers
 
 Param(
-    [Parameter(HelpMessage="Determines if the script is ran by Automate 'Y' or ran by manual check 'N'")]
+    [Parameter(HelpMessage="Determines if the script is ran by Automate 'Y' or ran by manual check 'N'.")]
     [ValidateSet('Y','N')]
     [string]$RunAsMonitor = 'N',
-    [Parameter( HelpMessage='Set to Y if you want to automatically attempt to start all dependencies with the same logic as the primary service. This is N unless manually set to Y here.')]
+    [Parameter(HelpMessage='Determines if a copy of the logs should be printed on the \LTSvc\componentMonitor directory of the server being monitored.')]
     [ValidateSet('Y','N')]
-    [string]$FileOutput = 'N'
+    [string]$FileOutput = 'N',
+    [Parameter(HelpMessage='Determines if the component state should be set to Active, except ServerWideOffline.')]
+    [ValidateSet('Y','N')]
+    [string]$RecoverStates = 'N'
 )
 
 ."C:\Program Files\Microsoft\Exchange Server\V15\bin\RemoteExchange.ps1"
@@ -20,9 +24,8 @@ $hasAnyComponentFailed = $false
 function Test-ExchangeComponents {
     $components = Get-ServerComponentState -Identity $env:computername
     
-    if ($components[0].State -eq "Active") { # ServerWideOffline will always be returned as first item in the Get-ServerComponent
-        
-
+    $isServerWideOfflineActive = $(Get-ServerComponentState -Identity $env:computername -Component ServerWideOffline).State
+    if ($isServerWideOfflineActive -eq "Active") { # ServerWideOffline will always be returned as first item in the Get-ServerComponent
         try {
             $components | ForEach-Object {
                 if ($_.State -ne "Active" -and $_.Component -ne "ServerWideOffline") {
@@ -30,10 +33,16 @@ function Test-ExchangeComponents {
                     $script:logOutput += $message
                     $consoleStatusMessage += $message
     
-                    $message = "Attempting to set the component to 'Active'"
-                    Set-ServerComponentState -Identity $env:computername -Component $_ -State 'Active'
-    
-                    $hasAnyComponentFailed = $true;
+                    if ($RecoverStates -eq 'Y') {
+                        $message = "Attempting to set the component to 'Active'"
+                        Set-ServerComponentState -Identity $env:computername -Component $_ -State 'Active'
+                        $hasAnyComponentFailed = $false;
+
+                    } else {
+                        $hasAnyComponentFailed = $true;
+
+                    }
+                    
                 } else {
                     $message = "The Exchange Component '$($_.Component)' is 'Active'";
                     $script:logOutput += $message
@@ -48,32 +57,37 @@ function Test-ExchangeComponents {
 
         if ($hasAnyComponentFailed) {
             $consoleScriptStatus = 'Failed'
-            $script:status = 'Failed';
+            $script:status = 'Failed'
         }
+
+        $consoleScriptStatus = 'Success'
+        $script:status = 'Success'
     } else {
         # Auto Recovery for the ServerWideOffline component is not set since this is the component most Exchange administrators turn off to deliberately stop the Exchange server from 
         # Doing its roles. This is primary done when putting the server in maintenance mode for an update.
         $script:logOutput = "The ServerWideOffline component state is not Active, all of the components of Exchange Server will not function regardless even if exchange services are running."
+        $consoleScriptStatus = 'Failed'
+        $script:status = 'Failed'
     }
 
     ## Final output to parse with Automate
     $outputDir = "$env:windir\LTSvc\componentMonitor"
-    If (!(Test-Path $outputDir)) {
+    if (!(Test-Path $outputDir)) {
         New-Item $outputDir -ItemType Directory | Out-Null
-    } Else {
+    } else {
         Remove-Item "$outputDir\*"
     }
-    Switch ($script:status) {
+    switch ($script:status) {
         'Success' {$outputFile = "$outputDir\Success.txt"}
         'Failed' {$outputFile = "$outputDir\Failed.txt"}
     }
 
-    If ($RunAsMonitor -eq 'Y') {
+    if ($RunAsMonitor -eq 'Y') {
         "$consoleScriptStatus"
-    } Else {
-        If ($FileOutput -eq 'Y') {
+    } else {
+        if ($FileOutput -eq 'Y') {
         Set-Content -Value "Status=$logOutput|Status=$status" -Path $outputFile
-        } Else {
+        } else {
             "logOutput=$logOutput|Status=$status"
         }
     }
