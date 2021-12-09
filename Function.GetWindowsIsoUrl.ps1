@@ -1,7 +1,7 @@
 ﻿function Get-WindowsIsoUrl {
     param([string]$Rel = '20H2')
 
-    $fidoScript = (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/Fido/merge-upstream-master/Fido.ps1')
+    $fidoScript = (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/Fido/master/Fido.ps1')
 
     $params = @{
         Win = '"Windows 10"'
