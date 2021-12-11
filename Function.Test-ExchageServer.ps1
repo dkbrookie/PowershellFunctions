@@ -35,7 +35,7 @@ function Test-ExchangeComponents {
     
                     if ($RecoverStates -eq 'Y') {
                         $message = "Attempting to set the component to 'Active'"
-                        Set-ServerComponentState -Identity $env:computername -Component $_ -State 'Active'
+                        Set-ServerComponentState -Identity $env:computername -Component $_ -State 'Active' -Requester 'Functional'
                         $hasAnyComponentFailed = $false;
 
                     } else {
