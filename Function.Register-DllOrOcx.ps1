@@ -34,7 +34,7 @@ function Register-DllOrOcx {
     #Create a new PSDrive, as powershell doesn't have a default drive for HKEY_CLASSES_ROOT
     New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
   } Catch {
-    $outputLog += 'Could not search the registry to verify registration. Creating PSDrive for HKCR failed'
+    $outputLog += '!Fail: Could not search the registry to verify registration. Creating PSDrive for HKCR failed'
     Invoke-Output $outputLog
     Return
   }
@@ -43,9 +43,9 @@ function Register-DllOrOcx {
   $success = Search-Registry -Path "hkcr:\TypeLib" -Recurse -ValueDataRegex "$fileName"
 
   If ($success){
-    $outputLog += "Success! Registry value found for $fileName."
+    $outputLog = "!Success: Registry value found for $fileName." + $outputLog
   } Else {
-    $outputLog += "Failure! Registry value not found for $fileName."
+    $outputLog = "!Fail: Registry value not found for $fileName." + $outputLog
   }
 
   Try {
