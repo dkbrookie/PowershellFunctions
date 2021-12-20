@@ -5,11 +5,6 @@
 # Call in Search-Registry
 (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Search-Registry.ps1') | Invoke-Expression
 
-function Invoke-Output {
-  param ([string[]]$output)
-  Write-Output ($output -join "`n")
-}
-
 function Register-DllOrOcx {
   param (
     [Parameter(Mandatory=$true)]
@@ -34,9 +29,8 @@ function Register-DllOrOcx {
     #Create a new PSDrive, as powershell doesn't have a default drive for HKEY_CLASSES_ROOT
     New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
   } Catch {
-    $outputLog += '!Fail: Could not search the registry to verify registration. Creating PSDrive for HKCR failed'
-    Invoke-Output $outputLog
-    Return
+    $outputLog = $outputLog + '!Fail: Could not search the registry to verify registration. Creating PSDrive for HKCR failed'
+    Return $outputLog
   }
 
   #Search the registry for the file
@@ -55,5 +49,5 @@ function Register-DllOrOcx {
     $outputLog += 'Could not remove HKCR PSDrive for some reason...'
   }
 
-  Invoke-Output $outputLog
+  Return $outputLog
 }
