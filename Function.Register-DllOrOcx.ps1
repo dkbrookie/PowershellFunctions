@@ -15,7 +15,6 @@ function Register-DllOrOcx {
 
   $filename = ($Path -split '\\')[-1]
 
-  #The main script starts here
   $registerProc = Start-Process "$env:SystemRoot\System32\regsvr32.exe" "/s $Path" -Wait -PassThru
   $exitCode = $registerProc.ExitCode
 
@@ -26,10 +25,18 @@ function Register-DllOrOcx {
   # Now check to make sure it registered properly
 
   Try {
-    #Create a new PSDrive, as powershell doesn't have a default drive for HKEY_CLASSES_ROOT
+    # Create a new PSDrive, as powershell doesn't have a default drive for HKEY_CLASSES_ROOT
     New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
   } Catch {
     $outputLog = $outputLog + '!Fail: Could not search the registry to verify registration. Creating PSDrive for HKCR failed'
+
+    Try {
+      # Remove the PSDrive in case it was created
+      Remove-PSDrive -Name HKCR
+    } Catch {
+      $outputLog += 'Could not remove HKCR PSDrive for some reason...'
+    }
+
     Return $outputLog
   }
 
@@ -43,7 +50,7 @@ function Register-DllOrOcx {
   }
 
   Try {
-    #Remove the PSDrive that was created
+    # Remove the PSDrive that was created
     Remove-PSDrive -Name HKCR
   } Catch {
     $outputLog += 'Could not remove HKCR PSDrive for some reason...'
