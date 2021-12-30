@@ -139,7 +139,11 @@ Function Install-MSI {
         $script:installedAppNames = $installedApps.DisplayName
         $script:installedAppDate = $installedApps.InstallDate
         $script:installedAppUninstallString = $installedApps.UninstallString
-        If ($installedApps) {
+
+        # In Powershell 2 and 3 incremented $null arrays return truey. To combat this, we're converting the array to
+        # a string to check for the number of characters in the output string. If it was an array of $null, the 
+        # characters returned here will be 0 so we can be sure application is NOT installed.
+        If (($installedApps | Out-String).Length -ne 0) {
             If ($installedApps.Count -gt 1) {
                 $script:output += "Multiple applications found with the word(s) [$AppName] in the display name in Add/Remove programs. See list below..."
                 $script:output += $installedAppNames
@@ -148,6 +152,18 @@ Function Install-MSI {
         } Else {
             Return 'Failed'
         }
+    }
+
+
+    # Check to see if the application is already installed. If it is, exit the script.
+    $status = Get-InstalledApplications -ApplicationName $AppName
+    If ($status -eq 'Success') {
+        $output += "The application name [$AppName] is already installed! Script complete."
+        $output = $output -join "`n"
+        Write-Output $output
+        Break
+    } Else {
+        $output += "Confirmed [$AppName] is not installed, proceeding with installation process"
     }
 
 
@@ -192,6 +208,8 @@ Function Install-MSI {
         }
     } Catch {
         $output += "Failed to download $FileDownloadLink to $FileMSIPath. Unable to proceed with install without the installer file, exiting script."
+        $output = $output -join "`n"
+        Write-Output $output
         Break
     }
 
