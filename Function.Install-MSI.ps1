@@ -140,9 +140,10 @@ Function Install-MSI {
         $script:installedAppDate = $installedApps.InstallDate
         $script:installedAppUninstallString = $installedApps.UninstallString
 
-        # In Powershell 2 and 3 incremented $null arrays return truey. To combat this, we're converting the array to
-        # a string to check for the number of characters in the output string. If it was an array of $null, the 
-        # characters returned here will be 0 so we can be sure application is NOT installed.
+        # Poweshell returns $null arrays that have multiple $null entires as truey. To combat this, we're 
+        # converting the array to a string to check for the number of characters in the output string. If 
+        # it was an array of $null, the characters returned here will be 0 so we can be sure application 
+        # is NOT installed.
         If (($installedApps | Out-String).Length -ne 0) {
             If ($installedApps.Count -gt 1) {
                 $script:output += "Multiple applications found with the word(s) [$AppName] in the display name in Add/Remove programs. See list below..."
