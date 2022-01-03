@@ -149,7 +149,7 @@ Function Install-EXE {
         # $script:installedAppDate = $installedApps.InstallDate
         # $script:installedAppUninstallString = $installedApps.UninstallString
         
-        # Poweshell returns $null arrays that have multiple $null entires as truey. To combat this, we're 
+        # Poweshell returns $null arrays that have multiple $null entires as truthy. To combat this, we're 
         # converting the array to a string to check for the number of characters in the output string. If 
         # it was an array of $null, the characters returned here will be 0 so we can be sure application 
         # is NOT installed.
