@@ -72,7 +72,7 @@ function Get-Win10VersionComparison {
     $checkAgainstIndex = $orderOfWin10Versions.IndexOf($checkAgainst)
 
     # Doesn't make sense if this isn't win10
-    If ($osName -ne 'Windows 10') {
+    If ($osName -ne '10') {
         Throw "This does not appear to be a Windows 10 machine. Function 'Get-Win10VersionComparison' only supports Windows 10 machines. This is: $osName"
     }
 

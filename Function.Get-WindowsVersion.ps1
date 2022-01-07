@@ -37,21 +37,24 @@
         # decode bits to version bytes
         $build = ( $rawVersion -band 0x00000000FFFF0000l ) -shr 16
 
+        $osObject.SimplifiedName = '10';
+        $osObject.Name = $osName;
+
         Switch ($build) {
-            19044 { $osObject.Name = $osName; $osObject.SimplifiedName = 'Windows 10'; $osObject.Version = '21H2'; $osObject.Build = '19044'; }
-            19043 { $osObject.Name = $osName; $osObject.SimplifiedName = 'Windows 10'; $osObject.Version = '21H1'; $osObject.Build = '19043'; }
-            19042 { $osObject.Name = $osName; $osObject.SimplifiedName = 'Windows 10'; $osObject.Version = '20H2'; $osObject.Build = '19042'; }
-            19041 { $osObject.Name = $osName; $osObject.SimplifiedName = 'Windows 10'; $osObject.Version = '2004'; $osObject.Build = '19041'; }
-            18363 { $osObject.Name = $osName; $osObject.SimplifiedName = 'Windows 10'; $osObject.Version = '1909'; $osObject.Build = '18363'; }
-            18362 { $osObject.Name = $osName; $osObject.SimplifiedName = 'Windows 10'; $osObject.Version = '1903'; $osObject.Build = '18362'; }
-            17763 { $osObject.Name = $osName; $osObject.SimplifiedName = 'Windows 10'; $osObject.Version = '1809'; $osObject.Build = '17763'; }
-            17134 { $osObject.Name = $osName; $osObject.SimplifiedName = 'Windows 10'; $osObject.Version = '1803'; $osObject.Build = '17134'; }
-            16299 { $osObject.Name = $osName; $osObject.SimplifiedName = 'Windows 10'; $osObject.Version = '1709'; $osObject.Build = '16299'; }
-            15063 { $osObject.Name = $osName; $osObject.SimplifiedName = 'Windows 10'; $osObject.Version = '1703'; $osObject.Build = '15063'; }
-            14393 { $osObject.Name = $osName; $osObject.SimplifiedName = 'Windows 10'; $osObject.Version = '1607'; $osObject.Build = '14393'; }
-            10586 { $osObject.Name = $osName; $osObject.SimplifiedName = 'Windows 10'; $osObject.Version = '1511'; $osObject.Build = '10586'; }
-            10240 { $osObject.Name = $osName; $osObject.SimplifiedName = 'Windows 10'; $osObject.Version = '1507'; $osObject.Build = '10240'; }
-            Default { $osObject.Name = 'Windows 10 Unknown'; $osObject.SimplifiedName = 'Windows 10'; $osObject.Version = 'Unknown'; $osObject.Build = "$build"; }
+            19044 { $osObject.Version = '21H2'; $osObject.Build = '19044'; }
+            19043 { $osObject.Version = '21H1'; $osObject.Build = '19043'; }
+            19042 { $osObject.Version = '20H2'; $osObject.Build = '19042'; }
+            19041 { $osObject.Version = '2004'; $osObject.Build = '19041'; }
+            18363 { $osObject.Version = '1909'; $osObject.Build = '18363'; }
+            18362 { $osObject.Version = '1903'; $osObject.Build = '18362'; }
+            17763 { $osObject.Version = '1809'; $osObject.Build = '17763'; }
+            17134 { $osObject.Version = '1803'; $osObject.Build = '17134'; }
+            16299 { $osObject.Version = '1709'; $osObject.Build = '16299'; }
+            15063 { $osObject.Version = '1703'; $osObject.Build = '15063'; }
+            14393 { $osObject.Version = '1607'; $osObject.Build = '14393'; }
+            10586 { $osObject.Version = '1511'; $osObject.Build = '10586'; }
+            10240 { $osObject.Version = '1507'; $osObject.Build = '10240'; }
+            Default { $osObject.Name = 'Windows 10 Unknown'; $osObject.Version = 'Unknown'; $osObject.Build = "$build"; }
         }
     } ElseIf ($osName -like 'Microsoft Windows 8*') {
         $osObject.SimplifiedName = '8.1'
