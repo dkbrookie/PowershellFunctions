@@ -4,7 +4,7 @@
 
   If input is `-InputObject` which expects a `Hashtable`, output will be single pipe delimited string mapping keys to values with equals sign in between key and value
 
-  If input is `-InputString` which expects a `string array`, output will be a single newline delimited string
+  If input is `-InputStringArray` which expects a `string array`, output will be a single newline delimited string
 
   .Example
   # -InputObject example
@@ -29,13 +29,12 @@
   Here is a message.`n`nAnother message.
 #>
 
-
 Function Invoke-Output {
   Param (
     [Parameter(Mandatory = $True, ValueFromPipeline = $True, Position = 0, ParameterSetName='Hashtable')]
     [Hashtable]$InputObject,
     [Parameter(Mandatory = $True, ValueFromPipeline = $True, Position = 0, ParameterSetName='String')]
-    [string[]]$InputString
+    [string[]]$InputStringArray
   )
 
   If ($InputObject) {
@@ -69,7 +68,7 @@ Function Invoke-Output {
     }
 
     Write-Output $out
-  } ElseIf ($InputString) {
-    Write-Output ($InputString -join "`n`n")
+  } ElseIf ($InputStringArray) {
+    Write-Output ($InputStringArray -join "`n`n")
   }
 }
