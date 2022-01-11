@@ -1,8 +1,8 @@
 ﻿<#
   .Description
   Receives either Hashtable, string, or string array input and writes output as newline delimited string or a pipe delimited string using `Write-Host`
-  If input is -InputObject which expects a Hashtable, output will be single pipe delimited string mapping keys to values with equals sign in between key and value
-  If input is -InputString which expects a string array, output will be a single newline delimited string
+  If input is `-InputObject` which expects a `Hashtable`, output will be single pipe delimited string mapping keys to values with equals sign in between key and value
+  If input is `-InputString` which expects a `string array`, output will be a single newline delimited string
 
   .Example
   # -InputObject example
