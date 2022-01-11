@@ -1,6 +1,6 @@
 ﻿<#
   .Description
-  Receives either `Hashtable` or `string array` as input and writes output as newline delimited string or a pipe delimited string using `Write-Host`
+  Receives either `Hashtable` or `string array` as input and writes output as newline delimited string or a pipe delimited string using `Write-Output`
 
   If input is `-InputObject` which expects a `Hashtable`, output will be single pipe delimited string mapping keys to values with equals sign in between key and value
 
@@ -45,7 +45,7 @@
   Invoke-Output $blah
 
   # Outputs:
-  Invoke-Output Error: Entry named 'output' is not valid because Invoke-Output can only handle hashtables with values of type [string] or [string[]] (array of strings). Entry named 'output' contained type 'Array'
+  Invoke-Output Error: Entry named 'output' is not valid because Invoke-Output can only handle hashtables with values of type [string] or [string[]] (array of strings). Entry named 'output' contained an array that contained type 'Array'
 
   output=Here is a message.`n`nAnother message.|someField=1|anotherField=0
 #>
