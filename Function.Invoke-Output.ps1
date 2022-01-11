@@ -20,7 +20,7 @@
   output=Here is a message.`n`nAnother message.|someField=1|anotherField=0
 
   .Example
-  # -InputString example
+  # -InputStringArray example
   $messages = @('Here is a message.', 'Another message.')
 
   Invoke-Output $messages
