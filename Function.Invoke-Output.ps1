@@ -1,6 +1,6 @@
 ﻿<#
   .Description
-  Receives either `Hashtable`, or `string array` as input and writes output as newline delimited string or a pipe delimited string using `Write-Host`
+  Receives either `Hashtable` or `string array` as input and writes output as newline delimited string or a pipe delimited string using `Write-Host`
 
   If input is `-InputObject` which expects a `Hashtable`, output will be single pipe delimited string mapping keys to values with equals sign in between key and value
 
@@ -8,10 +8,12 @@
 
   .Example
   # -InputObject example
+  $messages = @('Here is a message.', 'Another message.')
+
   $blah = @{
-    output='Here is a message.', 'Another message.'
-    someField=1
-    anotherField=0
+    output = $messages
+    someField = 1
+    anotherField = 0
   }
 
   Invoke-Output $blah
