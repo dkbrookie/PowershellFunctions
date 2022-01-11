@@ -6,6 +6,8 @@
 
   If input is `-InputStringArray` which expects a `string array`, output will be a single newline delimited string
 
+  If a value of `-InputObject` is an array, and any of the array items are not strings, a warning will be written and those entries will be ignored and left out.
+
   .Example
   # -InputObject example
   $messages = @('Here is a message.', 'Another message.')
@@ -29,6 +31,23 @@
 
   # Outputs:
   Here is a message.`n`nAnother message.
+
+  .Example
+  # Invalid array item example
+  $messages = @('Here is a message.', @('not a string'), 'Another message.')
+
+  $blah = @{
+    output = $messages
+    someField = 1
+    anotherField = 0
+  }
+
+  Invoke-Output $blah
+
+  # Outputs:
+  Invoke-Output Error: Entry named 'output' is not valid because Invoke-Output can only handle hashtables with values of type [string] or [string[]] (array of strings). Entry named 'output' contained type 'Array'
+
+  output=Here is a message.`n`nAnother message.|someField=1|anotherField=0
 #>
 
 Function Invoke-Output {
@@ -50,7 +69,7 @@ Function Invoke-Output {
       If ($value.GetType().BaseType.Name -eq 'Array') {
         ForEach ($entry in $value) {
           If ($entry.GetType().Name -ne 'String') {
-            Write-Output "Invoke-Output Error: Entry named '$($name)' is not valid because Invoke-Output can only handle hashtables with values of type [string] or [string[]] (array of strings). Entry named '$($name)' contained type '$($entry.GetType().BaseType.Name)'`n`n"
+            Write-Output "Invoke-Output Error: Entry named '$($name)' is not valid because Invoke-Output can only handle hashtables with values of type [string] or [string[]] (array of strings). Entry named '$($name)' contained an array that contained type '$($entry.GetType().BaseType.Name)'`n`n"
             $value = $value | Where-Object { $_ -ne $entry }
           }
         }
