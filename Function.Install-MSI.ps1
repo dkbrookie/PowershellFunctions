@@ -124,42 +124,14 @@ Function Install-MSI {
     }
     
 
-    # Quick function to check for successful application install after the installer runs. This is used near the end of the function.
-    Function Get-InstalledApplications ($ApplicationName) {
-        # Applications may be in either of these locations depending on if x86 or x64
-        [array]$installedApps = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
-        [array]$installedApps += Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
-        If ((Get-PSDrive -PSProvider Registry).Name -notcontains 'HKU') {
-            New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS | Out-Null
-        }
-        # Applications can also install to single user profiles, so we're checking user profiles too
-        [array]$installedApps += Get-ItemProperty "HKU:\*\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
-        [array]$installedApps += Get-ItemProperty "HKU:\*\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -like "*$ApplicationName*" }
-        # Not using all of this output right now but nice to have it handy in case we want to output any of it later
-        $script:installedAppNames = $installedApps.DisplayName
-        $script:installedAppDate = $installedApps.InstallDate
-        $script:installedAppUninstallString = $installedApps.UninstallString
-
-        # Poweshell returns $null arrays that have multiple $null entires as truthy. To combat this, we're 
-        # converting the array to a string to check for the number of characters in the output string. If 
-        # it was an array of $null, the characters returned here will be 0 so we can be sure application 
-        # is NOT installed.
-        If (($installedApps | Out-String).Length -ne 0) {
-            If ($installedApps.Count -gt 1) {
-                $script:output += "Multiple applications found with the word(s) [$AppName] in the display name in Add/Remove programs. See list below..."
-                $script:output += $installedAppNames
-            }
-            Return 'Success'
-        } Else {
-            Return 'Failed'
-        }
-    }
+    # Call the Get-InstalledApplication function into memory
+    (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/Get-InstalledApplication/Function.Get-InstalledApplication.ps1') | Invoke-Expression;
 
 
     # Check to see if the application is already installed. If it is, exit the script.
-    $status = Get-InstalledApplications -ApplicationName $AppName
-    If ($status -eq 'Success') {
-        $output += "The application name [$AppName] is already installed! Script complete."
+    $status = Get-InstalledApplication -ApplicationName $AppName
+    If ($status) {
+        $output += "The application with the name [$AppName] is already installed! Script complete."
         $output = $output -join "`n"
         Write-Output $output
         Break
@@ -244,8 +216,8 @@ Function Install-MSI {
                 Start-Process msiexec.exe -ArgumentList "/i ""$FileMSIPath"" /l*v ""$LogPath"""
             }
         }
-        $status = Get-InstalledApplications -ApplicationName $AppName
-        If ($status -eq 'Success') {
+        $status = Get-InstalledApplication -ApplicationName $AppName
+        If ($status) {
             $output += "Verified the application name [$AppName] is now successfully showing in Add/Remove programs as installed! Script complete."
         } Else {
             $output += "$AppName is not reporting back as installed in Add/Remove Programs."
