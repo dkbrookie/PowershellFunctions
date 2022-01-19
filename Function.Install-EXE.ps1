@@ -124,51 +124,29 @@ Function Install-EXE {
     $output = @()
 
     
-    # Quick function to check for successful application install after the installer runs. This is used near the end of the function.
-    Function Get-InstalledApplications ($ApplicationName) {
-
-        # Define vars
-        [array]$installedApps = @()
-
-        # Applications may be in either of these locations depending on if x86 or x64
-        $installedApps += Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -eq "$ApplicationName" }
-        $installedApps += Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -eq "$ApplicationName" }
-
-        If ((Get-PSDrive -PSProvider Registry).Name -notcontains 'HKU') {
-            New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS | Out-Null
-        }
-
-        # Applications can also install to single user profiles, so we're checking user profiles too
-        $installedApps += Get-ItemProperty "HKU:\*\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -eq "$ApplicationName" }
-        $installedApps += Get-ItemProperty "HKU:\*\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -eq "$ApplicationName" }
-
-        # Not using all of this output right now but nice to have it handy in case we want to output any of it later.
-        # Also need to sort out if I want to keep using script: scope here or just output to straight string at a
-        # later time
-        # $script:installedAppNames = $installedApps.DisplayName
-        # $script:installedAppDate = $installedApps.InstallDate
-        # $script:installedAppUninstallString = $installedApps.UninstallString
-        
-        # Poweshell returns $null arrays that have multiple $null entires as truthy. To combat this, we're 
-        # converting the array to a string to check for the number of characters in the output string. If 
-        # it was an array of $null, the characters returned here will be 0 so we can be sure application 
-        # is NOT installed.
-        If (($installedApps | Out-String).Length -ne 0) {
-            If ($installedApps.Count -gt 1) {
-                $script:output += "Multiple applications found with the word(s) [$AppName] in the display name in Add/Remove programs. See list below..."
-                $script:output += $installedAppNames
-            }
-            Return 'Success'
-        } Else {
-            Return 'Failed'
+    # To ensure successful downloads we need to set TLS protocal type to Tls1.2. Downloads regularly fail via Powershell without this step.
+    Try {
+        # Oddly, this command works to enable TLS12 on even Powershellv2 when it shows as unavailable. This also still works for Win8+
+        [Net.ServicePointManager]::SecurityProtocol = [Enum]::ToObject([Net.SecurityProtocolType], 3072)
+        $output += "Successfully enabled TLS1.2 to ensure successful file downloads."
+    } Catch {
+        $output += "Encountered an error while attempting to enable TLS1.2 to ensure successful file downloads. This can sometimes be due to dated Powershell. Checking Powershell version..."
+        # Generally enabling TLS1.2 fails due to dated Powershell so we're doing a check here to help troubleshoot failures later
+        $psVers = $PSVersionTable.PSVersion
+        If ($psVers.Major -lt 3) {
+            $output += "Powershell version installed is only $psVers which has known issues with this script directly related to successful file downloads. Script will continue, but may be unsuccessful."
         }
     }
 
 
+    # Call the Get-InstalledApplication function into memory
+    (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/Get-InstalledApplication/Function.Get-InstalledApplication.ps1') | Invoke-Expression;
+
+
     # Check to see if the application is already installed. If it is, exit the script.
-    $status = Get-InstalledApplications -ApplicationName $AppName
-    If ($status -eq 'Success') {
-        $output += "The application name [$AppName] is already installed! Script complete."
+    $status = Get-InstalledApplication -ApplicationName $AppName
+    If ($status) {
+        $output += "The application with the name [$AppName] is already installed! Script complete."
         $output = $output -join "`n"
         Write-Output $output
         Break
@@ -198,24 +176,8 @@ Function Install-EXE {
     }
 
 
-    # To ensure successful downloads we need to set TLS protocal type to Tls1.2. Downloads regularly fail via Powershell without this step.
-    Try {
-        # Oddly, this command works to enable TLS12 on even Powershellv2 when it shows as unavailable. This also still works for Win8+
-        [Net.ServicePointManager]::SecurityProtocol = [Enum]::ToObject([Net.SecurityProtocolType], 3072)
-        $output += "Successfully enabled TLS1.2 to ensure successful file downloads."
-    } Catch {
-        $output += "Encountered an error while attempting to enable TLS1.2 to ensure successful file downloads. This can sometimes be due to dated Powershell. Checking Powershell version..."
-        # Generally enabling TLS1.2 fails due to dated Powershell so we're doing a check here to help troubleshoot failures later
-        $psVers = $PSVersionTable.PSVersion
-        If ($psVers.Major -lt 3) {
-            $output += "Powershell version installed is only $psVers which has known issues with this script directly related to successful file downloads. Script will continue, but may be unsuccessful."
-        }
-    }
-
-
     # Create all the dirs we need for a successful download/install, then download required files
     Try {
-
         # Check for the directory variable and set it if it doesn't exist
         If (!$FileDir) {
             $FileDir = "$env:windir\LTSvc\packages\software\$AppName"
@@ -309,8 +271,8 @@ Function Install-EXE {
         Start-Process @installHash
 
         # Check to see if the installation was successful
-        $status = Get-InstalledApplications -ApplicationName $AppName
-        If ($status -eq 'Success') {
+        $status = Get-InstalledApplication -ApplicationName $AppName
+        If ($status) {
             $output += "Verified the application [$AppName] was successfully installed! Script complete."
         } Else {
             $output += "$AppName is not reporting back as installed in Add/Remove Programs."
