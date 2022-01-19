@@ -19,7 +19,11 @@
 
     .NOTES
     In order to support a new version, you must update Fido by pulling upstream changes from the
-    main Fido repository then add the new values to the ValidateSets in the params below
+    main Fido repository then add the new values to the ValidateSets in the params below.
+
+    This function also currently returns "FileHash" in output object, but that is junk and needs
+    to be removed because Microsoft doesn't return the hash of the requested release, opting instead
+    to choose which release to provide a hash for...
 #>
 
 function Get-WindowsIsoUrl {
