@@ -116,8 +116,12 @@ function Remove-RegistryKey {
         [string]$Path
     )
 
-    If (!$Path) {
-        Throw 'Remove-RegistryKey could not continue. Path was not specified or was invalid! Please specify $Path to a valid Registry key path.'
+    # currently only handles HKLM, need to adjust regex if you want it to work for other areas of the registry
+    $regex = '^HKLM:\\([a-zA-Z0-9\s_@\-\^!#.\:\/\$%&+={}\[\]\\*])+$'
+
+    # Make sure that $Path is actually a registry path. If it's not, it could end up accidentally nuking some folder in the CWD
+    If (!($Path -match $regex)) {
+        Throw "Remove-RegistryKey could not continue. 'Path' parameter does not appear to be a valid HKLM registry location! Adjust regex in script if you need to use a non-HKLM registry location. Provided 'Path' was '$Path'"
     }
 
     Remove-Item -Path $Path -Force -Recurse -EA 0 | Out-Null
