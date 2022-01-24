@@ -1,7 +1,7 @@
 ﻿<#
-    # All functions rely on $regPath being set before this script is called. The intention is for a given script to have a single
-    # reg path where it's interacting with keys. This is for the sake of convenience since this scenario pops up often.
-    # Each function optionally receives a -Path param which will be used instead if provided, for when this convention doesn't fit.
+    All functions (except Remove-RegistryKey) rely on $regPath being set before this script is called. The intention is for a given script to have a single
+    reg path where it's interacting with keys. This is for the sake of convenience since this scenario pops up often. Each function optionally receives
+    a -Path param (except Remove-RegistryKey, -Path is mandatory there) which will be used instead if provided, for when this convention doesn't fit.
 
     .Example
     # Path doesn't exist yet, but that's OK
@@ -107,6 +107,24 @@ function Remove-RegistryValue {
     }
 
     Remove-ItemProperty -Path $regPath -Name $Name -Force -EA 0 | Out-Null
+}
+
+# Remove-RegistryKey deletes an entire key. This one requires `-Path` to be set and will not use pre-set $regPath
+function Remove-RegistryKey {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    # currently only handles HKLM, need to adjust regex if you want it to work for other areas of the registry
+    $regex = '^HKLM:\\([a-zA-Z0-9\s_@\-\^!#.\:\/\$%&+={}\[\]\\*])+$'
+
+    # Make sure that $Path is actually a registry path. If it's not, it could end up accidentally nuking some folder in the CWD
+    If (!($Path -match $regex)) {
+        Throw "Remove-RegistryKey could not continue. 'Path' parameter does not appear to be a valid HKLM registry location! Adjust regex in script if you need to use a non-HKLM registry location. Provided 'Path' was '$Path'"
+    }
+
+    Remove-Item -Path $Path -Force -Recurse -EA 0 | Out-Null
 }
 
 # Write-RegistryValue sets a registry value and returns an output string with results of action taken. It creates the entire path if it doesn't exist.
