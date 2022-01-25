@@ -79,6 +79,11 @@
     } ElseIf ($osName -like 'Microsoft Windows 7*') {
         $osObject.SimplifiedName = '7'
         $osObject.Name = $osName
+    } Else {
+        $osObject.Name = $osName
+        $osObject.SimplifiedName = $osName
+        $osObject.Build = 'Unknown'
+        $osObject.Version = 'Unknown'
     }
 
     Return $osObject

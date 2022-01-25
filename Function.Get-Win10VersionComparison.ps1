@@ -76,6 +76,10 @@ function Get-Win10VersionComparison {
         Throw "This does not appear to be a Windows 10 machine. Function 'Get-Win10VersionComparison' only supports Windows 10 machines. This is: $osName"
     }
 
+    If ($version -eq 'Unknown') {
+        Throw "This version of Windows is unknown to this script. Cannot compare. This is: $osName"
+    }
+
     # If the current version is not in the list of win 10 versions, it's not supported
     If ($currentVersionIndex -eq -1) {
         Throw "Something went wrong determining the current version of windows, it does not appear to be in the list.." +
