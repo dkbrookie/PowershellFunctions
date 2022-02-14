@@ -137,46 +137,30 @@ function Get-DesktopWindowsVersionComparison {
       "https://github.com/dkbrookie/PowershellFunctions/blob/master/Function.Get-WindowsVersion.ps1"
   }
 
+  If ($UseVersion) {
+    $currentOsValue = $currentVersionIndex
+    $requestedValue = $checkAgainstIndex
+  } Else {
+    $currentOsValue = $build
+    $requestedValue = $checkAgainst
+  }
+
   # Here's the meat
   Switch ($true) {
     ([bool]$LessThan) {
-      If ($UseVersion) {
-        $result = $currentVersionIndex -lt $checkAgainstIndex
-      } Else {
-        $result = $build -lt $checkAgainst
-      }
+      $result = $currentOsValue -lt $requestedValue
     }
-
     ([bool]$LessThanOrEqualTo) {
-      If ($UseVersion) {
-        $result = $currentVersionIndex -le $checkAgainstIndex
-      } Else {
-        $result = $build -le $checkAgainst
-      }
+      $result = $currentOsValue -le $requestedValue
     }
-
     ([bool]$GreaterThan) {
-      If ($UseVersion) {
-        $result = $currentVersionIndex -gt $checkAgainstIndex
-      } Else {
-        $result = $build -gt $checkAgainst
-      }
+      $result = $currentOsValue -gt $requestedValue
     }
-
     ([bool]$GreaterThanOrEqualTo) {
-      If ($UseVersion) {
-        $result = $currentVersionIndex -ge $checkAgainstIndex
-      } Else {
-        $result = $build -ge $checkAgainst
-      }
+      $result = $currentOsValue -ge $requestedValue
     }
-
     ([bool]$EqualTo) {
-      If ($UseVersion) {
-        $result = $currentVersionIndex -eq $orderOfWindowsVersions.IndexOf($EqualTo)
-      } Else {
-        $result = $build -eq $checkAgainst
-      }
+      $result = $currentOsValue -eq $requestedValue
     }
   }
 
