@@ -1,6 +1,6 @@
 <#
   .DESCRIPTION
-  Recursively flattens input array and removes all falsy values
+  Recursively flattens input array
 
   .EXAMPLE
   $deepArray = @('val1', @('val2', @('val3', 'val4'), '', 'val5'), $Null, 'val6')
@@ -22,5 +22,5 @@ function Flatten-Array {
     } Else {
       Return $_
     }
-  } | Where-Object { $_ }
+  }
 }
