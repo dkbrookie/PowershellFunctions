@@ -7,9 +7,11 @@ this script will throw an exception, so it should be used with try/catch.
 
 Upon meeting a valid situation. It will check the version you provided against the version of windows that the current machine is running and output a hash table with "Result" (boolean) and Output (string).
 
+It works with either Build ID (i.e. 19042) or Version ID (i.e. 20H2). Default is Build ID. You can use the -UseVersion switch to use VersionID.
+
 Example of correct usage:
 Try {
-  $winIsLessThan20H2 = Get-Win10VersionComparison -LessThan '20H2'
+  $winIsLessThan20H2 = Get-Win10VersionComparison -LessThan '20H2' -UseVersion
 } Catch {
   Write-Output $Error[0].Exception.Message
 }
