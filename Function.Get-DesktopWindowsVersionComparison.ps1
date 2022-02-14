@@ -1,4 +1,8 @@
 ﻿<#
+.SYNOPSIS
+Detects current Win10 version and compares against another version. Determines if the current windows version is "equal to", "less than", "greater than",
+"less than or equal to", or "greather than or equal to"
+.DESCRIPTION
 Detects current Win10 version and compares against another version. Determines if the current windows version is "equal to", "less than", "greater than",
 "less than or equal to", or "greather than or equal to"
 
@@ -9,9 +13,22 @@ Upon meeting a valid situation. It will check the version you provided against t
 
 It works with either Build ID (i.e. 19042) or Version ID (i.e. 20H2). Default is Build ID. You can use the -UseVersion switch to use VersionID.
 
-Example of correct usage:
+.EXAMPLE
 Try {
-  $winIsLessThan20H2 = Get-Win10VersionComparison -LessThan '20H2' -UseVersion
+  $winIsLessThan19042 = Get-DesktopWindowsVersionComparison -LessThan 19042
+} Catch {
+  Write-Output $Error[0].Exception.Message
+}
+
+If ($winIsLessThan19042.Result) {
+  Return 'Success! This is a newer version!' + $winIsLessThan19042.Output
+} Else {
+  Return 'Oh no! This is an old version!' + $winIsLessThan19042.Output
+}
+
+.EXAMPLE
+Try {
+  $winIsLessThan20H2 = Get-DesktopWindowsVersionComparison -LessThan 20H2 -UseVersion
 } Catch {
   Write-Output $Error[0].Exception.Message
 }
@@ -126,7 +143,7 @@ function Get-DesktopWindowsVersionComparison {
   # If the current version is not in the list of win 10/11 versions, it's not supported
   If ($UseVersion -and ($currentVersionIndex -eq -1)) {
     Throw "Something went wrong determining the current version of windows, it does not appear to be in the list.. " +
-      "Maybe a new version of windows 10? Function 'Get-Win10VersionComparison' supports $($orderOfWindowsVersions[0]) through $($orderOfWindowsVersions[-1]) " +
+      "Maybe a new version of windows 10? Function 'Get-DesktopWindowsVersionComparison' supports $($orderOfWindowsVersions[0]) through $($orderOfWindowsVersions[-1]) " +
       "This is: $version. If you need to add a new version of windows, edit this: " +
       "https://github.com/dkbrookie/PowershellFunctions/blob/master/Function.Get-WindowsVersion.ps1"
   }
@@ -134,7 +151,7 @@ function Get-DesktopWindowsVersionComparison {
   # If the wanted version is not in the list of win 10 versions, it's not supported
   If ($UseVersion -and ($checkAgainstIndex -eq -1)) {
     Throw "Something went wrong determining the wanted version of windows, it does not appear to be in the supported list.. " +
-      "Maybe a new version of windows 10? Function 'Get-Win10VersionComparison' supports versions $($orderOfWindowsVersions[0]) " +
+      "Maybe a new version of windows 10? Function 'Get-DesktopWindowsVersionComparison' supports versions $($orderOfWindowsVersions[0]) " +
       "through $($orderOfWindowsVersions[-1]) " + "You requested: $checkAgainst. If you need to add a new version of windows, edit this: " +
       "https://github.com/dkbrookie/PowershellFunctions/blob/master/Function.Get-WindowsVersion.ps1"
   }
