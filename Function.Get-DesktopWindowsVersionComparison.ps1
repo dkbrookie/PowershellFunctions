@@ -67,20 +67,6 @@ function Get-DesktopWindowsVersionComparison {
   # Normalize all alpha characters to upppercase
   $checkAgainst = $checkAgainst.ToUpper()
 
-  # Just to simplify the output message in each case below
-  function Get-OutputMessage {
-    param([bool]$Result)
-
-    $msg1 = "The current Windows version, $version, is "
-    $msg2 = "$variableMsg the requested version, $checkAgainst"
-
-    If ($Result) {
-       Return $msg1 + $msg2
-    } Else {
-      Return $msg1 + "not " + $msg2
-    }
-  }
-
   # Gather current OS info
   $windowsVersion = Get-WindowsVersion
   $osName = $windowsVersion.SimplifiedName
@@ -90,54 +76,107 @@ function Get-DesktopWindowsVersionComparison {
   $currentVersionIndex = $orderOfWindowsVersions.IndexOf($version)
   $checkAgainstIndex = $orderOfWindowsVersions.IndexOf($checkAgainst)
 
-  $osIs10 = $osName -eq '10'
-  $osIs11 = $osName -eq '11'
+  # Just to simplify the output message in each case below
+  function Get-OutputMessage {
+    param([bool]$Result)
+
+    If ($UseVersion) {
+      $versionForMessage = $version
+    } Else {
+      $versionForMessage = $build
+    }
+
+    $msg1 = "The current Windows version, $versionForMessage, is "
+    $msg2 = "$variableMsg the requested version, $checkAgainst"
+
+    If ($Result) {
+      Return $msg1 + $msg2
+    } Else {
+      Return $msg1 + "not " + $msg2
+    }
+  }
 
   # Doesn't make sense if this isn't win10 or win11
+  $osIs10 = $osName -eq '10'
+  $osIs11 = $osName -eq '11'
   If (!($osIs10 -or $osIs11)) {
     Throw "This does not appear to be a Windows 10 machine. Function 'Get-DesktopWindowsVersionComparison' only supports Windows 10/11 machines. This is: $osName"
   }
 
-  If ($version -eq 'Unknown') {
+  If ($useVersion -and ($version -eq 'Unknown')) {
     Throw "This version of Windows is unknown to this script. Cannot compare. This is: $osName"
   }
 
+  # If $UseVersion is not true, we expect the value we're checking against to contain no letters, if it does contain letters, this is probably being used incorrectly
+  If ($checkAgainst -match '[a-z]') {
+    If (!$UseVersion) {
+      Throw "The value you're trying to check against contains letters. You probably want to use the -UseVersion switch as it is " +
+        "intended to signal that you're checking against version ID (i.e. 20H2) instead of Build ID (i.e. 19042)"
+    }
+  } Else {
+    # The value we're checking against does not contain letters. If $UseVersion is true, we expect it to contain letters. This is probably being used incorrectly.
+    If ($UseVersion) {
+      Throw "The value you're trying to check against does not contain letters. You probably don't want to use the -UseVersion switch. " +
+        "It is intended to signal that you're checking against version ID (i.e. 20H2) instead of Build ID (i.e. 19042)"
+    }
+  }
+
   # If the current version is not in the list of win 10/11 versions, it's not supported
-  If ($currentVersionIndex -eq -1) {
-    Throw "Something went wrong determining the current version of windows, it does not appear to be in the list.." +
-        "Maybe a new version of windows 10? Function 'Get-Win10VersionComparison' supports $($orderOfWindowsVersions[0]) through $($orderOfWindowsVersions[-1]) " +
-        "This is: $version. If you need to add a new version of windows, edit this: " +
-        "https://github.com/dkbrookie/PowershellFunctions/blob/master/Function.Get-WindowsVersion.ps1"
+  If ($UseVersion -and ($currentVersionIndex -eq -1)) {
+    Throw "Something went wrong determining the current version of windows, it does not appear to be in the list.. " +
+      "Maybe a new version of windows 10? Function 'Get-Win10VersionComparison' supports $($orderOfWindowsVersions[0]) through $($orderOfWindowsVersions[-1]) " +
+      "This is: $version. If you need to add a new version of windows, edit this: " +
+      "https://github.com/dkbrookie/PowershellFunctions/blob/master/Function.Get-WindowsVersion.ps1"
   }
 
   # If the wanted version is not in the list of win 10 versions, it's not supported
-  If ($checkAgainstIndex -eq -1) {
-    Throw "Something went wrong determining the wanted version of windows, it does not appear to be in the supported list.." +
-    "Maybe a new version of windows 10? Function 'Get-Win10VersionComparison' supports versions $($orderOfWindowsVersions[0]) through $($orderOfWindowsVersions[-1]) " +
-    "You requested: $checkAgainst. If you need to add a new version of windows, edit this: " +
-    "https://github.com/dkbrookie/PowershellFunctions/blob/master/Function.Get-WindowsVersion.ps1"
+  If ($UseVersion -and ($checkAgainstIndex -eq -1)) {
+    Throw "Something went wrong determining the wanted version of windows, it does not appear to be in the supported list.. " +
+      "Maybe a new version of windows 10? Function 'Get-Win10VersionComparison' supports versions $($orderOfWindowsVersions[0]) " +
+      "through $($orderOfWindowsVersions[-1]) " + "You requested: $checkAgainst. If you need to add a new version of windows, edit this: " +
+      "https://github.com/dkbrookie/PowershellFunctions/blob/master/Function.Get-WindowsVersion.ps1"
   }
 
   # Here's the meat
   Switch ($true) {
     ([bool]$LessThan) {
-      $result = $currentVersionIndex -lt $checkAgainstIndex
+      If ($UseVersion) {
+        $result = $currentVersionIndex -lt $checkAgainstIndex
+      } Else {
+        $result = $build -lt $checkAgainst
+      }
     }
 
     ([bool]$LessThanOrEqualTo) {
-      $result = $currentVersionIndex -le $checkAgainstIndex
+      If ($UseVersion) {
+        $result = $currentVersionIndex -le $checkAgainstIndex
+      } Else {
+        $result = $build -le $checkAgainst
+      }
     }
 
     ([bool]$GreaterThan) {
-      $result = $currentVersionIndex -gt $checkAgainstIndex
+      If ($UseVersion) {
+        $result = $currentVersionIndex -gt $checkAgainstIndex
+      } Else {
+        $result = $build -gt $checkAgainst
+      }
     }
 
     ([bool]$GreaterThanOrEqualTo) {
-      $result = $currentVersionIndex -ge $checkAgainstIndex
+      If ($UseVersion) {
+        $result = $currentVersionIndex -ge $checkAgainstIndex
+      } Else {
+        $result = $build -ge $checkAgainst
+      }
     }
 
     ([bool]$EqualTo) {
-      $result = $currentVersionIndex -eq $orderOfWindowsVersions.IndexOf($EqualTo)
+      If ($UseVersion) {
+        $result = $currentVersionIndex -eq $orderOfWindowsVersions.IndexOf($EqualTo)
+      } Else {
+        $result = $build -eq $checkAgainst
+      }
     }
   }
 
