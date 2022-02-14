@@ -9,8 +9,7 @@
         Build = $Null
         Version = $Null
         Arch = $osArch
-        OrderOfWin10Versions = @('1507','1511','1607','1703','1709','1803','1809','1903','1909','2004','20H2','21H1', '21H2')
-        OrderOfWin11Versions = @('21H2')
+        OrderOfWindowsVersions = @('1507','1511','1607','1703','1709','1803','1809','1903','1909','2004','20H2','21H1', '21H2')
     }
 
     If ($osName -like 'Microsoft Windows Server 2008*' -and $osName -notlike '*R2*') {
