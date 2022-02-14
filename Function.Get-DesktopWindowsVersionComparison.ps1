@@ -36,10 +36,11 @@ Try {
   }
 }
 
+# TODO: switch this to master branch
 # Call in Get-WindowsVersion
-(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Get-WindowsVersion.ps1') | Invoke-Expression
+(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/swap-windows-build-IDs-from-20H2-to-19042/Function.Get-WindowsVersion.ps1') | Invoke-Expression
 
-function Get-Win10VersionComparison {
+function Get-DesktopWindowsVersionComparison {
   param (
     [Parameter(Mandatory = $true, ParameterSetName = 'LessThan')]
     [string]$LessThan,
@@ -120,73 +121,28 @@ function Get-Win10VersionComparison {
   # Here's the meat
   Switch ($true) {
     ([bool]$LessThan) {
-      If ($currentVersionIndex -lt $checkAgainstIndex) {
-        Return @{
-          Result = $true
-          Output = Get-OutputMessage -Result $true
-        }
-      } Else {
-        Return @{
-          Result = $false
-          Output = Get-OutputMessage -Result $false
-        }
-      }
+      $result = $currentVersionIndex -lt $checkAgainstIndex
     }
 
     ([bool]$LessThanOrEqualTo) {
-      If ($currentVersionIndex -le $checkAgainstIndex) {
-        Return @{
-          Result = $true
-          Output = Get-OutputMessage -Result $true
-        }
-      } Else {
-        Return @{
-          Result = $false
-          Output = Get-OutputMessage -Result $false
-        }
-      }
+      $result = $currentVersionIndex -le $checkAgainstIndex
     }
 
     ([bool]$GreaterThan) {
-      If ($currentVersionIndex -gt $checkAgainstIndex) {
-        Return @{
-          Result = $true
-          Output = Get-OutputMessage -Result $true
-        }
-      } Else {
-        Return @{
-          Result = $false
-          Output = Get-OutputMessage -Result $false
-        }
-      }
+      $result = $currentVersionIndex -gt $checkAgainstIndex
     }
 
     ([bool]$GreaterThanOrEqualTo) {
-      If ($currentVersionIndex -ge $checkAgainstIndex) {
-        Return @{
-          Result = $true
-          Output = Get-OutputMessage -Result $true
-        }
-      } Else {
-        Return @{
-          Result = $false
-          Output = Get-OutputMessage -Result $false
-        }
-      }
+      $result = $currentVersionIndex -ge $checkAgainstIndex
     }
 
     ([bool]$EqualTo) {
-      If ($currentVersionIndex -eq $orderOfWindowsVersions.IndexOf($EqualTo)) {
-        Return @{
-          Result = $true
-          Output = Get-OutputMessage -Result $true
-        }
-      } Else {
-        Return @{
-          Result = $false
-          Output = Get-OutputMessage -Result $false
-        }
-      }
+      $result = $currentVersionIndex -eq $orderOfWindowsVersions.IndexOf($EqualTo)
     }
+  }
+
+  Return @{
+    Result = $result
+    Output = Get-OutputMessage -Result $result
   }
 }
