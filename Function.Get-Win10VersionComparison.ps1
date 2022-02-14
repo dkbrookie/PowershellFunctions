@@ -35,7 +35,9 @@ function Get-Win10VersionComparison {
         [Parameter(Mandatory = $true, ParameterSetName = 'GreaterThanOrEqualTo')]
         [string]$GreaterThanOrEqualTo,
         [Parameter(Mandatory = $true, ParameterSetName = 'EqualTo')]
-        [string]$EqualTo
+        [string]$EqualTo,
+        [Parameter(Mandatory = $false)]
+        [switch]$UseVersion
     )
 
     Switch ($true) {
