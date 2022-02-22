@@ -90,7 +90,7 @@ Function New-ClientVPNConnection {
         [string]$ClientName = 'Automated'
         ,[Parameter(
             Mandatory = $false,
-            HelpMessage='Set your static routes here in this format: 192.168.23.0/24'
+            HelpMessage="Set your static routes here in this format: '192.168.23.0/23','192.168.49.0/24'"
         )]
         [array]$StaticRoutes
     )
