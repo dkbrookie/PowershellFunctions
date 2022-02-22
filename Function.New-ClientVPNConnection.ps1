@@ -76,7 +76,7 @@ Function New-ClientVPNConnection {
             HelpMessage='Choose the Authentication Method.'
         )]
         [ValidateSet('Chap','Eap','MachineCertificate','MSChapv2','Pap')]
-        [string]$AuthenticationMethod
+        [array]$AuthenticationMethod
         ,[Parameter(
             Mandatory = $false,
             HelpMessage='Set this value to [0] or [1] without brackets. The value of [1] enables split tunneling which means only defined subnets on the VPN tunnel route through VPN, while the remaining requests route straight from your original IP.'
@@ -88,9 +88,14 @@ Function New-ClientVPNConnection {
             HelpMessage='Set this value to name your VPN connection. The name of the VPN will be [ClientName VPN] without the brackets. If this is left empty, the default is [Automated VPN].'
         )]
         [string]$ClientName = 'Automated'
+        ,[Parameter(
+            Mandatory = $false,
+            HelpMessage='Set your static routes here in this format: 192.168.23.0/24'
+        )]
+        [array]$StaticRoutes
     )
 
-
+    
     Function Invoke-Output {
         param ([string[]]$output)
         $output = $output -join "`n"
@@ -164,8 +169,6 @@ Function New-ClientVPNConnection {
             } Else {
                 $output += "!SUCCESS: Verified all $vpnName settings match configurations from Automate!"
             }
-            Invoke-Output $output
-            Break
         } Catch {
             # If we're here then this means something went wrong when removing/creating the VPN connection above
             $output += "!FAILED: Failed to created $vpnName. Error ourput: $error"
@@ -173,4 +176,20 @@ Function New-ClientVPNConnection {
             Break
         }
     }
+
+
+    Try {
+        # Add static route
+        ForEach ($route in $StaticRoutes) {
+            Add-VpnConnectionRoute -ConnectionName $vpnName -DestinationPrefix $route –PassThru
+            $output += "Successfully added the route [$route] to [$vpnName]"
+        }
+    } Catch {
+        $output += "Failed to add the route [$route] to [$vpnName]" 
+    }
+
+
+    $output += "Full error output for troubleshooting: $Error"
+    Invoke-Output $output
+    Break
 }
