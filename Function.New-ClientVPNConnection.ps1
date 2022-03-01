@@ -191,5 +191,4 @@ Function New-ClientVPNConnection {
 
     $output += "Full error output for troubleshooting: $Error"
     Invoke-Output $output
-    Break
 }
