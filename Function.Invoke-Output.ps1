@@ -6,7 +6,7 @@
 
   If input is `-InputStringArray` which expects a `string array`, output will be a single newline delimited string
 
-  If a value of `-InputObject` is an array, and any of the array items are not strings, a warning will be written and those entries will be ignored and left out.
+  If a value of `-InputObject` is an array, the array of arrays will be flattened out into a single string. This is recursive and can handle any arbitrary depth of arrays.
 
   .Example
   # -InputObject example
@@ -33,8 +33,8 @@
   Here is a message.`n`nAnother message.
 
   .Example
-  # Invalid array item example
-  $messages = @('Here is a message.', @('not a string'), 'Another message.')
+  # Nested array item example
+  $messages = @('Here is a message.', @('Nested array.'), 'Another message.')
 
   $blah = @{
     output = $messages
@@ -45,16 +45,20 @@
   Invoke-Output $blah
 
   # Outputs:
-  Invoke-Output Error: Entry named 'output' is not valid because Invoke-Output can only handle hashtables with values of type [string] or [string[]] (array of strings). Entry named 'output' contained an array that contained type 'Array'
-
-  output=Here is a message.`n`nAnother message.|someField=1|anotherField=0
+  output=Here is a message. Nested array. Another message.|someField=1|anotherField=0
 #>
+
+# Fix TLS
+[Net.ServicePointManager]::SecurityProtocol = [Enum]::ToObject([Net.SecurityProtocolType], 3072)
+
+# Call in Flatten-Array
+(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Flatten-Array.ps1') | Invoke-Expression
 
 Function Invoke-Output {
   Param (
-    [Parameter(Mandatory = $True, ValueFromPipeline = $True, Position = 0, ParameterSetName='Hashtable')]
+    [Parameter(Mandatory = $True, ValueFromPipeline = $True, Position = 0, ParameterSetName = 'Hashtable')]
     [Hashtable]$InputObject,
-    [Parameter(Mandatory = $True, ValueFromPipeline = $True, Position = 0, ParameterSetName='String')]
+    [Parameter(Mandatory = $True, ValueFromPipeline = $True, Position = 0, ParameterSetName = 'String')]
     [string[]]$InputStringArray
   )
 
@@ -62,21 +66,7 @@ Function Invoke-Output {
     $out = ''
 
     $InputObject.GetEnumerator() | ForEach-Object { $i = 1 } {
-      $value = $_.Value
-      $name = $_.Name
-
-      # We already know input is a hashtable, but we want to make sure that every item in the hashtable is either a string or an array of strings
-      If ($value.GetType().BaseType.Name -eq 'Array') {
-        ForEach ($entry in $value) {
-          If ($entry.GetType().Name -ne 'String') {
-            Write-Output "Invoke-Output Error: Entry named '$($name)' is not valid because Invoke-Output can only handle hashtables with values of type [string] or [string[]] (array of strings). Entry named '$($name)' contained an array that contained type '$($entry.GetType().BaseType.Name)'`n`n"
-            $value = $value | Where-Object { $_ -ne $entry }
-          }
-        }
-
-        $value = $value -join "`n`n"
-      }
-
+      $value = Flatten-Array $_.Value
       $item = "$($_.Name)=$value"
 
       If ($i -lt $InputObject.Count) {
