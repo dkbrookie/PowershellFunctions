@@ -1,22 +1,19 @@
-$dirs = @{
-    browsers = @{
-        chrome = @{
-            rootPath = 'HKLM:\SOFTWARE\Policies\Google'
-            namePath = 'HKLM:\SOFTWARE\Policies\Google\Chrome'
-            ExtensionInstallAllowlistPath = 'HKLM:\SOFTWARE\Policies\Google\Chrome\ExtensionInstallAllowlist'
-            ExtensionInstallBlocklist = 'HKLM:\SOFTWARE\Policies\Google\Chrome\ExtensionInstallBlocklist'
-            ExtensionInstallForcelist = 'HKLM:\SOFTWARE\Policies\Google\Chrome\ExtensionInstallForcelist'
-            Recommended = 'HKLM:\SOFTWARE\Policies\Google\Chrome\Recommended'
-        }
-        edge = @{
-            rootPath = 'HKLM:\SOFTWARE\Policies\Microsoft'
-            namePath = 'HKLM:\SOFTWARE\Policies\Microsoft\Edge'
-            ExtensionInstallAllowlistPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Edge\ExtensionInstallAllowlist'
-            ExtensionInstallBlocklist = 'HKLM:\SOFTWARE\Policies\Microsoft\Edge\ExtensionInstallBlocklist'
-            ExtensionInstallForcelist = 'HKLM:\SOFTWARE\Policies\Microsoft\Edge\ExtensionInstallForcelist'
-            Recommended = 'HKLM:\SOFTWARE\Policies\Microsoft\Edge\Recommended'
-        }
-    }
+$chrome = @{
+    rootPath = 'HKLM:\SOFTWARE\Policies\Google'
+    namePath = 'HKLM:\SOFTWARE\Policies\Google\Chrome'
+    ExtensionInstallAllowlistPath = 'HKLM:\SOFTWARE\Policies\Google\Chrome\ExtensionInstallAllowlist'
+    ExtensionInstallBlocklist = 'HKLM:\SOFTWARE\Policies\Google\Chrome\ExtensionInstallBlocklist'
+    ExtensionInstallForcelist = 'HKLM:\SOFTWARE\Policies\Google\Chrome\ExtensionInstallForcelist'
+    Recommended = 'HKLM:\SOFTWARE\Policies\Google\Chrome\Recommended'
+}
+
+$edge = @{
+    rootPath = 'HKLM:\SOFTWARE\Policies\Microsoft'
+    namePath = 'HKLM:\SOFTWARE\Policies\Microsoft\Edge'
+    ExtensionInstallAllowlistPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Edge\ExtensionInstallAllowlist'
+    ExtensionInstallBlocklist = 'HKLM:\SOFTWARE\Policies\Microsoft\Edge\ExtensionInstallBlocklist'
+    ExtensionInstallForcelist = 'HKLM:\SOFTWARE\Policies\Microsoft\Edge\ExtensionInstallForcelist'
+    Recommended = 'HKLM:\SOFTWARE\Policies\Microsoft\Edge\Recommended'
 }
 
 
@@ -25,28 +22,58 @@ $ErrorActionPreference = 'Stop'
 
 Function New-ReqDirs {
     Try {
-        # Create key for dirs if they don't exist
-        $dirs.browsers.chrome,$dirs.browsers.edge | Select-Object -ExpandProperty Values | Sort-Object { $_.Length } |  ForEach-Object { If (!(Test-Path $_)) {
-                New-Item -Path $_ | Out-Null
+        # Create key for dirs if they don't exist. Note the sort is to ensure parent dirs are created so the
+        # child dirs don't fail out. Tested with just -Force, but registry requires each dir (key) to be created
+        # individually
+        $chrome,$edge | Select-Object -ExpandProperty Values | Sort-Object { $_.Length } |  ForEach-Object { If (!(Test-Path $_)) {
+                New-Item -Path $_ -Force | Out-Null
             }
         }
         Return $true
     } Catch {
         Return $false
+    }
+}
+
+
+Function Get-MaxValue {
+    <#
+    May not need this, but this is to find the max reg value name. This is useful for the scenario
+    where entries already exist for allowed or blocked extensions and you want to get the current
+    max number so you can increment it.
+    #>
+    param (
+        [string]$Path
+    )
+    # Get max current extension configuration reg value number
+    $Regex = '^\d*$'
+    $RegValues = Get-ItemProperty $Path
+    $IntRegValues = $RegValues.PSObject.Properties | Where-Object { $_.Name -match $Regex }
+    $maxValue = ($IntRegValues.Name | Measure-Object -Maximum).Maximum
+    If (!$maxValue) {
+        Return 0
+    } Else {
+        Return $maxValue
     }
 }
 
 
 Function Set-PasswordManager {
     param (
-        [ValidateSet(1,0)]
-        $PassManagerState = 0
+        [ValidateSet('Enabled','Disabled')]
+        $PassManagerState = 'Disabled'
     )
+
+    Switch ($PassManagerState) {
+        'Disabled'  { $PassManagerState = 0 }
+        'Enabled'   { $PassManagerState = 1 }
+    }
     
     Try {
         New-ReqDirs
-        $dirs.browsers.chrome.namePath,$dirs.browsers.edge.namePath | ForEach-Object { If ((Get-ItemProperty $_ -Name 'PasswordManagerEnabled' -EA 0).'PasswordManagerEnabled' -ne $passManagerState ) {
-                Set-ItemProperty -Path $_ -Name 'PasswordManagerEnabled' -Value $passManagerState | Out-Null
+        $chrome.namePath,$edge.namePath | ForEach-Object {
+            If ((Get-ItemProperty $_ -Name 'PasswordManagerEnabled' -EA 0).'PasswordManagerEnabled' -ne $PassManagerState ) {
+                Set-ItemProperty -Path $_ -Name 'PasswordManagerEnabled' -Value $PassManagerState | Out-Null
             }
         }
         Return $true
@@ -56,23 +83,20 @@ Function Set-PasswordManager {
 }
 
 
-Function Set-BlockAllExtensionInstalls {
-    <#
-    Working through how to handle getting the max increment of existing REG_SZ entries in the reg key.
-    https://www.imab.dk/install-google-chrome-extensions-using-microsoft-intune/
-    #>
+Function Set-BlockAllExtensions {
     param (
-        [ValidateSet(1,0)]
-        $BlockExtensionInstallState = 0
+        [ValidateSet('BlockAll','UnblockAll')]
+        $BlockExtensionInstallState = '*'
     )
 
     Try {
-        New-ReqDirs
-        $dirs.browsers.chrome.ExtensionInstallBlocklist,$dirs.browsers.edge.ExtensionInstallBlocklist | ForEach-Object { 
-            Get-ChildItem
-            
-            If ((Get-ItemProperty $_ -Name 'PasswordManagerEnabled' -EA 0).'PasswordManagerEnabled' -ne $passManagerState ) {
-                Set-ItemProperty -Path $_ -Name 'PasswordManagerEnabled' -Value $passManagerState | Out-Null
+        $chrome.ExtensionInstallBlocklist,$edge.ExtensionInstallBlocklist | ForEach-Object {
+            If (Test-Path $chrome.ExtensionInstallBlocklist) {
+                Remove-Item -Path $_ -Recurse -Force
+            }
+            If ($BlockExtensionInstallState -eq 'BlockAll') {
+                New-ReqDirs
+                New-ItemProperty -Path $_ -Name 1 -Type String -Value '*' | Out-Null
             }
         }
         Return $true
@@ -81,6 +105,39 @@ Function Set-BlockAllExtensionInstalls {
     }
 }
 
+
+Function Set-EnforcedExtensions {
+    <#
+
+    .PARAMETER EnforcedExtensionGUIDs
+    Enter a comma separated list of extension GUIDs to be enforced
+
+    #>
+
+    param (
+        [array]$EnforcedExtensionGUIDs
+    )
+
+    Try {
+        # Add GUIDs to the reg to enforce extension installss
+        $chrome.ExtensionInstallForcelist,$edge.ExtensionInstallForcelist | ForEach-Object {
+            # Remove existing enforcement key so we can start fresh with our new list of enforced extensions
+            Remove-Item -Path $_ -Recurse -Force
+
+            # Recreate key structure
+            New-ReqDirs
+
+            $iteration = 0
+            ForEach ($EnforcedGUID in $EnforcedExtensionGUIDs) {
+                $iteration++
+                New-ItemProperty -Path $_ -Name $iteration -Value $EnforcedGUID | Out-Null
+            }
+        }
+        Return $true
+    } Catch {
+        Return $false
+    }
+}
 
 Function Set-RelaunchEnforcement {
     <#
@@ -112,13 +169,12 @@ Function Set-RelaunchEnforcement {
         'RequiredPrompt'    { $EnforceRelaunch = 2 }
     }
 
-
+    # Verify required dirs exist
     New-ReqDirs
-
 
     # Enable relaunch notification
     Try {
-        $dirs.browsers.chrome.namePath,$dirs.browsers.edge.namePath | ForEach-Object {
+        $chrome.namePath,$edge.namePath | ForEach-Object {
             If ($EnforceRelaunch -ne 0) {
                 If ((Get-ItemProperty $_ -Name 'RelaunchNotification' -EA 0).1 -ne $EnforceRelaunch ) {
                     Set-ItemProperty -Path $_ -Name 'RelaunchNotification' -Value $EnforceRelaunch | Out-Null
