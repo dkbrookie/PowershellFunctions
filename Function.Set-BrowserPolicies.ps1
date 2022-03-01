@@ -1,3 +1,4 @@
+# Set vars
 $chrome = @{
     rootPath = 'HKLM:\SOFTWARE\Policies\Google'
     namePath = 'HKLM:\SOFTWARE\Policies\Google\Chrome'
@@ -15,7 +16,6 @@ $edge = @{
     ExtensionInstallForcelist = 'HKLM:\SOFTWARE\Policies\Microsoft\Edge\ExtensionInstallForcelist'
     Recommended = 'HKLM:\SOFTWARE\Policies\Microsoft\Edge\Recommended'
 }
-
 
 $ErrorActionPreference = 'Stop'
 
@@ -38,9 +38,12 @@ Function New-ReqDirs {
 
 Function Get-MaxValue {
     <#
+
+    .DESCRIPTION
     May not need this, but this is to find the max reg value name. This is useful for the scenario
     where entries already exist for allowed or blocked extensions and you want to get the current
     max number so you can increment it.
+
     #>
     param (
         [string]$Path
@@ -58,7 +61,7 @@ Function Get-MaxValue {
 }
 
 
-Function Set-PasswordManager {
+Function Set-PasswordManagerPolicy {
     param (
         [ValidateSet('Enabled','Disabled')]
         $PassManagerState = 'Disabled'
@@ -83,7 +86,22 @@ Function Set-PasswordManager {
 }
 
 
-Function Set-BlockAllExtensions {
+Function Set-BlockExtensionPolicy {
+    <#
+    
+    .DESCRIPTION
+    This function is designed to either block, or unblock the ability for the user to install
+    extensions.
+    
+    This setting can be partially overridden by the Set-AllowedExtensionsPolicy.
+    Specifying extension GUIDs in the Set-AllowedExtensionsPolicy will allow the user to only
+    install extension listed in your allowed policy.
+
+    This setting can also be partially overridden by the Set-EnforcedExtensionPolicy function
+    which will automatic install and enforce the installation of a list of extensions
+    specified by extension GUIDs.
+    
+    #>
     param (
         [ValidateSet('BlockAll','UnblockAll')]
         $BlockExtensionInstallState = '*'
@@ -106,8 +124,19 @@ Function Set-BlockAllExtensions {
 }
 
 
-Function Set-EnforcedExtensions {
+Function Set-EnforcedExtensionPolicy {
     <#
+
+    .DESCRIPTION
+    This function is designed to **remove all existing extension enforcements** and replace them
+    with the array of extension GUID IDs you specify when calling this function.
+
+    This function overrides the Set-BlockExtensionPolicy by allowing the extensions specified
+    in this function to install despite block all extensions being set.
+
+    Best practice configuration would be to enforce block all extensions, then specify the list
+    of enforced extensions per entity, then set any additional allowed extension installations
+    with the Set-AllowedExtensionsPolicy.
 
     .PARAMETER EnforcedExtensionGUIDs
     Enter a comma separated list of extension GUIDs to be enforced
@@ -139,7 +168,53 @@ Function Set-EnforcedExtensions {
     }
 }
 
-Function Set-RelaunchEnforcement {
+
+Function Set-AllowedExtensionsPolicy {
+    <#
+
+    .DESCRIPTION
+    This function is designed to **remove all existing allowed extensions** and replace them
+    with the array of extension GUID IDs you specify when calling this function.
+
+    This function overrides the Set-BlockExtensionPolicy by allowing the extensions specified
+    in this function to be installed by the user despite block all extensions being set.
+
+    Best practice configuration would be to enforce block all extensions, then specify the list
+    of enforced extensions per entity, then set any additional allowed extension installations
+    with the Set-AllowedExtensionsPolicy.
+
+    .PARAMETER AllowedExtensionGUIDs
+    Enter a comma separated list of extension GUIDs to be enforced
+
+    #>
+
+    param (
+        [array]$AllowedExtensionGUIDs
+    )
+
+    Try {
+        # Add GUIDs to the reg to enforce extension installss
+        $chrome.ExtensionInstallAllowlistPath,$edge.ExtensionInstallAllowlistPath | ForEach-Object {
+            # Remove existing enforcement key so we can start fresh with our new list of enforced extensions
+            Remove-Item -Path $_ -Recurse -Force
+
+            # Recreate key structure
+            New-ReqDirs
+
+            $iteration = 0
+            ForEach ($AllowedGUID in $AllowedExtensionGUIDs) {
+                $iteration++
+                New-ItemProperty -Path $_ -Name $iteration -Value $AllowedGUID | Out-Null
+            }
+        }
+        Return $true
+    } Catch {
+        Return $false
+    }
+}
+
+
+Function Set-RelaunchEnforcementPolicy {
     <#
 
     .PARAMETER RelaunchConfiguration
