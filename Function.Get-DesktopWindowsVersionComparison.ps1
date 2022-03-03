@@ -55,9 +55,8 @@ Try {
   }
 }
 
-# TODO: switch this to master branch
 # Call in Get-WindowsVersion
-(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/swap-windows-build-IDs-from-20H2-to-19042/Function.Get-WindowsVersion.ps1') | Invoke-Expression
+(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Get-WindowsVersion.ps1') | Invoke-Expression
 
 function Get-DesktopWindowsVersionComparison {
   param (
