@@ -320,3 +320,24 @@ Function Get-LocalAdminGroupMembers {
         Return $localAdmins
     }
 }
+
+
+
+
+Function Remove-FromLocalAdminGroup ($User) {
+    If ($psVers -lt 5.1) {
+        &cmd.exe /c "net localgroup Administrators $User /delete"
+        If ((Get-LocalUserStatus -User $User).LocalAdmin) {
+            Throw "Failed to remove the user [$User] from the local [Administrators] group"
+        } Else {
+            Return "Successfully removed the user [$User] from the local Administrators group"
+        }
+    } Else {
+        Try {
+            Remove-LocalGroupMember -Member $User -Group Administrators -ErrorAction Stop
+            Return "Successfully removed the user [$User] from the local Administrators group"
+        } Catch {
+            Throw "Failed to remove the user [$User] from the local [Administrators] group. $Error"
+        }
+    }
+}
