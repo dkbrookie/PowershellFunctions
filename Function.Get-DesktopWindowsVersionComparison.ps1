@@ -125,18 +125,21 @@ function Get-DesktopWindowsVersionComparison {
     Throw "This version of Windows is unknown to this script. Cannot compare. This is: $osName"
   }
 
-  # If $UseVersion is not true, we expect the value we're checking against to contain no letters, if it does contain letters, this is probably being used incorrectly
-  If ($checkAgainst -match '[a-z]') {
+  # If $checkAgainst.Length is 4 characters, we expect $UseVersion to be true. If it's not, this is probably being used incorrectly.
+  If ($checkAgainst.Length -eq 4) {
     If (!$UseVersion) {
-      Throw "The value you're trying to check against contains letters. You probably want to use the -UseVersion switch as it is " +
+      Throw "The value you're trying to check against contains 4 characters. You probably want to use the -UseVersion switch as it is " +
         "intended to signal that you're checking against version ID (i.e. 20H2) instead of Build ID (i.e. 19042)"
     }
-  } Else {
-    # The value we're checking against does not contain letters. If $UseVersion is true, we expect it to contain letters. This is probably being used incorrectly.
+  } ElseIf ($checkAgainst.Length -eq 5) {
+    # The value we're checking against is 5 charcters. If $UseVersion is true, we expect it to be 4 characters long. This is probably being used incorrectly.
     If ($UseVersion) {
-      Throw "The value you're trying to check against does not contain letters. You probably don't want to use the -UseVersion switch. " +
+      Throw "The value you're trying to check against contains 5 characters. You probably don't want to use the -UseVersion switch. " +
         "It is intended to signal that you're checking against version ID (i.e. 20H2) instead of Build ID (i.e. 19042)"
     }
+  } Else {
+    Throw "The value you're trying to check against does not conform to any known build/version strings. It should be either version ID " +
+      "or build ID (i.e. 20H2 or 19042). You provided '$checkAgainst'. Please provide a string that is 4-5 characters long."
   }
 
   # If the current version is not in the list of win 10/11 versions, it's not supported
