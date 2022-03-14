@@ -165,7 +165,6 @@ Function New-LocalAdmin ($User,$Pass) {
                 Set-ExistingAccountConfig -User $User
                 Return "Verified the user [$User] already exists"
             }
-            
         }
     } Catch {
         Return "Failed to create, or enforce configuration for the user [$User]. Full output: $Error"
