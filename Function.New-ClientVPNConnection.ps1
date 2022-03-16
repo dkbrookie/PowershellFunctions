@@ -195,7 +195,7 @@
     Try {
         # Add static route
         ForEach ($route in $StaticRoutes) {
-            Add-VpnConnectionRoute -ConnectionName $vpnName -DestinationPrefix $route –PassThru
+            Add-VpnConnectionRoute -ConnectionName $vpnName -DestinationPrefix $route -PassThru
             $output += "Successfully added the route [$route] to [$vpnName]"
         }
     } Catch {
