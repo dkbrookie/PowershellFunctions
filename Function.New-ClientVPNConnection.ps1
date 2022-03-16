@@ -216,3 +216,7 @@
     $output += "Full error output for troubleshooting: $Error"
     Invoke-Output $output
 }
+
+If ($runNewClientVpnConnection) {
+    New-ClientVPNConnection -ServerAddress $serverAddress -TunnelType $tunnelType -AllUserConnection $allUserConnection -PresharedKey $presharedKey -AuthenticationMethod $authenticationMethod -SplitTunnel $splitTunnel -ClientName $clientName -StaticRoutes $staticRoutes -AssumeUDPEncapsulation $assumeUDPEncapsulation
+}
