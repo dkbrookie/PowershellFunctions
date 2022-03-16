@@ -1,4 +1,4 @@
-Function New-ClientVPNConnection {
+﻿Function New-ClientVPNConnection {
     <#
     .DESCRIPTION
         This function is designed to verify existence of a given VPN name, verify configuration, and create
