@@ -17,8 +17,8 @@ Function New-ClientVPNConnection {
         Choose the type of tunnel.
 
     .PARAMETER AllUserConnection
-        Enabling this allows all users that can auth to the VPN to connect to VPN before Windows logon. 
-        This is helpful for when credentials for the user are not yet cached and the user is remote. Remember, 
+        Enabling this allows all users that can auth to the VPN to connect to VPN before Windows logon.
+        This is helpful for when credentials for the user are not yet cached and the user is remote. Remember,
         the user must have credentials to authenticate the VPN-- the Preshared key alone will not authenticate
         so this "all user" settings does not introduce additional security risk.
 
@@ -33,7 +33,7 @@ Function New-ClientVPNConnection {
         route through VPN, while the remaining requests route straight from your original IP. This can be a
         powerful way to increase performance on bandwidth constrained infrastructures, but can also have
         unintentional consequences if an asset on the target end of the VPN live on a subnet not defined on the
-        target VPN side and the traffic from the endpoint goes straight to the internet instead of routing through 
+        target VPN side and the traffic from the endpoint goes straight to the internet instead of routing through
         the VPN. The result would be the appearance of a down system or broken application, when in fact the
         users traffic is just simply not routing over the VPN tunnel. Note you can add additional routes from the
         endpoint (https://community.spiceworks.com/how_to/75078-configuring-split-tunnel-client-vpn-on-windows) but
@@ -41,15 +41,15 @@ Function New-ClientVPNConnection {
         reboot.
 
     .PARAMETER ClientName
-        Set this value to name your VPN connection. The name of the VPN will be [ClientName VPN] without the brackets. 
+        Set this value to name your VPN connection. The name of the VPN will be [ClientName VPN] without the brackets.
         If this is left empty, the default is [Automated VPN].
 
     .PARAMETER AssumeUDPEncapsulation
 
-        0: It's the default value. When it's set to 0, Windows can't establish security associations with servers located 
+        0: It's the default value. When it's set to 0, Windows can't establish security associations with servers located
         behind NAT devices.
         1: When it's set to 1, Windows can establish security associations with servers that are located behind NAT devices.
-        2: When it's set to 2, Windows can establish security associations when both the server and VPN client computer 
+        2: When it's set to 2, Windows can establish security associations when both the server and VPN client computer
         (Windows Vista or Windows Server 2008-based) are behind NAT devices.
 
 
@@ -105,11 +105,11 @@ Function New-ClientVPNConnection {
         ,[Parameter(
             HelpMessage='If running as a monitor is set to Y the output will just be SUCCESS, WARNING, or FAILED. By default this is set to N'
         )]
-        [ValidateSet(0,1,2)]
+        [ValidateSet('0', '1', '2', 'NotSet')]
         [string]$AssumeUDPEncapsulation = 'NotSet'
     )
 
-    
+
     Function Invoke-Output {
         param ([string[]]$output)
         $output = $output -join "`n"
@@ -199,7 +199,7 @@ Function New-ClientVPNConnection {
             $output += "Successfully added the route [$route] to [$vpnName]"
         }
     } Catch {
-        $output += "Failed to add the route [$route] to [$vpnName]. $_" 
+        $output += "Failed to add the route [$route] to [$vpnName]. $_"
     }
 
 
