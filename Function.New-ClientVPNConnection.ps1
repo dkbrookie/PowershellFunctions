@@ -195,10 +195,10 @@
 
     If ($staticRoutes) {
         Try {
-            $output += "Attempting to set [$route] to [$vpnName]..."
             # Add static route
             ForEach ($route in $StaticRoutes) {
-                $output += Add-VpnConnectionRoute -ConnectionName $vpnName -DestinationPrefix $route -PassThru -ErrorAction Stop
+                $output += "Attempting to set [$route] to [$vpnName]..."
+                Add-VpnConnectionRoute -ConnectionName $vpnName -DestinationPrefix $route -PassThru -ErrorAction Stop
                 $output += "Successfully added the route [$route] to [$vpnName]"
             }
         } Catch {
