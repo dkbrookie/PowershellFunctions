@@ -122,8 +122,9 @@
     # Removing all non word characters from client name
     $ClientName = $ClientName -replace "[^\w\s]", ''
     $vpnName = "$clientName VPN"
-    $staticRoutes = $staticRoutes.Split(',')
-
+    If ($staticRoutes) {
+        $staticRoutes = $staticRoutes.Split(',')
+    }
 
     # Handling NULL or $false from Automate can be difficult so we're using 1/0 and converting to boolean here.
     # Since $SplitTunnel is a mandatory param we don't have to worry about a default value here.
@@ -193,21 +194,29 @@
     }
 
 
-    Try {
-        # Add static route
-        ForEach ($route in $StaticRoutes) {
-            Add-VpnConnectionRoute -ConnectionName $vpnName -DestinationPrefix $route -PassThru -ErrorAction Stop
-            $output += "Successfully added the route [$route] to [$vpnName]"
+    If ($staticRoutes) {
+        Try {
+            $output += "Attempting to set [$route] to [$vpnName]..."
+            # Add static route
+            ForEach ($route in $StaticRoutes) {
+                $output += Add-VpnConnectionRoute -ConnectionName $vpnName -DestinationPrefix $route -PassThru -ErrorAction Stop
+                $output += "Successfully added the route [$route] to [$vpnName]"
+            }
+        } Catch {
+            $output += "Failed to add the route [$route] to [$vpnName]. $_"
         }
-    } Catch {
-        $output += "Failed to add the route [$route] to [$vpnName]. $_"
+    } Else {
+        $output += "No static routes set to add to [$vpnName]"
     }
 
 
     Try {
         If ($AssumeUDPEncapsulation -ne 'NotSet') {
-            New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\PolicyAgent" -Name "AssumeUDPEncapsulationContextOnSendRule" -Value $AssumeUDPEncapsulation -PropertyType DWord -ErrorAction Stop
+            $output += "Attempting to set the AssumeUDPEncapsulationContextOnSendRule value to [$AssumeUDPEncapsulation] on [$vpnName]..."
+            New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\PolicyAgent" -Name "AssumeUDPEncapsulationContextOnSendRule" -Value $AssumeUDPEncapsulation -PropertyType DWord -ErrorAction Stop | Out-Null
             $output += "Successfully set AssumeUDPEncapsulationContextOnSendRule on the connection [$vpnName] to [$AssumeUDPEncapsulation]"
+        } Else {
+            $output += "AssumeUDPEncapsulationContextOnSendRule value was set to [$AssumeUDPEncapsulation]"
         }
     } Catch {
         $output += "Failed to set AssumeUDPEncapsulationContextOnSendRule on connection [$vpnName] to [$AssumeUDPEncapsulation]. $_"
