@@ -122,6 +122,7 @@
     # Removing all non word characters from client name
     $ClientName = $ClientName -replace "[^\w\s]", ''
     $vpnName = "$clientName VPN"
+    $staticRoutes = $staticRoutes.Split(',')
 
 
     # Handling NULL or $false from Automate can be difficult so we're using 1/0 and converting to boolean here.
@@ -195,7 +196,7 @@
     Try {
         # Add static route
         ForEach ($route in $StaticRoutes) {
-            Add-VpnConnectionRoute -ConnectionName $vpnName -DestinationPrefix $route -PassThru
+            Add-VpnConnectionRoute -ConnectionName $vpnName -DestinationPrefix $route -PassThru -ErrorAction Stop
             $output += "Successfully added the route [$route] to [$vpnName]"
         }
     } Catch {
