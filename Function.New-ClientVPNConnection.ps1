@@ -160,7 +160,6 @@
             If ($vpnPresent) {
                 $output += "!SUCCESS: Created $vpnName successfully"
                 Invoke-Output $output
-                Break
             } Else {
                 $output += "!FAILED: Failed to created $vpnName"
                 Invoke-Output $output
