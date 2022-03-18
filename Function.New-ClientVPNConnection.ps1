@@ -44,17 +44,20 @@
         Set this value to name your VPN connection. The name of the VPN will be [ClientName VPN] without the brackets.
         If this is left empty, the default is [Automated VPN].
 
-    .PARAMETER AssumeUDPEncapsulation
+    .PARAMETER StaticRoutes
+        Define the static routes you want sent on the connection. The format accepted here is comma separated IPs with
+        subnets wrapped in quotes. Example: '10.0.0.0/24','192.168.111.0/24'
 
+    .PARAMETER AssumeUDPEncapsulation
         0: It's the default value. When it's set to 0, Windows can't establish security associations with servers located
         behind NAT devices.
         1: When it's set to 1, Windows can establish security associations with servers that are located behind NAT devices.
         2: When it's set to 2, Windows can establish security associations when both the server and VPN client computer
         (Windows Vista or Windows Server 2008-based) are behind NAT devices.
 
-
     .EXAMPLE
-        C:\New-ClientVPNConnection -ServerAddress 'something.meraki.com.yourconnection.etc' -TunnelType L2tp -AllUserConnection $true -PresharedKey 'uawjiuciewcnaiwiuua3n2in' -AuthenticationMethod Pap -SplitTunnel 1 -ClientName 'Example Company'
+        New-ClientVPNConnection -ServerAddress 'something.meraki.com.yourconnection.etc' -TunnelType L2tp -AllUserConnection $true -PresharedKey 'uawjiuciewcnaiwiuua3n2in' -AuthenticationMethod Pap -SplitTunnel 0 -ClientName 'Example Company'
+        New-ClientVPNConnection -ServerAddress 'something.meraki.com' -TunnelType L2tp -AllUserConnection $true -PresharedKey 'uawjiuciewcnaiwiuua3n2in' -AuthenticationMethod Pap -SplitTunnel 1 -ClientName 'Example Company -StaticRoutes '10.0.0.0/24','192.168.111.0/24' -AssumeUDPEncapsulation 2' 
         #>
 
 
