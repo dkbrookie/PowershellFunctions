@@ -60,7 +60,7 @@ Function Service-Check {
         ,[Parameter(
             HelpMessage='Set to Y if you want the final output to go to a text file at $env:windir\LTSvc\serviceMonitor\[reuslt].txt. By default this is set to N and will output to console.'
         )]
-        [ValidateSet('AD','Apache','Autodesk','AutoElevate','Citrix XenApp','Connectwise Control Endpoint','Connectwise Control Server','Connectwise Manage','DHCP','DNS','EleVia','Exchange','Hyper-V','IIS','Lighthouse','ManageEngine Password Self Reset','Microsoft Dynamics','MSSQL','MySQL','Nessus','Perch Log Shipper','PostgreSQL','Print','ProjectWise','Quickbooks','Roar','SCVMM','Sentinel Licensing Server','SentinelOne','Sharepoint','Trimble','Umbrella','Veeam Agent','Veeam B&R','Webroot','Windows Server','Windows Workstation')]
+        [ValidateSet('AD','Apache','Autodesk','AutoElevate','Citrix XenApp','Connectwise Automate Server','Connectwise Control Endpoint','Connectwise Control Server','Connectwise Manage','DHCP','DNS','EleVia','Exchange','Hyper-V','IIS','Lighthouse','ManageEngine Password Self Reset','Microsoft Dynamics','MSSQL','MySQL','Nessus','Perch Log Shipper','PostgreSQL','Print','ProjectWise','Quickbooks','Roar','SCVMM','Sentinel Licensing Server','SentinelOne','Sharepoint','Trimble','Umbrella','Veeam Agent','Veeam B&R','Webroot','Windows Server','Windows Workstation')]
         [array]$Role
         ,[int]$AcceptableUptime = 15
         ,[Parameter(
@@ -92,6 +92,7 @@ Function Service-Check {
         'Autodesk'                          { [array]$ServiceList += 'Autodesk' }
         'AutoElevate'                       { [array]$ServiceList += 'AESMService' }
         'Citrix XenApp'                     { [array]$ServiceList += 'Citrix Encryption Service','Citrix Licensing','CitrixCseEngine','CitrixHealthMon','Citrix_GTLicensingProv','TSGateway','sshd' }
+        'Connectwise Automate Server'       { [array]$ServiceList += 'LabMySQL','LTAgent','LTRedirSvc','LTSCServiceMon','LTSCService' }
         'Connectwise Control Endpoint'      { [array]$ServiceList += 'ScreenConnect Client (dc46be1169788118)' }
         'Connectwise Control Server'        { [array]$ServiceList += 'ScreenConnect Relay','ScreenConnect Session Manager','ScreenConnect Web Server' }
         'Connectwise Manage'                { [array]$ServiceList += 'EmailRobot','CwManageSmtpRelay','NsnClientService','OutlookSync','ConnectWiseUpdaterService','ConnectWiseApiCallbackService','ConnectWiseEmailAuditService' }
