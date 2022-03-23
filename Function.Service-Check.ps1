@@ -108,6 +108,7 @@ Function Service-Check {
         'MSSQL'                             { [array]$ServiceList += 'MSSQLSERVER','SQLBrowser','SQLWriter','MsDtsServer100','MsDtsServer 110','MsDtsServer120','MsDtsServer130','MsDtsServer140','MSSQLServerOLAPService','SQLServerAgent' }
         'MySQL'                             { [array]$ServiceList += 'MySQL' }
         'Nessus'                            { [array]$ServiceList += 'Tenable Nessus' }
+        'Netwrix'                           { {array}$ServiceList += 'NwADASitSvc','NwAdfsSvc','NwArchiveSvc','NwCfgServerSvc','NwCoreSvc','NwDataClassificationSvc','NwDataCollectionCoreSvc','NwFileStorageSvc','NwManagementSvc','NwNetworkDeviceSvc','NwNLASvc','NwOracleSvc','NwSqlaHost','NwSyslogCollectionSvc','NwUBACoreSvc','NwUserActivitySvc','NwWatchdogSvc','NwWebAPISvc','NwWsaHostSvc' }
         'Perch Log Shipper'                 { [array]$ServiceList += 'auditbeat','winlogbeat','sysmon','perch-auditbeat','perch-winlogbeat' }
         'PostgreSQL'                        { [array]$ServiceList += 'postgresql','postgresql-x64-*' }
         'Print'                             { [array]$ServiceList += 'Spooler' }
