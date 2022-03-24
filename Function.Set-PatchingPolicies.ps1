@@ -111,9 +111,9 @@ Function Set-WindowsUpdateServiceStates {
             "Current [$_] StartType: [$curStartType]"
             "Desired [$_] StartType: [$($services.$_.StartType)]"
             # If the current `StartType` is not the same as our defined desired state hashtable value, align it
-            If ($curStartType -ne $services.$_.StartType) {
-                Set-Service -Name $_ -StartupType $($services.$_.StartType) -ErrorAction Stop
-                "Successfully set [$_] to start type of [$($services.$_.StartType)]"
+            If ($curStartType -ne $services.$SetState.$_.StartType) {
+                Set-Service -Name $_ -StartupType $($services.$SetState.$_.StartType) -ErrorAction Stop
+                "Successfully set [$_] to start type of [$($services.$SetState.$_.StartType)]"
                 "- Alignment of the [$_] service StartType has been successfully enforced!"
             } Else {
                 "- Alignment of the [$_] service StartType confirmed!"
@@ -121,19 +121,19 @@ Function Set-WindowsUpdateServiceStates {
 
 
             # If the current `Status` is not the same as our defined desired state hashtable value, align it
-            If ($curService.Status -ne $services.$_.StatStatuse) {
+            If ($curService.Status -ne $services.$SetState.$_.StatStatuse) {
                 "[$_] current Status: [$($curService.Status)]"
-                "[$_] desired Status: [$($services.$_.Status)]"
-                If ($curService.Status -ne 'Running' -and $services.$_.Status -eq 'Running') {
+                "[$_] desired Status: [$($services.$SetState.$_.Status)]"
+                If ($curService.Status -ne 'Running' -and $services.$SetState.$_.Status -eq 'Running') {
                     Start-Service -Name $_ -ErrorAction Stop
-                    "Successfully set [$_] to the Status of [$($services.$_.Status)]"
-                    "- Enforced alignment on the [$_] service [$($services.$_.Status)] Status"
-                } ElseIf ($curService.Status -ne 'Stopped' -and $services.$_.Status -eq 'Stopped') {
+                    "Successfully set [$_] to the Status of [$($services.$SetState.$_.Status)]"
+                    "- Enforced alignment on the [$_] service [$($services.$SetState.$_.Status)] Status"
+                } ElseIf ($curService.Status -ne 'Stopped' -and $services.$SetState.$_.Status -eq 'Stopped') {
                     Stop-Service -Name $_ -Force -ErrorAction Stop
-                    "Successfully set [$_] to the Status of [$($services.$_.Status)]"
-                    "- Enforced alignment on the [$_] service [$($services.$_.Status)] Status"
+                    "Successfully set [$_] to the Status of [$($services.$SetState.$_.Status)]"
+                    "- Enforced alignment on the [$_] service [$($services.$SetState.$_.Status)] Status"
                 } Else {
-                    "- Enforced alignment on the [$_] service to [$($services.$_.Status)] Status"
+                    "- Enforced alignment on the [$_] service to [$($services.$SetState.$_.Status)] Status"
                 }
             }
         } Catch {
