@@ -39,6 +39,12 @@ Function Set-WindowsUpdateServiceStates {
         [array]$SetState
     )
 
+    If ($SetState -eq 'Default') {
+        $state = 'defaultState'
+    } Else {
+        $state = 'desiredState'
+    }
+
 
     $services = @{
         defaultState = @{
@@ -50,7 +56,7 @@ Function Set-WindowsUpdateServiceStates {
             UsoSvc = @{
                 DisplayName =   'Update Orchestrator Service'
                 Status      =   'Stopped'
-                StartType   =   'Automatic'
+                StartType   =   'Boot'
             }
             WaaSMedicSvc = @{
                 DisplayName =   'Windows Update Medic Service'
@@ -60,7 +66,7 @@ Function Set-WindowsUpdateServiceStates {
             uhssvc = @{
                 DisplayName =   'Microsoft Update Health Service'
                 Status      =   'Stopped'
-                StartType   =   'Automatic'
+                StartType   =   'Boot'
             }
         }
 
@@ -90,7 +96,7 @@ Function Set-WindowsUpdateServiceStates {
     }
 
 
-    $services.Keys | ForEach-Object {
+    $services.$state.Keys | ForEach-Object {
         Try {
             $curService = Get-Service -Name $_
             # Get service is incapable of giving us a distinct value difference between 'Automatic' and
@@ -108,32 +114,21 @@ Function Set-WindowsUpdateServiceStates {
             }
 
 
-            "Current [$_] StartType: [$curStartType]"
-            "Desired [$_] StartType: [$($services.$_.StartType)]"
             # If the current `StartType` is not the same as our defined desired state hashtable value, align it
-            If ($curStartType -ne $services.$SetState.$_.StartType) {
-                Set-Service -Name $_ -StartupType $($services.$SetState.$_.StartType) -ErrorAction Stop
-                "Successfully set [$_] to start type of [$($services.$SetState.$_.StartType)]"
-                "- Alignment of the [$_] service StartType has been successfully enforced!"
-            } Else {
-                "- Alignment of the [$_] service StartType confirmed!"
+            If ($curStartType -ne $services.$state.$_.StartType) {
+                Set-Service -Name $_ -StartupType $($services.$state.$_.StartType) -ErrorAction Stop
             }
 
 
             # If the current `Status` is not the same as our defined desired state hashtable value, align it
-            If ($curService.Status -ne $services.$SetState.$_.StatStatuse) {
-                "[$_] current Status: [$($curService.Status)]"
-                "[$_] desired Status: [$($services.$SetState.$_.Status)]"
-                If ($curService.Status -ne 'Running' -and $services.$SetState.$_.Status -eq 'Running') {
+            If ($curService.Status -ne $services.$state.$_.Status) {
+                If ($curService.Status -ne 'Running' -and $services.$state.$_.Status -eq 'Running') {
                     Start-Service -Name $_ -ErrorAction Stop
-                    "Successfully set [$_] to the Status of [$($services.$SetState.$_.Status)]"
-                    "- Enforced alignment on the [$_] service [$($services.$SetState.$_.Status)] Status"
-                } ElseIf ($curService.Status -ne 'Stopped' -and $services.$SetState.$_.Status -eq 'Stopped') {
+                } ElseIf ($curService.Status -ne 'Stopped' -and $services.$state.$_.Status -eq 'Stopped') {
                     Stop-Service -Name $_ -Force -ErrorAction Stop
-                    "Successfully set [$_] to the Status of [$($services.$SetState.$_.Status)]"
-                    "- Enforced alignment on the [$_] service [$($services.$SetState.$_.Status)] Status"
                 } Else {
-                    "- Enforced alignment on the [$_] service to [$($services.$SetState.$_.Status)] Status"
+                    # TODO look for `Stopping` or `Starting` statuses and handle accordingly
+                    "The [$_] service is in the $($curService.Status) status and unable to be changed at this time"
                 }
             }
         } Catch {
@@ -148,7 +143,7 @@ Function Set-PatchingTasks {
 
     Param(
         [ValidateSet('Default','Desired')]
-        [array]$SetState
+        [string]$SetState
     )
 
     $tasks = @{
