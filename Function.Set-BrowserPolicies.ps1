@@ -1,3 +1,14 @@
+<#
+Google Applications
+    Sheets: felcaaldnbdncclmgdcncolpebgiejap
+    Slides: aapocclcgogkmnckokdopfmhonfmgoek
+    Docs: aohghmighlieiainnegkcijnfilokake
+    Calendar: gmbgaklkmjakoegficnlkhebmhkjfich
+
+Possible To Do
+    - Add custom message when an extension is blocked from install https://support.google.com/chrome/a/answer/7532015#zippy=%2Cset-installation-policies-automatically-install-force-install-allow-or-block%2Cset-custom-message-for-blocked-apps-and-extensions
+#>
+
 # Set vars
 $chrome = @{
     rootPath = 'HKLM:\SOFTWARE\Policies\Google'
