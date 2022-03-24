@@ -52,21 +52,25 @@ Function Set-WindowsUpdateServiceStates {
                 DisplayName =   'Windows Update'
                 Status      =   'Running'
                 StartType   =   'Automatic'
+                psStartType =   'Automatic'
             }
             UsoSvc = @{
                 DisplayName =   'Update Orchestrator Service'
                 Status      =   'Stopped'
                 StartType   =   'Boot'
+                psStartType =   'AutomaticDelayedStart'
             }
             WaaSMedicSvc = @{
                 DisplayName =   'Windows Update Medic Service'
                 Status      =   'Stopped'
                 StartType   =   'Automatic'
+                psStartType =   'Automatic'
             }
             uhssvc = @{
                 DisplayName =   'Microsoft Update Health Service'
                 Status      =   'Stopped'
                 StartType   =   'Boot'
+                psStartType =   'AutomaticDelayedStart '
             }
         }
 
@@ -116,7 +120,7 @@ Function Set-WindowsUpdateServiceStates {
 
             # If the current `StartType` is not the same as our defined desired state hashtable value, align it
             If ($curStartType -ne $services.$state.$_.StartType) {
-                Set-Service -Name $_ -StartupType $($services.$state.$_.StartType) -ErrorAction Stop
+                Set-Service -Name $_ -StartupType $($services.$state.$_.psStartType) -ErrorAction Stop
             }
 
 
