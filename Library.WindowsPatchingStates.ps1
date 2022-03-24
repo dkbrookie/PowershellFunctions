@@ -52,25 +52,21 @@ Function Set-WindowsUpdateServiceStates {
                 DisplayName =   'Windows Update'
                 Status      =   'Running'
                 StartType   =   'Automatic'
-                psStartType =   'Automatic'
             }
             UsoSvc = @{
                 DisplayName =   'Update Orchestrator Service'
                 Status      =   'Stopped'
-                StartType   =   'Boot'
-                psStartType =   'Automatic'
+                StartType   =   'Automatic'
             }
             WaaSMedicSvc = @{
                 DisplayName =   'Windows Update Medic Service'
                 Status      =   'Stopped'
                 StartType   =   'Automatic'
-                psStartType =   'Automatic'
             }
             uhssvc = @{
                 DisplayName =   'Microsoft Update Health Service'
                 Status      =   'Stopped'
-                StartType   =   'Boot'
-                psStartType =   'Automatic '
+                StartType   =   'Automatic'
             }
         }
 
@@ -79,22 +75,22 @@ Function Set-WindowsUpdateServiceStates {
             wuauserv = @{
                 DisplayName =   'Windows Update'
                 Status      =   'Running'
-                psStartType   =   'Automatic'
+                StartType   =   'Automatic'
             }
             UsoSvc = @{
                 DisplayName =   'Update Orchestrator Service'
                 Status      =   'Stopped'
-                psStartType   =   'Disabled'
+                StartType   =   'Disabled'
             }
             WaaSMedicSvc = @{
                 DisplayName =   'Windows Update Medic Service'
                 Status      =   'Stopped'
-                psStartType   =   'Disabled'
+                StartType   =   'Disabled'
             }
             uhssvc = @{
                 DisplayName =   'Microsoft Update Health Service'
                 Status      =   'Stopped'
-                psStartType   =   'Disabled'
+                StartType   =   'Disabled'
             }
         }
     }
@@ -106,21 +102,12 @@ Function Set-WindowsUpdateServiceStates {
             # Get service is incapable of giving us a distinct value difference between 'Automatic' and
             # 'Automatic (Delayed)'. For this reason, we're using sc.exe to get that status, then using
             # `Switch` to convert the output to expected values for `Set-Service`
-            $curStartType = ((sc.exe qc $_ | Select-String "START_TYPE") -replace '\s+', ' ').trim().Split(" ") | Select-Object -Last 1
-
-
-            Switch ($curStartType) {
-                'AUTO_START'    { $curStartType = 'Automatic'   }
-                'DEMAND_START'  { $curStartType = 'Manual'      }
-                '(DELAYED)'     { $curStartType = 'Boot'        }
-                'DISABLED'      { $curStartType = 'Disabled'    }
-                Default         { $curStartType = 'HELP'        }
-            }
+            $curStartType = (Get-Service -Name $_).StartType
 
 
             # If the current `StartType` is not the same as our defined desired state hashtable value, align it
             If ($curStartType -ne $services.$state.$_.StartType) {
-                Set-Service -Name $_ -StartupType $($services.$state.$_.psStartType) -ErrorAction Stop
+                Set-Service -Name $_ -StartupType $($services.$state.$_.StartType) -ErrorAction Stop
             }
 
 
