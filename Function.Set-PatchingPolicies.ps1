@@ -36,7 +36,7 @@ Function Set-WindowsUpdateServiceStates {
 
     Param(
         [ValidateSet('Default','Desired')]
-        [array]$SetState
+        [string]$SetState
     )
 
     If ($SetState -eq 'Default') {
