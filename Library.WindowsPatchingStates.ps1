@@ -26,11 +26,11 @@ Function Set-WindowsUpdateServiceStates {
         Source: https://support.microsoft.com/en-us/topic/kb4023057-update-for-windows-update-service-components-fccad0ca-dc10-2e46-9ed1-7e392450fb3a
 
 
-        Future improvenets:
-        - Ensure access to .do.dsp.mp.microsoft.com
-        - Ensure access to *.download.windowsupdate.com
-        - Ensure access to *.dl.delivery.mp.microsoft.com
-        - Ensure access to *.delivery.mp.microsoft.com
+    .NOTES
+        Known Issues
+        - 'Microsoft Update Health Service' currently fails to be set to 'Disabled' due to permission issues.
+
+
     #>
 
 
@@ -290,5 +290,15 @@ Function Set-PatchingTasks {
                 Disable-ScheduledTask -TaskName $_ -TaskPath $tasks.desiredState.$_.TaskPath
             }
         }        
+    }
+}
+
+
+Function Test-WindowsUpdateConnectivity {
+    <#
+    Will throw if any connections fail
+    #>
+    'dl.delivery.mp.microsoft.com','download.windowsupdate.com','download.microsoft.com','go.microsoft.com' | ForEach-Object {
+        Test-Connection $_ -ErrorAction Stop
     }
 }
