@@ -17,6 +17,15 @@ $edge = @{
     Recommended = 'HKLM:\SOFTWARE\Policies\Microsoft\Edge\Recommended'
 }
 
+$brave = @{
+    rootPath = 'HKLM:\SOFTWARE\Policies\BraveSoftware'
+    namePath = 'HKLM:\SOFTWARE\Policies\BraveSoftware\Brave'
+    ExtensionInstallAllowlistPath = 'HKLM:\SOFTWARE\Policies\BraveSoftware\Brave\ExtensionInstallAllowlist'
+    ExtensionInstallBlocklist = 'HKLM:\SOFTWARE\Policies\BraveSoftware\Brave\ExtensionInstallBlocklist'
+    ExtensionInstallForcelist = 'HKLM:\SOFTWARE\Policies\BraveSoftware\Brave\ExtensionInstallForcelist'
+    Recommended = 'HKLM:\SOFTWARE\Policies\BraveSoftware\Brave\Recommended'
+}
+
 $ErrorActionPreference = 'Stop'
 
 
@@ -25,7 +34,7 @@ Function New-ReqDirs {
         # Create key for dirs if they don't exist. Note the sort is to ensure parent dirs are created so the
         # child dirs don't fail out. Tested with just -Force, but registry requires each dir (key) to be created
         # individually
-        $chrome,$edge | Select-Object -ExpandProperty Values | Sort-Object { $_.Length } |  ForEach-Object { If (!(Test-Path $_)) {
+        $chrome,$edge,$brave | Select-Object -ExpandProperty Values | Sort-Object { $_.Length } |  ForEach-Object { If (!(Test-Path $_)) {
                 New-Item -Path $_ -Force | Out-Null
             }
         }
@@ -74,7 +83,7 @@ Function Set-PasswordManagerPolicy {
     
     Try {
         New-ReqDirs
-        $chrome.namePath,$edge.namePath | ForEach-Object {
+        $chrome.namePath,$edge.namePath,$brave.namePath | ForEach-Object {
             If ((Get-ItemProperty $_ -Name 'PasswordManagerEnabled' -EA 0).'PasswordManagerEnabled' -ne $PassManagerState ) {
                 Set-ItemProperty -Path $_ -Name 'PasswordManagerEnabled' -Value $PassManagerState | Out-Null
             }
@@ -108,7 +117,7 @@ Function Set-BlockExtensionPolicy {
     )
 
     Try {
-        $chrome.ExtensionInstallBlocklist,$edge.ExtensionInstallBlocklist | ForEach-Object {
+        $chrome.ExtensionInstallBlocklist,$edge.ExtensionInstallBlocklist,$brave.ExtensionInstallBlocklist | ForEach-Object {
             If (Test-Path $chrome.ExtensionInstallBlocklist) {
                 Remove-Item -Path $_ -Recurse -Force
             }
@@ -149,7 +158,7 @@ Function Set-EnforcedExtensionPolicy {
 
     Try {
         # Add GUIDs to the reg to enforce extension installss
-        $chrome.ExtensionInstallForcelist,$edge.ExtensionInstallForcelist | ForEach-Object {
+        $chrome.ExtensionInstallForcelist,$edge.ExtensionInstallForcelist,$brave.ExtensionInstallForcelist | ForEach-Object {
             # Remove existing enforcement key so we can start fresh with our new list of enforced extensions
             Remove-Item -Path $_ -Recurse -Force
 
@@ -194,7 +203,7 @@ Function Set-AllowedExtensionsPolicy {
 
     Try {
         # Add GUIDs to the reg to enforce extension installss
-        $chrome.ExtensionInstallAllowlistPath,$edge.ExtensionInstallAllowlistPath | ForEach-Object {
+        $chrome.ExtensionInstallAllowlistPath,$edge.ExtensionInstallAllowlistPath,$brave.ExtensionInstallAllowlistPath | ForEach-Object {
             # Remove existing enforcement key so we can start fresh with our new list of enforced extensions
             Remove-Item -Path $_ -Recurse -Force
 
@@ -249,7 +258,7 @@ Function Set-RelaunchEnforcementPolicy {
 
     # Enable relaunch notification
     Try {
-        $chrome.namePath,$edge.namePath | ForEach-Object {
+        $chrome.namePath,$edge.namePath,$brave.namePath | ForEach-Object {
             If ($EnforceRelaunch -ne 0) {
                 If ((Get-ItemProperty $_ -Name 'RelaunchNotification' -EA 0).1 -ne $EnforceRelaunch ) {
                     Set-ItemProperty -Path $_ -Name 'RelaunchNotification' -Value $EnforceRelaunch | Out-Null
