@@ -58,7 +58,7 @@ Function Set-WindowsUpdateServiceStates {
                 DisplayName =   'Update Orchestrator Service'
                 Status      =   'Stopped'
                 StartType   =   'Boot'
-                psStartType =   'AutomaticDelayedStart'
+                psStartType =   'Automatic'
             }
             WaaSMedicSvc = @{
                 DisplayName =   'Windows Update Medic Service'
@@ -70,7 +70,7 @@ Function Set-WindowsUpdateServiceStates {
                 DisplayName =   'Microsoft Update Health Service'
                 Status      =   'Stopped'
                 StartType   =   'Boot'
-                psStartType =   'AutomaticDelayedStart '
+                psStartType =   'Automatic '
             }
         }
 
@@ -79,22 +79,22 @@ Function Set-WindowsUpdateServiceStates {
             wuauserv = @{
                 DisplayName =   'Windows Update'
                 Status      =   'Running'
-                StartType   =   'Automatic'
+                psStartType   =   'Automatic'
             }
             UsoSvc = @{
                 DisplayName =   'Update Orchestrator Service'
                 Status      =   'Stopped'
-                StartType   =   'Disabled'
+                psStartType   =   'Disabled'
             }
             WaaSMedicSvc = @{
                 DisplayName =   'Windows Update Medic Service'
                 Status      =   'Stopped'
-                StartType   =   'Disabled'
+                psStartType   =   'Disabled'
             }
             uhssvc = @{
                 DisplayName =   'Microsoft Update Health Service'
                 Status      =   'Stopped'
-                StartType   =   'Disabled'
+                psStartType   =   'Disabled'
             }
         }
     }
