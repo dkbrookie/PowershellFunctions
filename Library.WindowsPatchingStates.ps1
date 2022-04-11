@@ -122,6 +122,9 @@ Function Set-WindowsUpdateServiceStates {
                     "The [$_] service is in the $($curService.Status) status and unable to be changed at this time"
                 }
             }
+
+            Get-Service -Name $_ | Select-Object Name,StartType,Status | Format-Table -HideTableHeaders
+            
         } Catch {
             "Failed to verify alignment: [$_]."
         }
