@@ -287,7 +287,7 @@ Function Set-PatchingTaskStates {
     $acl.SetAccessRule($accessRule)
     Set-Acl $taskDir $acl
 
-    
+
     # Set task states
     If ($SetState -eq 'Default') {
         $tasks.defaultState.Keys | ForEach-Object {
@@ -514,7 +514,7 @@ Function Set-WindowsAutoUpdateLocalPolicies {
         }
 
 
-        $winUpdateRegDir    = 'HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate'
+        $winUpdateRegDir    = 'HKLM:\Software\Policies\Microsoft\Windows\WindowsUpdate'
         $auRegDir           = "$winUpdateRegDir\AU"
 
 
