@@ -295,17 +295,17 @@ Function Set-PatchingTaskStates {
     If ($SetState -eq 'Default') {
         $tasks.defaultState.Keys | ForEach-Object {
             If ($tasks.defaultState.$_.State -eq 'Ready') {
-                Enable-ScheduledTask -TaskName $_ -TaskPath $tasks.defaultState.$_.TaskPath
+                Enable-ScheduledTask -TaskName $_ -TaskPath $tasks.defaultState.$_.TaskPath | Format-Table -HideTableHeaders
             } ElseIf ($tasks.defaultState.$_.State -eq 'Disabled') {
-                Disable-ScheduledTask -TaskName $_ -TaskPath $tasks.defaultState.$_.TaskPath
+                Disable-ScheduledTask -TaskName $_ -TaskPath $tasks.defaultState.$_.TaskPath | Format-Table -HideTableHeaders
             }
         }
     } Else {
         $tasks.desiredState.Keys | ForEach-Object {
             If ($tasks.desiredState.$_.State -eq 'Ready') {
-                Enable-ScheduledTask -TaskName $_ -TaskPath $tasks.desiredState.$_.TaskPath
+                Enable-ScheduledTask -TaskName $_ -TaskPath $tasks.desiredState.$_.TaskPath | Format-Table -HideTableHeaders
             } ElseIf ($tasks.desiredState.$_.State -eq 'Disabled') {
-                Disable-ScheduledTask -TaskName $_ -TaskPath $tasks.desiredState.$_.TaskPath
+                Disable-ScheduledTask -TaskName $_ -TaskPath $tasks.desiredState.$_.TaskPath | Format-Table -HideTableHeaders
             }
         }        
     }
