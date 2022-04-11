@@ -514,7 +514,7 @@ Function Set-WindowsAutoUpdateLocalPolicies {
         }
 
 
-        $winUpdateRegDir    = 'HKLM:\Software\Policies\Microsoft\Windows\WindowsUpdate'
+        $winUpdateRegDir    = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'
         $auRegDir           = "$winUpdateRegDir\AU"
 
 
