@@ -532,7 +532,7 @@ Function Set-WindowsAutoUpdateLocalPolicies {
         # Set settings in the AU reg key
         $disableAU.Keys | ForEach-Object {
             Set-ItemProperty -Path $auRegDir -Name $_ -Value $disableAU.$_
-            "Set $($auRegDir) to $($disableAu.$_)"
+            "Set $($auRegDir)\$($_) to $($disableAu.$_)"
         }
     } Else {
         # Key only exists for the purpose of controlling updates, so deleting it restores Windows update to default values
