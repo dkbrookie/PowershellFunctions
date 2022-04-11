@@ -1,3 +1,6 @@
+# Calling in the Invoke-Output function
+(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Invoke-Output.ps1') | Invoke-Expression
+
 Function Set-WindowsUpdateServiceStates {
     <#
     .DESCRIPTION
@@ -95,6 +98,9 @@ Function Set-WindowsUpdateServiceStates {
         }
     }
 
+    $output = @()
+
+    $output += '--Services State Set--'
 
     $services.$state.Keys | ForEach-Object {
         Try {
@@ -107,28 +113,32 @@ Function Set-WindowsUpdateServiceStates {
 
             # If the current `StartType` is not the same as our defined desired state hashtable value, align it
             If ($curStartType -ne $services.$state.$_.StartType) {
-                Set-Service -Name $_ -StartupType $($services.$state.$_.StartType) -ErrorAction Stop
+                Set-Service -Name $_ -StartupType $($services.$state.$_.StartType) -ErrorAction Stop | Out-Null
             }
 
 
             # If the current `Status` is not the same as our defined desired state hashtable value, align it
             If ($curService.Status -ne $services.$state.$_.Status) {
                 If ($curService.Status -ne 'Running' -and $services.$state.$_.Status -eq 'Running') {
-                    Start-Service -Name $_ -ErrorAction Stop
+                    Start-Service -Name $_ -ErrorAction Stop | Out-Null
                 } ElseIf ($curService.Status -ne 'Stopped' -and $services.$state.$_.Status -eq 'Stopped') {
-                    Stop-Service -Name $_ -Force -ErrorAction Stop
+                    Stop-Service -Name $_ -Force -ErrorAction Stop | Out-Null
                 } Else {
                     # TODO look for `Stopping` or `Starting` statuses and handle accordingly
-                    "The [$_] service is in the $($curService.Status) status and unable to be changed at this time"
+                    $output += "The [$_] service is in the $($curService.Status) status and unable to be changed at this time"
                 }
             }
 
-            Get-Service -Name $_ | Select-Object Name,StartType,Status | Format-Table -HideTableHeaders
+            $service = Get-Service -Name $_
+            $output += "The [$($_) service is StartType [$($service.StartType)] and is [$($service.Status)]"
 
         } Catch {
-            "Failed to verify alignment: [$_]."
+            $output += "Failed to verify alignment: [$_]."
         }
     }
+
+    Return Invoke-Output -InputStringArray $output
+
 }
 
 
@@ -139,6 +149,8 @@ Function Set-PatchingTaskStates {
         [ValidateSet('Default','Desired')]
         [string]$SetState
     )
+
+    $output = @()
 
     $tasks = @{
         defaultState = @{
@@ -277,6 +289,7 @@ Function Set-PatchingTaskStates {
         }
     }
 
+    $output += '--Scheduled Task State Set--'
 
     # Give SYSTEM permission to modify all tasks
     $taskDir = "$env:windir\system32\tasks"
@@ -295,20 +308,27 @@ Function Set-PatchingTaskStates {
     If ($SetState -eq 'Default') {
         $tasks.defaultState.Keys | ForEach-Object {
             If ($tasks.defaultState.$_.State -eq 'Ready') {
-                Enable-ScheduledTask -TaskName $_ -TaskPath $tasks.defaultState.$_.TaskPath | Format-Table -HideTableHeaders
+                Enable-ScheduledTask -TaskName $_ -TaskPath $tasks.defaultState.$_.TaskPath | Out-Null
+                $output += "Set scheduled task [$($_)] to [Enabled]"
             } ElseIf ($tasks.defaultState.$_.State -eq 'Disabled') {
-                Disable-ScheduledTask -TaskName $_ -TaskPath $tasks.defaultState.$_.TaskPath | Format-Table -HideTableHeaders
+                Disable-ScheduledTask -TaskName $_ -TaskPath $tasks.defaultState.$_.TaskPath | Out-Null
+                $output += "Set scheduled task [$($_)] to [Disabled]"
             }
         }
     } Else {
         $tasks.desiredState.Keys | ForEach-Object {
             If ($tasks.desiredState.$_.State -eq 'Ready') {
-                Enable-ScheduledTask -TaskName $_ -TaskPath $tasks.desiredState.$_.TaskPath | Format-Table -HideTableHeaders
+                Enable-ScheduledTask -TaskName $_ -TaskPath $tasks.desiredState.$_.TaskPath | Out-Null
+                $output += "Set scheduled task [$($_)] to [Enabled]"
             } ElseIf ($tasks.desiredState.$_.State -eq 'Disabled') {
-                Disable-ScheduledTask -TaskName $_ -TaskPath $tasks.desiredState.$_.TaskPath | Format-Table -HideTableHeaders
+                Disable-ScheduledTask -TaskName $_ -TaskPath $tasks.desiredState.$_.TaskPath | Out-Null
+                $output += "Set scheduled task [$($_)] to [Disabled]"
             }
-        }        
+        }
     }
+
+    Return Invoke-Output -InputStringArray $output
+
 }
 
 
@@ -516,10 +536,12 @@ Function Set-WindowsAutoUpdateLocalPolicies {
             UseWUServer                     =   0   # Disabled
         }
 
+        $output = @()
 
         $winUpdateRegDir    = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'
         $auRegDir           = "$winUpdateRegDir\AU"
 
+        $output += '--AutoUpdate Policies--'
 
         If (!(Test-Path -Path $auRegDir)) {
             # TODO: repalce this create with the reg helper function to create new keys from full path fed
@@ -532,8 +554,11 @@ Function Set-WindowsAutoUpdateLocalPolicies {
         # Set settings in the AU reg key
         $disableAU.Keys | ForEach-Object {
             Set-ItemProperty -Path $auRegDir -Name $_ -Value $disableAU.$_
-            "Set $($auRegDir)\$($_) to $($disableAu.$_)"
+            $output += "Set $($auRegDir)\$($_) to $($disableAu.$_)"
         }
+
+        Return Invoke-Output $output
+
     } Else {
         # Key only exists for the purpose of controlling updates, so deleting it restores Windows update to default values
         Remove-Item -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate' -Force
