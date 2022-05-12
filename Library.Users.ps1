@@ -12,77 +12,67 @@ Function Get-LocalUserStatus ($User) {
     <#
 
     .DESCRIPTION
-        This function is designed to return all information from Get-LocalUser even if the machine is not on 
-        Powershell 5+. This is done by using CMD and WMI on legacy version of Powershell to gather data on 
+        This function is designed to return all information from Get-LocalUser even if the machine is not on
+        Powershell 5+. This is done by using CMD and WMI on legacy version of Powershell to gather data on
         the user and storing it in a hashtable where the output properties match the Get-LocalUser output.
-    
+
         If this returns $falsy, it means the local user does not exist
 
     .PARAMETER User
         The user you want to return information about
 
     #>
-    If ($psVers -lt 5.1) {
-        $newUser = @{
-            AccountExpires = $null
-            Description = $null
-            Enabled = $null
-            FullName = $null
-            PasswordChangeableDate = $null
-            PasswordExpires = $null
-            UserMayChangePassword = $null
-            PasswordRequired = $null
-            PasswordLastSet = $null
-            LastLogon = $null
-            Name = $null
-            SID = $null
-            PrincipalSource = $null
-            ObjectClass = $null
-            LocalAdmin = $null
-        }
-        
-        $wmiUser = Get-WmiObject -Class Win32_UserAccount -Filter "LocalAccount=True AND Name='$User'" | Select-Object *
-        $LocalAdmin = (Get-WmiObject Win32_Group -Filter 'Name="Administrators"').GetRelated('Win32_UserAccount') | Where-Object { $_.Name -eq $User }
-        If ($wmiUser) {
-            # User exists
-            $newUser.AccountExpires = (net user $User | Select-String -Pattern 'Account expires(\s*(.*))') -replace 'Account expires(\s*)',''
-            $newUser.Description = $wmiUser.Description
-            If ($user.Disabled) {
-                $newUser.Enabled = $false
-            } Else {
-                $newUser.Enabled = $true
-            }
-            $newUser.FullName = $wmiUser.FullName
-            $newUser.PasswordChangeableDate = (net user $User | Select-String -Pattern 'Password changeable(\s*(.*))') -replace 'Password changeable(\s*)',''
-            $newUser.PasswordExpires = (net user $User | Select-String -Pattern 'Password expires(\s*(.*))') -replace 'Password expires(\s*)',''
-            $newUser.UserMayChangePassword = $wmiUser.PasswordChangeable
-            $newUser.PasswordRequired = $wmiUser.PasswordRequired
-            $newUser.PasswordLastSet = Get-LastLocalPasswordChangeTime -User $User
-            $newUser.LastLogon = (net user $User | Select-String -Pattern 'Last logon(\s*(.*))') -replace 'Last logon(\s*)',''
-            $newUser.Name = $wmiUser.Name
-            $newUser.SID = $wmiUser.SID
-            If ($user.LocalAccount) {
-                $newUser.PrincipalSource = 'Local'
-            } Else {
-                $newUser.PrincipalSource = 'Domain'
-            }
-            If ($LocalAdmin) {
-                $newUser.LocalAdmin = $true
-            }
-            
-            Return $newUser
+    $newUser = @{
+        AccountExpires = $null
+        Description = $null
+        Enabled = $null
+        FullName = $null
+        PasswordChangeableDate = $null
+        PasswordExpires = $null
+        UserMayChangePassword = $null
+        PasswordRequired = $null
+        PasswordLastSet = $null
+        LastLogon = $null
+        Name = $null
+        SID = $null
+        PrincipalSource = $null
+        ObjectClass = $null
+        LocalAdmin = $null
+    }
+
+    $wmiUser = Get-WmiObject -Class Win32_UserAccount -Filter "LocalAccount=True AND Name='$User'" | Select-Object *
+    $LocalAdmin = (Get-WmiObject Win32_Group -Filter 'Name="Administrators"').GetRelated('Win32_UserAccount') | Where-Object { $_.Name -eq $User }
+    If ($wmiUser) {
+        # User exists
+        $newUser.AccountExpires = (net user $User | Select-String -Pattern 'Account expires(\s*(.*))') -replace 'Account expires(\s*)',''
+        $newUser.Description = $wmiUser.Description
+        If ($user.Disabled) {
+            $newUser.Enabled = $false
         } Else {
-            # User does not exist
-            Return $false
+            $newUser.Enabled = $true
         }
-    } Else {
-        $newUser = Get-LocalUser -Name $User | Select-Object *
-        $LocalAdmin = Get-LocalGroupMember -Group Administrators -Member $User
+        $newUser.FullName = $wmiUser.FullName
+        $newUser.PasswordChangeableDate = (net user $User | Select-String -Pattern 'Password changeable(\s*(.*))') -replace 'Password changeable(\s*)',''
+        $newUser.PasswordExpires = (net user $User | Select-String -Pattern 'Password expires(\s*(.*))') -replace 'Password expires(\s*)',''
+        $newUser.UserMayChangePassword = $wmiUser.PasswordChangeable
+        $newUser.PasswordRequired = $wmiUser.PasswordRequired
+        $newUser.PasswordLastSet = Get-LastLocalPasswordChangeTime -User $User
+        $newUser.LastLogon = (net user $User | Select-String -Pattern 'Last logon(\s*(.*))') -replace 'Last logon(\s*)',''
+        $newUser.Name = $wmiUser.Name
+        $newUser.SID = $wmiUser.SID
+        If ($user.LocalAccount) {
+            $newUser.PrincipalSource = 'Local'
+        } Else {
+            $newUser.PrincipalSource = 'Domain'
+        }
         If ($LocalAdmin) {
-            $newUser | Add-Member -MemberType NoteProperty -Name LocalAdmin -Value $true
+            $newUser.LocalAdmin = $true
         }
 
         Return $newUser
+    } Else {
+        # User does not exist
+        Return $false
     }
 }
 
@@ -150,7 +140,7 @@ Function New-LocalAdmin ($User,$Pass) {
                 Set-LocalUserPass -User $User -Pass $Pass
                 # Verify/enforce user lines up to desired standards
                 Set-ExistingAccountConfig -User $User
-            }      
+            }
         } Else {
             # Create $User admin account
             $stringPass = ConvertTo-SecureString -String $Pass -AsPlainText -Force
@@ -283,7 +273,7 @@ Function Disable-LocalUserAccount ($User) {
     <#
     .DESCRIPTION
         Very stragiht forward function to disable the input user. This function works with any version
-        of Powershell.    
+        of Powershell.
     #>
     If ($psVers -lt 5.1) {
         &cmd.exe /c "net user $_ /active:no"
