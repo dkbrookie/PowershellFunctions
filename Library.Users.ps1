@@ -40,8 +40,20 @@ Function Get-LocalUserStatus ($User) {
         LocalAdmin = $null
     }
 
-    $wmiUser = Get-WmiObject -Class Win32_UserAccount -Filter "LocalAccount=True AND Name='$User'" | Select-Object *
-    $LocalAdmin = (Get-WmiObject Win32_Group -Filter 'Name="Administrators"').GetRelated('Win32_UserAccount') | Where-Object { $_.Name -eq $User }
+    $computerName = "."
+    $wmiEnumOpts = New-Object System.Management.EnumerationOptions
+    $wmiEnumOpts.BlockSize = 20
+
+    $argList = @{
+        "Class"        = "Win32_Group"
+        "ComputerName" = $computerName
+        "Filter"       = "LocalAccount=TRUE AND SID='S-1-5-32-544'"
+    }
+
+    $wmiUser = Get-WmiObject @argList | Foreach-Object {
+        $_.GetRelated("Win32_Account", "Win32_GroupUser", "", "", "PartComponent", "GroupComponent", $FALSE, $wmiEnumOpts)
+    } | Where-Object { $_.Name -eq 'Administrator' }
+
     If ($wmiUser) {
         # User exists
         $newUser.AccountExpires = (net user $User | Select-String -Pattern 'Account expires(\s*(.*))') -replace 'Account expires(\s*)',''
