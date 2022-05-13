@@ -1,14 +1,47 @@
-# Set vars
-$symbol = ''
-$date = Get-Date
-
-
 # Store Powershell version as a var to compare against later
 $psVers = "$($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor)"
 
+function Get-IsLocalAdmin ($UserName) {
+    If (!$UserName) { Throw 'You must provide a username!'; Return; }
 
-# DONE
-Function Get-LocalUserStatus ($User) {
+    $localAdmins = Get-LocalAdminGroupMembers
+
+    $isLocalAdmin = $localAdmins | Where-Object { $_.Name -eq $UserName }
+
+    If ($isLocalAdmin) { Return $true } Else { Return $false }
+}
+
+function Get-LocalUserExists ($UserName) {
+    $user = Get-WmiObject -Class Win32_UserAccount -Filter "LocalAccount=True AND Name='$UserName'"
+
+    If ($user) {
+        Return $true
+    }
+
+    Return $false
+}
+
+function New-LocalUserMaker ($UserName, $Pass) {
+    If (Get-LocalUserExists $UserName) {
+        Write-Output "Not creating new user $UserName because a user with that name already exists."
+        Return
+    }
+
+    If ($psVers -lt 5.1) {
+        &cmd.exe /c "net user /add $UserName $Pass"
+
+        # Verify that the user was actually created
+        If (!(Get-LocalUserExists $UserName)) {
+            Throw "Could not create user [$UserName] for some reason. If there was an error, it is likely printed right before this error, but no promises."
+            Return
+        }
+    } Else {
+        $stringPass = ConvertTo-SecureString -String $Pass -AsPlainText -Force
+        New-LocalUser $UserName -Password $stringPass -FullName $UserName -Description "Created by DKBInnovative on $(Get-Date)" -ErrorAction Stop
+    }
+}
+
+Function Get-LocalUserStatus ($UserName) {
     <#
 
     .DESCRIPTION
@@ -22,6 +55,14 @@ Function Get-LocalUserStatus ($User) {
         The user you want to return information about
 
     #>
+
+    If (!$UserName) { Throw 'You must provide a username!'; Return; }
+
+    If (!(Get-LocalUserExists $UserName)) {
+        Throw "Cannot get current status because [$UserName] does not exist!"
+        Return
+    }
+
     $newUser = @{
         AccountExpires = $null
         Description = $null
@@ -40,64 +81,44 @@ Function Get-LocalUserStatus ($User) {
         LocalAdmin = $null
     }
 
-    $computerName = "."
-    $wmiEnumOpts = New-Object System.Management.EnumerationOptions
-    $wmiEnumOpts.BlockSize = 20
+    $user = Get-WmiObject -Class Win32_UserAccount -Filter "LocalAccount=True AND Name='$UserName'" | Select-Object *
+    $newUser.LocalAdmin = Get-IsLocalAdmin $UserName
+    $newUser.AccountExpires = (net user $UserName | Select-String -Pattern 'Account expires(\s*(.*))') -replace 'Account expires(\s*)',''
+    $newUser.Description = $user.Description
 
-    $argList = @{
-        "Class"        = "Win32_Group"
-        "ComputerName" = $computerName
-        "Filter"       = "LocalAccount=TRUE AND SID='S-1-5-32-544'"
-    }
-
-    $wmiUser = Get-WmiObject @argList | Foreach-Object {
-        $_.GetRelated("Win32_Account", "Win32_GroupUser", "", "", "PartComponent", "GroupComponent", $FALSE, $wmiEnumOpts)
-    } | Where-Object { $_.Name -eq 'Administrator' }
-
-    If ($wmiUser) {
-        # User exists
-        $newUser.AccountExpires = (net user $User | Select-String -Pattern 'Account expires(\s*(.*))') -replace 'Account expires(\s*)',''
-        $newUser.Description = $wmiUser.Description
-        If ($user.Disabled) {
-            $newUser.Enabled = $false
-        } Else {
-            $newUser.Enabled = $true
-        }
-        $newUser.FullName = $wmiUser.FullName
-        $newUser.PasswordChangeableDate = (net user $User | Select-String -Pattern 'Password changeable(\s*(.*))') -replace 'Password changeable(\s*)',''
-        $newUser.PasswordExpires = (net user $User | Select-String -Pattern 'Password expires(\s*(.*))') -replace 'Password expires(\s*)',''
-        $newUser.UserMayChangePassword = $wmiUser.PasswordChangeable
-        $newUser.PasswordRequired = $wmiUser.PasswordRequired
-        $newUser.PasswordLastSet = Get-LastLocalPasswordChangeTime -User $User
-        $newUser.LastLogon = (net user $User | Select-String -Pattern 'Last logon(\s*(.*))') -replace 'Last logon(\s*)',''
-        $newUser.Name = $wmiUser.Name
-        $newUser.SID = $wmiUser.SID
-        If ($user.LocalAccount) {
-            $newUser.PrincipalSource = 'Local'
-        } Else {
-            $newUser.PrincipalSource = 'Domain'
-        }
-        If ($LocalAdmin) {
-            $newUser.LocalAdmin = $true
-        }
-
-        Return $newUser
+    If ($user.Disabled) {
+        $newUser.Enabled = $false
     } Else {
-        # User does not exist
-        Return $false
+        $newUser.Enabled = $true
     }
+
+    $newUser.FullName = $user.FullName
+    $newUser.PasswordChangeableDate = (net user $UserName | Select-String -Pattern 'Password changeable(\s*(.*))') -replace 'Password changeable(\s*)',''
+    $newUser.PasswordExpires = (net user $UserName | Select-String -Pattern 'Password expires(\s*(.*))') -replace 'Password expires(\s*)',''
+    $newUser.UserMayChangePassword = $user.PasswordChangeable
+    $newUser.PasswordRequired = $user.PasswordRequired
+    $newUser.PasswordLastSet = Get-LastLocalPasswordChangeTime -User $UserName
+    $newUser.LastLogon = (net user $UserName | Select-String -Pattern 'Last logon(\s*(.*))') -replace 'Last logon(\s*)',''
+    $newUser.Name = $user.Name
+    $newUser.SID = $user.SID
+
+    If ($user.LocalAccount) {
+        $newUser.PrincipalSource = 'Local'
+    } Else {
+        $newUser.PrincipalSource = 'Domain'
+    }
+
+    Return $newUser
 }
 
-
-
-
-# DONE
+# TODO: Test this! Untested
 Function New-RandomPassword {
     <#
     .DESCRIPTION
         Note this function will only work if the script is started from Automate because the dictionary is in a
         private github repo and the API key has to be called from Automate
     #>
+    $symbol = ''
     $word1 = (($WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/Security/master/Credential_Management/Windows_Local_Admin_Control/Dictionary.txt')).split() | Get-Random -ErrorAction Stop
     $random = Get-Random -Maximum 999999999 -Minimum 10000000
     $string = @'
@@ -109,11 +130,7 @@ Function New-RandomPassword {
     Return $word1 + $random + $symbol
 }
 
-
-
-
-# DONE
-Function New-LocalAdmin ($User,$Pass) {
+Function New-LocalAdmin ($UserName, $Pass) {
     <#
     .DESCRIPTION
         Determinds the version of Powershell and if less than PS 5.1 will use CMD to create a new user.
@@ -123,8 +140,8 @@ Function New-LocalAdmin ($User,$Pass) {
         User is created and placed inside the local Administrators group, and the password is set to
         never expire.
 
-        If the user already exists, the script verifies the user is in the local administrators group,
-        the password is set to never expire, and the account is enabled.
+        If the user already exists, the script reset pass, verifies the user is in the local administrators
+        group, the password is set to never expire, and the account is enabled.
 
     .PARAMETER User
         The username as a string that you want to create
@@ -133,135 +150,121 @@ Function New-LocalAdmin ($User,$Pass) {
         If you want to specify a password you can define this value, otherwise a randomly generated
         password will be created.
     #>
-    Try {
-        If (!$Pass) {
+    If (!$UserName) { Throw 'You must provide a username!'; Return; }
+
+    If (!$Pass) {
+        Try {
             # Generate password if $Pass wasn't defined
             $Pass = New-RandomPassword
+        } Catch {
+            Throw "There was an error when generating random password. The error was: $_"
+            Return
         }
-
-        If ($psVers -lt 5.1) {
-            $userDetails = Get-LocalUserStatus -User $User
-            # If the user doesn't exist, create it
-            If (!$userDetails) {
-                # Create $User admin account using CMD
-                &cmd.exe /c "net user /add $User $Pass"
-                # Verify/enforce user lines up to desired standards
-                Set-ExistingAccountConfig -User $User
-            } Else {
-                # Set a new user password. This function will throw if it fails to generate or set the password.
-                Set-LocalUserPass -User $User -Pass $Pass
-                # Verify/enforce user lines up to desired standards
-                Set-ExistingAccountConfig -User $User
-            }
-        } Else {
-            # Create $User admin account
-            $stringPass = ConvertTo-SecureString -String $Pass -AsPlainText -Force
-            If (!(Get-LocalUserStatus -User $User)) {
-                # If the user does not exist, create it and ensure it has the correct configuration
-                New-LocalUser $User -Password $stringPass -FullName $User -Description "Created by DKBInnovative on $date" -ErrorAction Stop
-                Set-ExistingAccountConfig -User $User
-                Return "Successfully created the user [$User] and enforced all configurations"
-            } Else {
-                # If the user does exist, update the password and ensure it has the correct configuration
-                Set-LocalUserPass -User $User -Pass $stringPass
-                Set-ExistingAccountConfig -User $User
-                Return "Verified the user [$User] already exists"
-            }
-        }
-    } Catch {
-        Return "Failed to create, or enforce configuration for the user [$User]. Full output: $Error"
     }
+
+    If (!(Get-LocalUserExists $UserName)) {
+        # If user doesn't exist, create them
+        New-LocalUserMaker $UserName $Pass
+        Write-Output "Successfully created [$UserName]"
+    } Else {
+        Write-Output "[$UserName] already exists"
+        # If user does exist, reset password
+        Set-LocalUserPass -User $UserName -Pass $Pass
+    }
+
+    # Verify/enforce user lines up to desired standards
+    Set-ExistingAccountConfig -User $UserName
+    Write-Output "Successfully enforced all configurations for [$UserName]"
 }
 
+Function Set-LocalUserPass ($UserName, $Pass) {
+    If (!$UserName) { Throw 'You must provide a username!'; Return; }
+    If (!$Pass) { Throw 'You must provide a password!'; Return; }
 
+    If (!(Get-LocalUserExists $UserName)) {
+        Throw "User [$UserName] does not exist! Unable to set pass"
+        Return
+    }
 
-
-# PRODTODO WIP
-Function Set-LocalUserPass ($User,$Pass) {
     If ($psVers -lt 5.1) {
-        &cmd.exe /c "net user $User $password"
-        &cmd.exe /c "wmic useraccount WHERE (LocalAccount=True AND Name='$User') set PasswordExpires=False"
+        &cmd.exe /c "net user $UserName $Pass" | Out-Null
+        &cmd.exe /c "wmic useraccount WHERE (LocalAccount=True AND Name='$UserName') set PasswordExpires=False" | Out-Null
         # Verify the password was successfully changed
-        $passChangeDate = Get-LastLocalPasswordChangeTime -User $User
+        $passChangeDate = Get-LastLocalPasswordChangeTime -User $UserName
         # If it's been more than 5min since the last password change on the user we're going to conut that a failure and
         # have it throw here
-        If ((Get-Date - $passChangeDate).Minutes -gt 5) {
-            Throw "Failed to set a new password for the user [$User]. -- $Error"
+        If (((Get-Date) - $passChangeDate).TotalMinutes -gt 5) {
+            Throw "Failed to set a new password for [$UserName]."
+            Return
         } Else {
-            Return "Successfully set a new password for the user [$User]"
+            Write-Output "Successfully set a new password for [$UserName]"
         }
     } Else {
         $stringPass = ConvertTo-SecureString -String $Pass -AsPlainText -Force
-        Set-LocalUser -Name $User -Password $stringPass -ErrorAction Stop
-        Return "Successfully set a new password for the user [$User]"
+        Set-LocalUser -Name $UserName -Password $stringPass -ErrorAction Stop
+        Write-Output "Successfully set a new password for [$UserName]"
     }
 }
 
-
-
-
-# DONE
-Function Set-ExistingAccountConfig ($User) {
+Function Set-ExistingAccountConfig ($UserName) {
     <#
     .DESCRIPTION
         This function is intended to enforce required settings on an existing user. This function will force the
         input user to have the following settings:
         - Member of local Administrators group
-        - PasswordNeverExpires set to $False
+        - PasswordNeverExpires set to $false
         - User Enabled is $true
 
         This function will throw on failure to enforce any of these settings. This function works for all versions of
         Powershell.
     #>
-    If ($psVers -lt 5.1) {
-        $userDetails = Get-LocalUserStatus -User $User
+    If (!$UserName) { Throw 'You must provide a username!'; Return; }
 
-        # Add the $User is in the local Administrators group if not a member currently
+    If ($psVers -lt 5.1) {
+        $userDetails = Get-LocalUserStatus -User $UserName
+
+        # Add the $UserName is in the local Administrators group if not a member currently
         If (!$userDetails.LocalAdmin) {
-            &cmd.exe /c "net localgroup Administrators $User /add"
+            &cmd.exe /c "net localgroup Administrators $UserName /add" | Out-Null
         }
-        # Set the $User password to never expire
+        # Set the $UserName password to never expire
         If ($userDetails.PasswordExpires) {
-            &cmd.exe /c "wmic useraccount WHERE (LocalAccount=True AND Name='$User') set PasswordExpires=False"
+            &cmd.exe /c "wmic useraccount WHERE (LocalAccount=True AND Name='$UserName') set PasswordExpires=False" | Out-Null
         }
-        # Enable the $User
+        # Enable the $UserName
         If (!$userDetails.Enabled) {
-            &cmd.exe /c "wmic useraccount WHERE (LocalAccount=True AND Name='$User') set Disabled=False"
+            &cmd.exe /c "wmic useraccount WHERE (LocalAccount=True AND Name='$UserName') set Disabled=False" | Out-Null
         }
 
         # CMD doesn't give us any kind of validation or throw if something failed so we're going to validate and throw here if
         # the user does not exist. Note the function called here is one defined in this script, not a default function
-        $userDetails = Get-LocalUserStatus -User $User
-        If (!$userDetails -or !$userDetails.LocalAdmin -or $userDetails.PasswordExpires -or !$userDetails.Enabled) {
-            Throw "Failed to set required parameters for the user [$User]. -- $Error"
+        $userDetails = Get-LocalUserStatus -User $UserName
+        If (!$userDetails -or !$userDetails.LocalAdmin -or ($userDetails.PasswordExpires -ne 'Never') -or !$userDetails.Enabled) {
+            Throw "Failed to set required parameters for [$UserName]. -- $($Error[0]))"
         } Else {
-            Return "Verified the user [$User] is in the local [Administrators] group, verified [$User] password is set to never expire, and verified [$User] is enabled"
+            Write-Output "Verified [$UserName] is in the local [Administrators] group, verified [$UserName] password is set to never expire, and verified [$UserName] is enabled"
         }
     } Else {
-        $userDetails = Get-LocalUserStatus -User $User
+        $userDetails = Get-LocalUserStatus -User $UserName
 
-        # Add the $User is in the local Administrators group if not a member currently
+        # Add the $UserName is in the local Administrators group if not a member currently
         If (!$userDetails.LocalAdmin) {
-            Add-LocalGroupMember -Group Administrators -Member $User -ErrorAction Stop
+            Add-LocalGroupMember -Group Administrators -Member $UserName -ErrorAction Stop
         }
-        # Set the $User password to never expire
+        # Set the $UserName password to never expire
         If ($userDetails.PasswordExpires) {
-            Set-LocalUser -Name $User -PasswordNeverExpires $true -ErrorAction Stop
+            Set-LocalUser -Name $UserName -PasswordNeverExpires $true -ErrorAction Stop
         }
-        # Enable the $User
+        # Enable the $UserName
         If (!$userDetails.Enabled) {
-            Enable-LocalUser -Name $User -ErrorAction Stop
+            Enable-LocalUser -Name $UserName -ErrorAction Stop
         }
 
-        Return "Verified the user [$User] is in the local [Administrators] group, verified [$User] password is set to never expire, and verified [$User] is enabled"
+        Write-Output "Verified [$UserName] is in the local [Administrators] group, verified [$UserName] password is set to never expire, and verified [$UserName] is enabled"
     }
 }
 
-
-
-
-# DONE
-Function Get-LastLocalPasswordChangeTime ($User) {
+Function Get-LastLocalPasswordChangeTime ($UserName) {
     <#
     .DESCRIPTION
         The date/time the password was last set is in CMD. This function uses regex to get the date the
@@ -272,74 +275,108 @@ Function Get-LastLocalPasswordChangeTime ($User) {
         has very non-standard requirements. If this is the case, we want to make sure we do NOT wipe the previous
         password, and want to preserve that password to ensure we still have access to the machine.
     #>
+    If (!$UserName) { Throw 'You must provide a username!'; Return; }
+
     # Grab the local time the machine reports the password was last changed locally
-    [datetime]$lastChanged = (net user $User | Select-String -Pattern 'Password last set(\s*(.*))') -replace 'Password last set(\s*)',''
+    [datetime]$lastChanged = ((net user $UserName | Select-String -Pattern 'Password last set(\s*(.*))') -replace 'Password last set(\s*)','')
     Return $lastChanged
 }
 
 
-
-
-# DONE
-Function Disable-LocalUserAccount ($User) {
+Function Disable-LocalUserAccount ($UserName) {
     <#
     .DESCRIPTION
         Very stragiht forward function to disable the input user. This function works with any version
         of Powershell.
     #>
+    If (!$UserName) { Throw 'You must provide a username!'; Return; }
+
     If ($psVers -lt 5.1) {
-        &cmd.exe /c "net user $_ /active:no"
-        If ((Get-LocalUserStatus -User $User).Disabled -ne 'True') {
-            Throw "Failed to disable the user [$User]"
+        &cmd.exe /c "net user $UserName /active:no" | Out-Null
+        If ((Get-LocalUserStatus -User $UserName).Enabled -ne $false) {
+            Throw "Failed to disable [$UserName]"
         } Else {
-            Return "Successfully disabled the user [$User]"
+            Write-Output "Successfully disabled [$UserName]"
         }
     } Else {
-        Disable-LocalUser -Name $User -ErrorAction Stop
-        Return "Successfully disabled the user [$User]"
+        Disable-LocalUser -Name $UserName -ErrorAction Stop
+        Write-Output "Successfully disabled [$UserName]"
     }
 }
 
-
-
-
-# DONE
 Function Get-LocalAdminGroupMembers {
     <#
     .DESCRIPTION
         This function outputs all users currently in the local administrators group. This does not check to see
         if the account is enabled, but is rather a raw output. To determine if the user is enabled, use the
         Get-LocalUserStatus function.
+
+    .Example
+        Get-LocalAdminGroupMembers
+        # AccountType : 512
+        # Caption     : computername\Administrator
+        # Domain      : computername
+        # SID         : x-x-x-xx-xxxxx-xxxxx-xx-x
+        # FullName    :
+        # Name        : Administrator
+    .Example
+        Get-LocalAdminGroupMembers | ForEach-Object { Get-LocalUserStatus $_.Name }
+        # AccountExpires                 Never
+        # FullName
+        # PasswordExpires                Never
+        # SID                            x-x-x-xx-xxxxx-xxxxx-xx-x
+        # Name                           Administrator
+        # PrincipalSource                Domain
+        # Description                    Built-in account for administering the computer/domain
+        # LocalAdmin                     True
+        # ObjectClass
+        # UserMayChangePassword          True
+        # LastLogon                      Never
+        # Enabled                        True
+        # PasswordRequired               True
+        # PasswordLastSet                5/12/2022 10:19:42 AM
+        # PasswordChangeableDate         5/12/2022 10:19:42 AM
     #>
-    If ($psVers -lt 5.1) {
-        $localAdmins = ((Get-WmiObject win32_group -filter 'Name = "Administrators"' -ErrorAction Stop).GetRelated('Win32_UserAccount')).Name
-        If (!$localAdmins) {
-            Throw "The local [Administrators] group return 0 users. This implies there was a problem with the command execution. $Error"
-        }
-        Return $localAdmins
-    } Else {
-        $localAdmins = (Get-LocalGroupMember -Group Administrators -ErrorAction Stop | Where-Object { $_.PrincipalSource -eq 'Local' }).Name -replace("$env:COMPUTERNAME\\",'')
-        Return $localAdmins
+    $wmiEnumOpts = New-Object System.Management.EnumerationOptions
+    $wmiEnumOpts.BlockSize = 20
+
+    $argList = @{
+        "Class"        = "Win32_Group"
+        "ComputerName" = '.'
+        "Filter"       = "LocalAccount=TRUE AND SID='S-1-5-32-544'"
     }
+
+    $localAdmins = Get-WmiObject @argList | Foreach-Object { $_.GetRelated("Win32_Account", "Win32_GroupUser", "", "", "PartComponent", "GroupComponent", $false, $wmiEnumOpts) }
+
+    If (!$localAdmins) {
+        Throw "The local [Administrators] group return 0 users. This implies there was a problem with the command execution. $($Error[0])"
+        Return
+    }
+
+    Return $localAdmins
 }
 
+Function Remove-FromLocalAdminGroup ($UserName) {
+    If (!$UserName) { Throw 'You must provide a username!'; Return; }
 
+    If (!(Get-IsLocalAdmin $UserName)) {
+        Write-Output "Successfully verified [$UserName] is not in the local Administrators group"
+        Return
+    }
 
-
-Function Remove-FromLocalAdminGroup ($User) {
     If ($psVers -lt 5.1) {
-        &cmd.exe /c "net localgroup Administrators $User /delete"
-        If ((Get-LocalUserStatus -User $User).LocalAdmin) {
-            Throw "Failed to remove the user [$User] from the local [Administrators] group"
+        &cmd.exe /c "net localgroup Administrators $UserName /delete" | Out-Null
+        If (Get-IsLocalAdmin $UserName) {
+            Throw "Failed to remove [$UserName] from the local [Administrators] group"
         } Else {
-            Return "Successfully removed the user [$User] from the local Administrators group"
+            Write-Output "Successfully removed [$UserName] from the local Administrators group"
         }
     } Else {
         Try {
-            Remove-LocalGroupMember -Member $User -Group Administrators -ErrorAction Stop
-            Return "Successfully removed the user [$User] from the local Administrators group"
+            Remove-LocalGroupMember -Member $UserName -Group Administrators -ErrorAction Stop
+            Write-Output "Successfully removed [$UserName] from the local Administrators group"
         } Catch {
-            Throw "Failed to remove the user [$User] from the local [Administrators] group. $Error"
+            Throw "Failed to remove [$UserName] from the local [Administrators] group. $($Error[0])"
         }
     }
 }
