@@ -180,11 +180,7 @@ Function New-LocalAdmin ($UserName, $Pass) {
 Function Set-LocalUserPass ($UserName, $Pass) {
     If (!$UserName) { Throw 'You must provide a username!'; Return; }
     If (!$Pass) { Throw 'You must provide a password!'; Return; }
-
-    If (!(Get-LocalUserExists $UserName)) {
-        Throw "User [$UserName] does not exist! Unable to set pass"
-        Return
-    }
+    If (!(Get-LocalUserExists $UserName)) { Throw "User [$UserName] does not exist! Unable to set pass"; Return; }
 
     If ($psVers -lt 5.1) {
         &cmd.exe /c "net user $UserName $Pass" | Out-Null
@@ -348,10 +344,7 @@ Function Get-LocalAdminGroupMembers {
 
     $localAdmins = Get-WmiObject @argList | Foreach-Object { $_.GetRelated("Win32_Account", "Win32_GroupUser", "", "", "PartComponent", "GroupComponent", $false, $wmiEnumOpts) }
 
-    If (!$localAdmins) {
-        Throw "The local [Administrators] group return 0 users. This implies there was a problem with the command execution. $($Error[0])"
-        Return
-    }
+    If (!$localAdmins) { Throw "The local [Administrators] group return 0 users. This implies there was a problem with the command execution. $($Error[0])"; Return; }
 
     Return $localAdmins
 }
