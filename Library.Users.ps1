@@ -8,24 +8,21 @@ function Get-IsLocalAdmin ($UserName) {
 
     $isLocalAdmin = $localAdmins | Where-Object { $_.Name -eq $UserName }
 
-    If ($isLocalAdmin) { Return $true } Else { Return $false }
+    If ($isLocalAdmin) { Return $true }
+
+    Return $false
 }
 
 function Get-LocalUserExists ($UserName) {
     $user = Get-WmiObject -Class Win32_UserAccount -Filter "LocalAccount=True AND Name='$UserName'"
 
-    If ($user) {
-        Return $true
-    }
+    If ($user) { Return $true }
 
     Return $false
 }
 
 function New-LocalUserMaker ($UserName, $Pass) {
-    If (Get-LocalUserExists $UserName) {
-        Write-Output "Not creating new user $UserName because a user with that name already exists."
-        Return
-    }
+    If (Get-LocalUserExists $UserName) { Write-Output "Not creating new user $UserName because a user with that name already exists."; Return; }
 
     If ($psVers -lt 5.1) {
         &cmd.exe /c "net user /add $UserName $Pass"
@@ -57,11 +54,7 @@ Function Get-LocalUserStatus ($UserName) {
     #>
 
     If (!$UserName) { Throw 'You must provide a username!'; Return; }
-
-    If (!(Get-LocalUserExists $UserName)) {
-        Throw "Cannot get current status because [$UserName] does not exist!"
-        Return
-    }
+    If (!(Get-LocalUserExists $UserName)) { Throw "Cannot get current status because [$UserName] does not exist!"; Return; }
 
     $newUser = @{
         AccountExpires = $null
@@ -119,14 +112,17 @@ Function New-RandomPassword {
         private github repo and the API key has to be called from Automate
     #>
     $symbol = ''
-    $word1 = (($WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/Security/master/Credential_Management/Windows_Local_Admin_Control/Dictionary.txt')).split() | Get-Random -ErrorAction Stop
+    $dict = 'https://raw.githubusercontent.com/dkbrookie/Security/master/Credential_Management/Windows_Local_Admin_Control/Dictionary.txt'
+    $word1 = (($WebClient).DownloadString($dict)).split() | Get-Random -ErrorAction Stop
     $random = Get-Random -Maximum 999999999 -Minimum 10000000
     $string = @'
 @#$%~`^&(*)_+';?\][}:.,<#>`./;~`-="
 '@
+
     For ($i = 0; $i -lt 2; $i++ ) {
         $symbol += $string[(Get-Random -Minimum 0 -Maximum $string.Length)]
     }
+
     Return $word1 + $random + $symbol
 }
 
@@ -216,6 +212,9 @@ Function Set-ExistingAccountConfig ($UserName) {
     #>
     If (!$UserName) { Throw 'You must provide a username!'; Return; }
 
+    $success = "Verified [$UserName] is in the local [Administrators] group," +
+        "verified [$UserName] password is set to never expire, and verified [$UserName] is enabled"
+
     If ($psVers -lt 5.1) {
         $userDetails = Get-LocalUserStatus -User $UserName
 
@@ -238,7 +237,7 @@ Function Set-ExistingAccountConfig ($UserName) {
         If (!$userDetails -or !$userDetails.LocalAdmin -or ($userDetails.PasswordExpires -ne 'Never') -or !$userDetails.Enabled) {
             Throw "Failed to set required parameters for [$UserName]. -- $($Error[0]))"
         } Else {
-            Write-Output "Verified [$UserName] is in the local [Administrators] group, verified [$UserName] password is set to never expire, and verified [$UserName] is enabled"
+            Write-Output $success
         }
     } Else {
         $userDetails = Get-LocalUserStatus -User $UserName
@@ -256,7 +255,7 @@ Function Set-ExistingAccountConfig ($UserName) {
             Enable-LocalUser -Name $UserName -ErrorAction Stop
         }
 
-        Write-Output "Verified [$UserName] is in the local [Administrators] group, verified [$UserName] password is set to never expire, and verified [$UserName] is enabled"
+        Write-Output $success
     }
 }
 
@@ -342,28 +341,26 @@ Function Get-LocalAdminGroupMembers {
         "Filter"       = "LocalAccount=TRUE AND SID='S-1-5-32-544'"
     }
 
-    $localAdmins = Get-WmiObject @argList | Foreach-Object { $_.GetRelated("Win32_Account", "Win32_GroupUser", "", "", "PartComponent", "GroupComponent", $false, $wmiEnumOpts) }
+    $localAdmins = Get-WmiObject @argList | Foreach-Object {
+        Return $_.GetRelated("Win32_Account", "Win32_GroupUser", "", "", "PartComponent", "GroupComponent", $false, $wmiEnumOpts)
+    }
 
-    If (!$localAdmins) { Throw "The local [Administrators] group return 0 users. This implies there was a problem with the command execution. $($Error[0])"; Return; }
+    If (!$localAdmins) {
+        Throw "The local [Administrators] group returns 0 users. This implies there was a problem with the command execution. $($Error[0])"; Return; }
 
     Return $localAdmins
 }
 
 Function Remove-FromLocalAdminGroup ($UserName) {
     If (!$UserName) { Throw 'You must provide a username!'; Return; }
-
-    If (!(Get-IsLocalAdmin $UserName)) {
-        Write-Output "Successfully verified [$UserName] is not in the local Administrators group"
-        Return
-    }
+    If (!(Get-IsLocalAdmin $UserName)) { Write-Output "Successfully verified [$UserName] is not in the local Administrators group"; Return; }
 
     If ($psVers -lt 5.1) {
         &cmd.exe /c "net localgroup Administrators $UserName /delete" | Out-Null
-        If (Get-IsLocalAdmin $UserName) {
-            Throw "Failed to remove [$UserName] from the local [Administrators] group"
-        } Else {
-            Write-Output "Successfully removed [$UserName] from the local Administrators group"
-        }
+
+        If (Get-IsLocalAdmin $UserName) { Throw "Failed to remove [$UserName] from the local [Administrators] group"; Return; }
+
+        Write-Output "Successfully removed [$UserName] from the local Administrators group"
     } Else {
         Try {
             Remove-LocalGroupMember -Member $UserName -Group Administrators -ErrorAction Stop
