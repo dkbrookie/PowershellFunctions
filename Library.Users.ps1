@@ -1,7 +1,7 @@
 # Store Powershell version as a var to compare against later
 $psVers = "$($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor)"
 
-function Get-IsLocalAdmin ($UserName) {
+Function Get-IsLocalAdmin ($UserName) {
     If (!$UserName) { Throw 'You must provide a username!'; Return; }
 
     $localAdmins = Get-LocalAdminGroupMembers
@@ -13,7 +13,7 @@ function Get-IsLocalAdmin ($UserName) {
     Return $false
 }
 
-function Get-LocalUserExists ($UserName) {
+Function Get-LocalUserExists ($UserName) {
     $user = Get-WmiObject -Class Win32_UserAccount -Filter "LocalAccount=True AND Name='$UserName'"
 
     If ($user) { Return $true }
@@ -21,7 +21,7 @@ function Get-LocalUserExists ($UserName) {
     Return $false
 }
 
-function New-LocalUserMaker ($UserName, $Pass) {
+Function New-LocalUserMaker ($UserName, $Pass) {
     If (Get-LocalUserExists $UserName) { Write-Output "Not creating new user $UserName because a user with that name already exists."; Return; }
 
     If ($psVers -lt 5.1) {
@@ -345,10 +345,16 @@ Function Get-LocalAdminGroupMembers {
         Return $_.GetRelated("Win32_Account", "Win32_GroupUser", "", "", "PartComponent", "GroupComponent", $false, $wmiEnumOpts)
     }
 
-    If (!$localAdmins) {
-        Throw "The local [Administrators] group returns 0 users. This implies there was a problem with the command execution. $($Error[0])"; Return; }
+    $errorMessage = "The local group corresponding to SID 'S-1-5-32-544' (admin) returns 0 users. " +
+        "This implies there was a problem with the command execution. $($Error[0])"
+
+    If (!$localAdmins) { Throw $errorMessage; Return; }
 
     Return $localAdmins
+}
+
+Function Get-LocalAdminGroupName {
+    Return (Get-LocalAdminGroupMembers)[0].Name
 }
 
 Function Remove-FromLocalAdminGroup ($UserName) {
