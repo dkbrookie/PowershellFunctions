@@ -13,7 +13,13 @@ Function Get-IsLocalAdmin ($UserName) {
     Return $false
 }
 
+Function Get-LocalAdminGroup {
+    Return Get-WmiObject -Class Win32_Group -Filter "LocalAccount=TRUE AND SID='S-1-5-32-544'"
+}
+
 Function Get-LocalUserExists ($UserName) {
+    If (!$UserName) { Throw 'You must provide a username!'; Return; }
+
     $user = Get-WmiObject -Class Win32_UserAccount -Filter "LocalAccount=True AND Name='$UserName'"
 
     If ($user) { Return $true }
@@ -22,6 +28,8 @@ Function Get-LocalUserExists ($UserName) {
 }
 
 Function New-LocalUserMaker ($UserName, $Pass) {
+    If (!$UserName) { Throw 'You must provide a username!'; Return; }
+    If (!$Pass) { Throw 'You must provide a password!'; Return; }
     If (Get-LocalUserExists $UserName) { Write-Output "Not creating new user $UserName because a user with that name already exists."; Return; }
 
     If ($psVers -lt 5.1) {
@@ -34,7 +42,7 @@ Function New-LocalUserMaker ($UserName, $Pass) {
         }
     } Else {
         $stringPass = ConvertTo-SecureString -String $Pass -AsPlainText -Force
-        New-LocalUser $UserName -Password $stringPass -FullName $UserName -Description "Created by DKBInnovative on $(Get-Date)" -ErrorAction Stop
+        New-LocalUser $UserName -Password $stringPass -FullName $UserName -Description "Created by DKBInnovative on $(Get-Date)" -ErrorAction Stop | Out-Null
     }
 }
 
@@ -212,7 +220,7 @@ Function Set-ExistingAccountConfig ($UserName) {
     #>
     If (!$UserName) { Throw 'You must provide a username!'; Return; }
 
-    $success = "Verified [$UserName] is in the local [Administrators] group," +
+    $success = "Verified [$UserName] is in the local [$((Get-LocalAdminGroup).Name)] group," +
         "verified [$UserName] password is set to never expire, and verified [$UserName] is enabled"
 
     If ($psVers -lt 5.1) {
@@ -220,7 +228,7 @@ Function Set-ExistingAccountConfig ($UserName) {
 
         # Add the $UserName is in the local Administrators group if not a member currently
         If (!$userDetails.LocalAdmin) {
-            &cmd.exe /c "net localgroup Administrators $UserName /add" | Out-Null
+            &cmd.exe /c "net localgroup $((Get-LocalAdminGroup).Name) $UserName /add" | Out-Null
         }
         # Set the $UserName password to never expire
         If ($userDetails.PasswordExpires) {
@@ -235,7 +243,7 @@ Function Set-ExistingAccountConfig ($UserName) {
         # the user does not exist. Note the function called here is one defined in this script, not a default function
         $userDetails = Get-LocalUserStatus -User $UserName
         If (!$userDetails -or !$userDetails.LocalAdmin -or ($userDetails.PasswordExpires -ne 'Never') -or !$userDetails.Enabled) {
-            Throw "Failed to set required parameters for [$UserName]. -- $($Error[0]))"
+            Throw "Failed to set required parameters for [$UserName]. If there was an error, it is likely printed right before this error, but no promises."
         } Else {
             Write-Output $success
         }
@@ -244,7 +252,7 @@ Function Set-ExistingAccountConfig ($UserName) {
 
         # Add the $UserName is in the local Administrators group if not a member currently
         If (!$userDetails.LocalAdmin) {
-            Add-LocalGroupMember -Group Administrators -Member $UserName -ErrorAction Stop
+            Add-LocalGroupMember -Group (Get-LocalAdminGroup) -Member $UserName -ErrorAction Stop
         }
         # Set the $UserName password to never expire
         If ($userDetails.PasswordExpires) {
@@ -335,13 +343,7 @@ Function Get-LocalAdminGroupMembers {
     $wmiEnumOpts = New-Object System.Management.EnumerationOptions
     $wmiEnumOpts.BlockSize = 20
 
-    $argList = @{
-        "Class"        = "Win32_Group"
-        "ComputerName" = '.'
-        "Filter"       = "LocalAccount=TRUE AND SID='S-1-5-32-544'"
-    }
-
-    $localAdmins = Get-WmiObject @argList | Foreach-Object {
+    $localAdmins = Get-LocalAdminGroup | Foreach-Object {
         Return $_.GetRelated("Win32_Account", "Win32_GroupUser", "", "", "PartComponent", "GroupComponent", $false, $wmiEnumOpts)
     }
 
@@ -353,26 +355,22 @@ Function Get-LocalAdminGroupMembers {
     Return $localAdmins
 }
 
-Function Get-LocalAdminGroupName {
-    Return (Get-LocalAdminGroupMembers)[0].Name
-}
-
 Function Remove-FromLocalAdminGroup ($UserName) {
     If (!$UserName) { Throw 'You must provide a username!'; Return; }
-    If (!(Get-IsLocalAdmin $UserName)) { Write-Output "Successfully verified [$UserName] is not in the local Administrators group"; Return; }
+    If (!(Get-IsLocalAdmin $UserName)) { Write-Output "Successfully verified [$UserName] is not in the local $((Get-LocalAdminGroup).Name) group"; Return; }
 
     If ($psVers -lt 5.1) {
-        &cmd.exe /c "net localgroup Administrators $UserName /delete" | Out-Null
+        &cmd.exe /c "net localgroup $((Get-LocalAdminGroup).Name) $UserName /delete" | Out-Null
 
-        If (Get-IsLocalAdmin $UserName) { Throw "Failed to remove [$UserName] from the local [Administrators] group"; Return; }
+        If (Get-IsLocalAdmin $UserName) { Throw "Failed to remove [$UserName] from the local [$((Get-LocalAdminGroup).Name)] group"; Return; }
 
-        Write-Output "Successfully removed [$UserName] from the local Administrators group"
+        Write-Output "Successfully removed [$UserName] from the local $((Get-LocalAdminGroup).Name) group"
     } Else {
         Try {
-            Remove-LocalGroupMember -Member $UserName -Group Administrators -ErrorAction Stop
-            Write-Output "Successfully removed [$UserName] from the local Administrators group"
+            Remove-LocalGroupMember -Member $UserName -Group (Get-LocalAdminGroup) -ErrorAction Stop
+            Write-Output "Successfully removed [$UserName] from the local $((Get-LocalAdminGroup).Name) group"
         } Catch {
-            Throw "Failed to remove [$UserName] from the local [Administrators] group. $($Error[0])"
+            Throw "Failed to remove [$UserName] from the local [$((Get-LocalAdminGroup).Name)] group. $($Error[0])"
         }
     }
 }
