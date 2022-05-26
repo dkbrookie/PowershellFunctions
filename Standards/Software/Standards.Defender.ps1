@@ -48,25 +48,19 @@ Function Get-Verification {
 
   If ($s1Installed) {
     # S1 is installed so we want Defender in passive mode
-    If (($mode -eq 'Passive') -or ($mode -eq 'SxS Passive')) {
-      $result = $True
-    } Else {
+    If ($mode -ne 'Passive' -and $mode -ne 'SxS Passive') {
       # Defender is not running in passive mode
       $nonComplianceReason += "SentinelOne is installed, but Defender does not appear to be in passive mode."
       $outputLog += "SentinelOne is installed but Defender is not running in either 'Passive' or 'SxS Passive' mode. It is running in '$mode' mode."
     }
-  } Else {
+  } ElseIf ($mode -ne 'Normal') {
     # S1 is not installed, so we want Defender to be active
-    If (!($mode -eq 'Normal')) {
-      $result = $True
-    } Else {
-      $nonComplianceReason += "SentinelOne is not installed and Defender is running in '$mode' mode. "
-        + "We want Defender running in 'Normal' mode when SentinelOne is missing."
-    }
+    $nonComplianceReason += "SentinelOne is not installed and Defender is running in '$mode' mode. "
+      + "We want Defender running in 'Normal' mode when SentinelOne is missing."
   }
 
   If ($defenderStatus.DefenderSignaturesOutOfDate) {
-
+    $nonComplianceReason += "Defender definitions are out of date."
   }
 
   Return @{
