@@ -36,6 +36,8 @@ Function Check-VersionString {
   # If they're an exact match, or $CheckAgainst is 'x' on its own, we can quickly call that a pass
   If (($Version -eq $CheckAgainst) -or ('x' -eq $CheckAgainst)) { Return $True }
 
+  $CheckAgainst = $CheckAgainst.replace('*', 'x')
+
   If ($CheckAgainst -like '*x*') {
     If ($CheckAgainst -like '*^*') { Throw '$CheckAgainst can ONLY contain a carrot OR a `x`, not both!'; Return; }
 
