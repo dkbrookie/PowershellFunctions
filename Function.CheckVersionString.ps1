@@ -147,6 +147,8 @@ Function Test-CheckVersionString {
   $moreSpecificCarrot = Check-VersionString -Version '1.2.3' -CheckAgainst '^1.2'
   $higherMajorCarrot = Check-VersionString -Version '3.1.3' -CheckAgainst '^1.2'
   $lowerMajorCarrot = Check-VersionString -Version '1.4.3' -CheckAgainst '^2.2'
+  $hugeMinorCarrot = Check-VersionString -Version '1.4345.3' -CheckAgainst '^2.2'
+  $hugePatchCarrot = Check-VersionString -Version '1.4.3657543' -CheckAgainst '^2.2'
 
   # Expecting $True
   If ($higherCarrot -ne $True) {
@@ -176,6 +178,16 @@ Function Test-CheckVersionString {
   # Expecting $False
   If ($lowerMajorCarrot -ne $False) {
     $failedTests += Format-Output '$lowerMajorCarrot' $False $lowerMajorCarrot $failedTests
+  }
+
+  # Expecting $False
+  If ($hugeMinorCarrot -ne $False) {
+    $failedTests += Format-Output '$hugeMinorCarrot' $False $hugeMinorCarrot $failedTests
+  }
+
+  # Expecting $False
+  If ($hugePatchCarrot -ne $False) {
+    $failedTests += Format-Output '$hugePatchCarrot' $False $hugePatchCarrot $failedTests
   }
 
   # X tests
