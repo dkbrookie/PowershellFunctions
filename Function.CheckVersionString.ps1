@@ -33,19 +33,52 @@ Function Check-VersionString {
     [string]$Version
   )
 
-  If ($CheckAgainst -contains 'x') {
-    If ($CheckAgainst -contains '^') { Throw '$CheckAgainst can ONLY contain a carrot OR a `x`, not both!'; Return; }
+  # If they're an exact match, or $CheckAgainst is 'x' on its own, we can quickly call that a pass
+  If (($Version -eq $CheckAgainst) -or ('x' -eq $CheckAgainst)) { Return $True }
+
+  If ($CheckAgainst -like '*x*') {
+    If ($CheckAgainst -like '*^*') { Throw '$CheckAgainst can ONLY contain a carrot OR a `x`, not both!'; Return; }
 
     # Ensure the `x` is in the last position
     If ($CheckAgainst[-1] -ne 'x') { Throw 'An `x` needs to be the LAST character, like: 1.2.x NOT 1.x.3'; Return; }
 
-    # Ensure the `x` is immediately following a dot
-    If ($CheckAgainst[-2] -ne '.') { Throw 'An `x` needs to be the only character in its group, like: 1.2.x NOT 1.2.3x'; Return; }
+    # Ensure the `x` is immediately following a dot as long as there are dots ('x' by itself shouldn't throw)
+    If (($CheckAgainst[-2] -ne '.') -and ($CheckAgainst.split('.').length -gt 1)) {
+      Throw "An `x` needs to be the only character in its group, like: 1.2.x NOT 1.2.3x. Got: $CheckAgainst"; Return; }
 
+    ###
     # Remove the group with the `x` and remove the same group and anything following from the version string being checked
-    $numSectionsCheckAgainst = $CheckAgainst.split('.')
-    $numSectionsToCheck = $Version.split('.')
+    ###
+
+    # Split by dot and remove the x and the dot (1.2.x becomes 1.2)
+    $numSectionsCheckAgainst = $CheckAgainst.split('.').length - 2
+    $checkAgainstWithoutX = $CheckAgainst.split('.')[0..$numSectionsCheckAgainst]
+
+    # Make the "to check" the same number of sections b/c we don't care about anything after the '.x' (using the same 'checkagainst' as above, 1.4.5 becomes 1.4)
+    $toCheckSameLength = $Version.split('.')[0..($checkAgainstWithoutX.length - 1)]
+
+    # Loop through each entry in each string and check each against eachother from beginning to end
+    # If any section in 'to check' is not equal to the corresponding section in 'check against' then the string we're checking has failed
+    For ($i = 0; $i -lt $checkAgainstWithoutX.length; $i++) {
+      $toCheckSection = $toCheckSameLength[$i]
+      $checkAgainstSection = $checkAgainstWithoutX[$i]
+
+      If ($toCheckSection -ne $checkAgainstSection) {
+        # If $toCheckSection is not the same as $checkAgainstSection, it failed
+        Return $False
+      }
+    }
+
+    # If we made it all the way through the loop without returning $False, we can return $True
+    Return $True
   }
+
+  # If there's a carrot in the string, we want to pass if $Version is larger
+  If (($CheckAgainst -like '*^*') -and ($Version -gt $CheckAgainst.split('^')[-1])) {
+    Return $True
+  }
+
+  Return $False
 }
 
 Function Test-CheckVersionString {
@@ -53,7 +86,7 @@ Function Test-CheckVersionString {
   $ErrorActionPreference = 'Continue'
 
   function Format-Output ($name, $expected, $value, $tests) {
-    Return "Test $($tests.length + 1): $name failed! Expected '$expected' but got '$value'"
+    Return "Failed Test $($tests.length + 1): $name failed! Expected '$expected' but got '$value'"
   }
 
   # Make sure the function exists
@@ -112,10 +145,12 @@ Function Test-CheckVersionString {
   $lowerCarrot = Check-VersionString -Version '1.2.3' -CheckAgainst '^1.2.4'
   $lessSpecificCarrot = Check-VersionString -Version '1.2' -CheckAgainst '^1.2.4'
   $moreSpecificCarrot = Check-VersionString -Version '1.2.3' -CheckAgainst '^1.2'
+  $higherMajorCarrot = Check-VersionString -Version '3.1.3' -CheckAgainst '^1.2'
+  $lowerMajorCarrot = Check-VersionString -Version '1.4.3' -CheckAgainst '^2.2'
 
   # Expecting $True
   If ($higherCarrot -ne $True) {
-    $failedTests += Format-Output '$higherCarrot' $False $higherCarrot $failedTests
+    $failedTests += Format-Output '$higherCarrot' $True $higherCarrot $failedTests
   }
 
   # Expecting $False
@@ -130,7 +165,17 @@ Function Test-CheckVersionString {
 
   # Expecting $True
   If ($moreSpecificCarrot -ne $True) {
-    $failedTests += Format-Output '$moreSpecificCarrot' $False $moreSpecificCarrot $failedTests
+    $failedTests += Format-Output '$moreSpecificCarrot' $True $moreSpecificCarrot $failedTests
+  }
+
+  # Expecting $True
+  If ($higherMajorCarrot -ne $True) {
+    $failedTests += Format-Output '$higherMajorCarrot' $True $higherMajorCarrot $failedTests
+  }
+
+  # Expecting $False
+  If ($lowerMajorCarrot -ne $False) {
+    $failedTests += Format-Output '$lowerMajorCarrot' $False $lowerMajorCarrot $failedTests
   }
 
   # X tests
@@ -184,27 +229,6 @@ Function Test-CheckVersionString {
     $failedTests += Format-Output '$majorXThree' $True $majorXThree $failedTests
   }
 
-
-  # Expecting $True
-  If ($higherCarrot -ne $True) {
-    $failedTests += Format-Output '$higherCarrot' $False $higherCarrot $failedTests
-  }
-
-  # Expecting $False
-  If ($lowerCarrot -ne $False) {
-    $failedTests += Format-Output '$lowerCarrot' $False $lowerCarrot $failedTests
-  }
-
-  # Expecting $False
-  If ($lessSpecificCarrot -ne $False) {
-    $failedTests += Format-Output '$lessSpecificCarrot' $False $lessSpecificCarrot $failedTests
-  }
-
-  # Expecting $True
-  If ($moreSpecificCarrot -ne $True) {
-    $failedTests += Format-Output '$moreSpecificCarrot' $False $moreSpecificCarrot $failedTests
-  }
-
   # Enumerate results
   $numFailed = $failedTests.length
   If ($numFailed -gt 0) {
@@ -212,6 +236,6 @@ Function Test-CheckVersionString {
     Write-Output "`n"
     Write-Output "xxxx --------- $numFailed tests failed --------- xxxx"
   } Else {
-    Write-Output "All tests passed!"
+    Write-Output "Congratulations! All tests passed!"
   }
 }
