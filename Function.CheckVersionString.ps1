@@ -2,17 +2,17 @@
 
 Check-VersionString
 
-**NOTE: While using similar semantics, DOES NOT adhere to semver spec**
+xxNOTE: While using similar semantics, DOES NOT adhere to semver specxx
 
 Checks two version strings against one another and returns $True or $False signaling whether the -Version string satisfies the
-requirement defined by the -CheckAgainst string. Only supports exact match, carrot `^`, star `*` and tilde `~` characters.
+requirement defined by the -CheckAgainst string. Only supports exact match, carrot `^`, `x` and tilde `~` characters.
 
-An exact match only returns true if the two strings match exactly and DO NOT contain a carrot or a star character.
+An exact match only returns true if the two strings match exactly and DO NOT contain a carrot or a `x` character.
 
 If a carrot exists as the first character of the CheckAgainst string, the Version string will pass if it is any version larger than
 the specified version.
 
-If a star exists as one of the digits, any version will pass, from the point of the star onward.
+If a `x` exists as one of the digits, any version will pass, from the point of the `x` onward.
 
 .Parameter CheckAgainst
 Specifies the required/benchmark version string
@@ -33,7 +33,19 @@ Function Check-VersionString {
     [string]$Version
   )
 
-  Return $True
+  If ($CheckAgainst -contains 'x') {
+    If ($CheckAgainst -contains '^') { Throw '$CheckAgainst can ONLY contain a carrot OR a `x`, not both!'; Return; }
+
+    # Ensure the `x` is in the last position
+    If ($CheckAgainst[-1] -ne 'x') { Throw 'An `x` needs to be the LAST character, like: 1.2.x NOT 1.x.3'; Return; }
+
+    # Ensure the `x` is immediately following a dot
+    If ($CheckAgainst[-2] -ne '.') { Throw 'An `x` needs to be the only character in its group, like: 1.2.x NOT 1.2.3x'; Return; }
+
+    # Remove the group with the `x` and remove the same group and anything following from the version string being checked
+    $numSectionsCheckAgainst = $CheckAgainst.split('.')
+    $numSectionsToCheck = $Version.split('.')
+  }
 }
 
 Function Test-CheckVersionString {
@@ -121,55 +133,55 @@ Function Test-CheckVersionString {
     $failedTests += Format-Output '$moreSpecificCarrot' $False $moreSpecificCarrot $failedTests
   }
 
-  # Star tests
-  $patchStarExact = Check-VersionString -Version '1.2.3' -CheckAgainst '1.2.*'
-  $patchStarHigher = Check-VersionString -Version '1.3.3' -CheckAgainst '1.2.*'
-  $patchStarLower = Check-VersionString -Version '1.1.3' -CheckAgainst '1.2.*'
+  # X tests
+  $patchXExact = Check-VersionString -Version '1.2.3' -CheckAgainst '1.2.x'
+  $patchXHigher = Check-VersionString -Version '1.3.3' -CheckAgainst '1.2.x'
+  $patchXLower = Check-VersionString -Version '1.1.3' -CheckAgainst '1.2.x'
 
-  $minorStarExact = Check-VersionString -Version '1.2.3' -CheckAgainst '1.*'
-  $minorStarHigher = Check-VersionString -Version '1.3.3' -CheckAgainst '1.*'
-  $minorStarLower = Check-VersionString -Version '1.1.3' -CheckAgainst '1.*'
-  $minorStarMajorHigher = Check-VersionString -Version '2.1.3' -CheckAgainst '1.*'
-  $minorStarMajorLower = Check-VersionString -Version '0.1.3' -CheckAgainst '1.*'
+  $minorXExact = Check-VersionString -Version '1.2.3' -CheckAgainst '1.x'
+  $minorXHigher = Check-VersionString -Version '1.3.3' -CheckAgainst '1.x'
+  $minorXLower = Check-VersionString -Version '1.1.3' -CheckAgainst '1.x'
+  $minorXMajorHigher = Check-VersionString -Version '2.1.3' -CheckAgainst '1.x'
+  $minorXMajorLower = Check-VersionString -Version '0.1.3' -CheckAgainst '1.x'
 
-  $majorStarOne = Check-VersionString -Version '1' -CheckAgainst '*'
-  $majorStarTwo = Check-VersionString -Version '1.2' -CheckAgainst '*'
-  $majorStarThree = Check-VersionString -Version '1.2.3' -CheckAgainst '*'
+  $majorXOne = Check-VersionString -Version '1' -CheckAgainst 'x'
+  $majorXTwo = Check-VersionString -Version '1.2' -CheckAgainst 'x'
+  $majorXThree = Check-VersionString -Version '1.2.3' -CheckAgainst 'x'
 
-  If ($patchStarExact -ne $True) {
-    $failedTests += Format-Output '$patchStarExact' $False $patchStarExact $failedTests
+  If ($patchXExact -ne $True) {
+    $failedTests += Format-Output '$patchXExact' $False $patchXExact $failedTests
   }
-  If ($patchStarHigher -ne $False) {
-    $failedTests += Format-Output '$patchStarHigher' $False $patchStarHigher $failedTests
+  If ($patchXHigher -ne $False) {
+    $failedTests += Format-Output '$patchXHigher' $False $patchXHigher $failedTests
   }
-  If ($patchStarLower -ne $False) {
-    $failedTests += Format-Output '$patchStarLower' $False $patchStarLower $failedTests
-  }
-
-  If ($minorStarExact -ne $True) {
-    $failedTests += Format-Output '$minorStarExact' $True $minorStarExact $failedTests
-  }
-  If ($minorStarHigher -ne $True) {
-    $failedTests += Format-Output '$minorStarHigher' $True $minorStarHigher $failedTests
-  }
-  If ($minorStarLower -ne $True) {
-    $failedTests += Format-Output '$minorStarLower' $True $minorStarLower $failedTests
-  }
-  If ($minorStarMajorHigher -ne $False) {
-    $failedTests += Format-Output '$minorStarMajorHigher' $False $minorStarMajorHigher $failedTests
-  }
-  If ($minorStarMajorLower -ne $False) {
-    $failedTests += Format-Output '$minorStarMajorLower' $False $minorStarMajorLower $failedTests
+  If ($patchXLower -ne $False) {
+    $failedTests += Format-Output '$patchXLower' $False $patchXLower $failedTests
   }
 
-  If ($majorStarOne -ne $True) {
-    $failedTests += Format-Output '$majorStarOne' $True $majorStarOne $failedTests
+  If ($minorXExact -ne $True) {
+    $failedTests += Format-Output '$minorXExact' $True $minorXExact $failedTests
   }
-  If ($majorStarTwo -ne $True) {
-    $failedTests += Format-Output '$majorStarTwo' $True $majorStarTwo $failedTests
+  If ($minorXHigher -ne $True) {
+    $failedTests += Format-Output '$minorXHigher' $True $minorXHigher $failedTests
   }
-  If ($majorStarThree -ne $True) {
-    $failedTests += Format-Output '$majorStarThree' $True $majorStarThree $failedTests
+  If ($minorXLower -ne $True) {
+    $failedTests += Format-Output '$minorXLower' $True $minorXLower $failedTests
+  }
+  If ($minorXMajorHigher -ne $False) {
+    $failedTests += Format-Output '$minorXMajorHigher' $False $minorXMajorHigher $failedTests
+  }
+  If ($minorXMajorLower -ne $False) {
+    $failedTests += Format-Output '$minorXMajorLower' $False $minorXMajorLower $failedTests
+  }
+
+  If ($majorXOne -ne $True) {
+    $failedTests += Format-Output '$majorXOne' $True $majorXOne $failedTests
+  }
+  If ($majorXTwo -ne $True) {
+    $failedTests += Format-Output '$majorXTwo' $True $majorXTwo $failedTests
+  }
+  If ($majorXThree -ne $True) {
+    $failedTests += Format-Output '$majorXThree' $True $majorXThree $failedTests
   }
 
 
@@ -198,7 +210,7 @@ Function Test-CheckVersionString {
   If ($numFailed -gt 0) {
     Write-Output ($failedTests -join "`n")
     Write-Output "`n"
-    Write-Output "**** --------- $numFailed tests failed --------- ****"
+    Write-Output "xxxx --------- $numFailed tests failed --------- xxxx"
   } Else {
     Write-Output "All tests passed!"
   }
