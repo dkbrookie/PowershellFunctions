@@ -13,7 +13,6 @@ Function Get-Verification {
 
     Return @{
       OutputLog = $outputLog
-      Result = $False
       NonComplianceReason = $nonComplianceReason
     }
   }
@@ -27,7 +26,6 @@ Function Get-Verification {
 
     Return @{
       OutputLog = $outputLog
-      Result = $False
       NonComplianceReason = $nonComplianceReason
     }
   }

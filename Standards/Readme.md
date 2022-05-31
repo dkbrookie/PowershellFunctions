@@ -6,14 +6,14 @@ All standards scripts need to conform to this format:
 # No parameters. Function should ALWAYS be called "Get-Verification"
 Function Get-Verification {
   $output = @()
+  $nonComplianceReason = @()
 
   # Some logic here...
   # Any output appended to $output like: $output += 'Some message'
 
   Return @{
     outputLog = $output
-    result = $true # boolean indicating whether machine is compliant with this standard
-    nonComplianceReason = $Null # should be $Null if machine is compliant and should provide a brief summary of why machine is noncompliant
+    nonComplianceReason = $nonComplianceReason # should be empty array if machine is compliant and an array of string reasons if machine is noncompliant
   }
 }
 ```
