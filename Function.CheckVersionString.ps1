@@ -75,9 +75,11 @@ Function Check-VersionString {
     Return $True
   }
 
-  # If there's a carrot in the string, we want to pass if $Version is larger
-  If (($CheckAgainst -like '*^*') -and ($Version -gt $CheckAgainst.split('^')[-1])) {
-    Return $True
+  # If there's a carrot in the string, we want to pass if $Version is larger OR the same (after removing the carrot)
+  If (($CheckAgainst -like '*^*')) {
+    If (($Version -gt $CheckAgainst.split('^')[-1]) -or ($Version -eq $CheckAgainst.replace('^', ''))) {
+      Return $True
+    }
   }
 
   Return $False
@@ -143,6 +145,7 @@ Function Test-CheckVersionString {
   # ------------------------------------------------------------------------- #
 
   # Carrot tests
+  $sameCarrot = Check-VersionString -Version '1.2.3' -CheckAgainst '^1.2.3'
   $higherCarrot = Check-VersionString -Version '1.2.3' -CheckAgainst '^1.2.2'
   $lowerCarrot = Check-VersionString -Version '1.2.3' -CheckAgainst '^1.2.4'
   $lessSpecificCarrot = Check-VersionString -Version '1.2' -CheckAgainst '^1.2.4'
@@ -151,6 +154,11 @@ Function Test-CheckVersionString {
   $lowerMajorCarrot = Check-VersionString -Version '1.4.3' -CheckAgainst '^2.2'
   $hugeMinorCarrot = Check-VersionString -Version '1.4345.3' -CheckAgainst '^2.2'
   $hugePatchCarrot = Check-VersionString -Version '1.4.3657543' -CheckAgainst '^2.2'
+
+  # Expecting $True
+  If ($sameCarrot -ne $True) {
+    $failedTests += Format-Output '$sameCarrot' $True $sameCarrot $failedTests
+  }
 
   # Expecting $True
   If ($higherCarrot -ne $True) {
