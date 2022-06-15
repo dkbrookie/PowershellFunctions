@@ -42,6 +42,9 @@ Function Merge-ObjectCollections {
         # If the same key exists in the right, assign it to the left
         If ($Null -ne $rightValue) {
           $newHashtable[$name] = $rightValue
+        } ElseIf (($Null -eq $rightValue) -and ($entry.ContainsKey($name))) {
+          # Entry exists on the right, but it's explicity set to $Null which signals we should delete it from the result. NO ACTION here causes this result.
+          # Purposeful No-Op
         } Else {
           $newHashtable[$name] = $leftValue
         }
@@ -69,6 +72,7 @@ Function Merge-ObjectCollections {
         @{
           Name = 'Test'
           Prop1 = $False
+          Prop3 = $True
           Obj = @{
             SomeKey = 'SomeValue'
             AnotherKey = 'a value'
@@ -85,6 +89,7 @@ Function Merge-ObjectCollections {
             Name = 'Test'
             Prop1 = $True
             Prop2 = $True
+            Prop3 = $Null
             Obj = @{
               SomeKey = 'SomeOtherValue'
               AnotherKey = 'some value'
@@ -105,12 +110,17 @@ Function Merge-ObjectCollections {
 
     $prop1 = $testEntry.Prop1
     If ($prop1 -ne $True) {
-      Throw "Prop1 is not True! It is $prop1"
+      Throw "Prop1 is not True! It is '$prop1'"
     }
 
     $prop2 = $testEntry.Prop1
     If ($prop2 -ne $True) {
-      Throw "Prop2 is not True! It is $prop2"
+      Throw "Prop2 is not True! It is '$prop2'"
+    }
+
+    $prop3 = $testEntry.Prop3
+    If ($Null -ne $prop3) {
+      Throw "Prop3 should not exist! It does! It is '$prop3'"
     }
 
     $someKey = $testEntry.Obj.SomeKey
