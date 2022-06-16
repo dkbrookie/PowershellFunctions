@@ -1,16 +1,29 @@
 Function Merge-ObjectCollections {
     [CmdletBinding()]
     param (
-      [Parameter(Mandatory=$True)]
       [hashtable[]]
       $Left,
-      [Parameter(Mandatory=$True)]
       [hashtable[]]
       $Right,
       [Parameter(Mandatory=$True)]
       [string]
       $MatchKey
     )
+
+    # If both right and left are missing, just return an empty hashtable array
+    If (($Left.Length -eq 0) -and ($Right.Length -eq 0)) {
+      Return @(@{})
+    }
+
+    # If $Left is missing / empty, we can just return right as-is
+    If ($Left.Length -eq 0) {
+      Return $Right
+    }
+
+    # If $Right is missing / empty, we can just return left as-is
+    If ($Right.Length -eq 0) {
+      Return $Left
+    }
 
     $Right | ForEach-Object {
       $entry = $_
