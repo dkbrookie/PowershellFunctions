@@ -25,13 +25,15 @@ Function Merge-ObjectCollections {
       Return $Left
     }
 
+    $newArr = @()
+
     $Right | ForEach-Object {
       $entry = $_
       $leftMatchingEntry = $Left | Where-Object { $_[$MatchKey] -eq $entry[$MatchKey] }
 
       # If Left doesn't have an entry with this MatchKey, we can just add the entry to the Left collection
       If (!$leftMatchingEntry) {
-        $Left += $entry
+        $newArr += $entry
         Return
       }
 
@@ -66,13 +68,11 @@ Function Merge-ObjectCollections {
       # We have to get wild here b/c of powershell's strange implicit casting behavior... If we don't define a new array and reassign, we end up
       # with a dictionary instead of an array and an error stating that we can't add another entry with a matching property "Name"?
 
-      $newArr = @()
-
       $newArr += $leftNotMatchingEntries
       $newArr += $newHashtable
-
-      Return $newArr
     }
+
+    Return $newArr
   }
 
   Function Test-MergeObjectCollections {
@@ -108,6 +108,10 @@ Function Merge-ObjectCollections {
               AnotherKey = 'some value'
             }
           }
+          @{
+            Name = 'Test2'
+            Prop1 = $True
+          }
         )
       }
     }
@@ -115,6 +119,7 @@ Function Merge-ObjectCollections {
     $result = Merge-ObjectCollections -Left $configuration.Software -Right $overrideConfig.Software.Entries -MatchKey $overrideConfig.Software.MatchKey
 
     $testEntry = $result | Where-Object { $_.Name -eq 'Test' }
+    $test2Entry = $result | Where-Object { $_.Name -eq 'Test2' }
 
     $resultLength = $testEntry.length
     If ($resultLength -ne 1) {
@@ -123,17 +128,22 @@ Function Merge-ObjectCollections {
 
     $prop1 = $testEntry.Prop1
     If ($prop1 -ne $True) {
-      Throw "Prop1 is not True! It is '$prop1'"
+      Throw "Prop1 of test entry is not True! It is '$prop1'"
     }
 
     $prop2 = $testEntry.Prop1
     If ($prop2 -ne $True) {
-      Throw "Prop2 is not True! It is '$prop2'"
+      Throw "Prop2 of test entry is not True! It is '$prop2'"
     }
 
     $prop3 = $testEntry.Prop3
     If ($Null -ne $prop3) {
-      Throw "Prop3 should not exist! It does! It is '$prop3'"
+      Throw "Prop3 of test entry should not exist! It does! It is '$prop3'"
+    }
+
+    $prop1_2 = $test2Entry.Prop1
+    If ($prop1_2 -ne $True) {
+      Throw "Prop1 of test2 entry is not True! It is '$prop1_2'"
     }
 
     $someKey = $testEntry.Obj.SomeKey
