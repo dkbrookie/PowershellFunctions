@@ -30,6 +30,7 @@ Function Merge-ObjectCollections {
     $Right | ForEach-Object {
       $entry = $_
       $leftMatchingEntry = $Left | Where-Object { $_[$MatchKey] -eq $entry[$MatchKey] }
+      $rightMatchingEntry = $Right | Where-Object { $_[$MatchKey] -eq $entry[$MatchKey] }
 
       # If Left doesn't have an entry with this MatchKey, we can just add the entry to the Left collection
       If (!$leftMatchingEntry) {
@@ -37,17 +38,18 @@ Function Merge-ObjectCollections {
         Return
       }
 
-      $numMatching = $leftMatchingEntry.length
+      If ($rightNumMatching -gt 1) {
+        Throw "The collection provided to Merge-Collection must have unique -MatchKey values. There were $rightNumMatching entries with -MatchKey '$MatchKey' value of '$($entry[$MatchKey])'"
+      }
 
-      If ($numMatching -gt 1) {
-        Throw "The collection provided to Merge-Collection must have unique -MatchKey values. There were $numMatching entries with -MatchKey '$MatchKey' value of '$($entry[$MatchKey])'"
+      # If Left doesn't have an entry with this MatchKey, we can just return it
+      If (!$leftMatchingEntry) {
+        Return $entry
       }
 
       # If Left does have an entry with a matching matchkey, we need to pick through the properties and replace them where an override exists,
       # allow non-overridden keys to stay, and add any new ones
-      $leftNotMatchingEntries = $Left | Where-Object { $_[$MatchKey] -ne $entry[$MatchKey] }
-
-      $newHashtable = @{}
+      # $leftNotMatchingEntries = $Left | Where-Object { $_[$MatchKey] -ne $entry[$MatchKey] }
 
       $leftMatchingEntry.Keys | ForEach-Object {
         $name = $_
@@ -92,6 +94,14 @@ Function Merge-ObjectCollections {
           }
         }
       )
+      Users = @(
+        @{
+          Name                = 'Base Workstation Local Admin Control'
+          LocalAdmins         = @('wks_dkbtech', 'lcl_dkbtech')
+          EnforceAddListed    = $False
+          EnforceRemoveOthers = $False
+        }
+      )
     }
 
     $overrideConfig = @{
@@ -114,16 +124,27 @@ Function Merge-ObjectCollections {
           }
         )
       }
+
+      Users      = @{
+        MatchKey = 'Name'
+        Entries  = @(
+          @{
+            Name        = 'DKB Specific Local Admin Control'
+            LocalAdmins = @('dkb')
+          }
+        )
+      }
     }
 
-    $result = Merge-ObjectCollections -Left $configuration.Software -Right $overrideConfig.Software.Entries -MatchKey $overrideConfig.Software.MatchKey
+    $softwareResult = Merge-ObjectCollections -Left $configuration.Software -Right $overrideConfig.Software.Entries -MatchKey $overrideConfig.Software.MatchKey
+    $usersResult = Merge-ObjectCollections -Left $configuration.Users -Right $overrideConfig.Users.Entries -MatchKey $overrideConfig.Users.MatchKey
 
     $testEntry = $result | Where-Object { $_.Name -eq 'Test' }
     $test2Entry = $result | Where-Object { $_.Name -eq 'Test2' }
 
-    $resultLength = $testEntry.length
-    If ($resultLength -ne 1) {
-      Throw "there is not exactly 1 entry for 'Test' ! There are $resultLength!"
+    $softwareResultLength = $testEntry.length
+    If ($softwareResultLength -ne 1) {
+      Throw "there is not exactly 1 entry for 'Test' ! There are $softwareResultLength!"
     }
 
     $prop1 = $testEntry.Prop1
@@ -151,7 +172,7 @@ Function Merge-ObjectCollections {
       Throw "Expected Obj.SomeKey to equal 'SomeOtherValue' but it did not. Instead, it was '$someKey'"
     }
 
-    $defenderEntry = $result | Where-Object { $_.Name -eq 'Defender' }
+    $defenderEntry = $softwareResult | Where-Object { $_.Name -eq 'Defender' }
     $defenderEntryLength = $defenderEntry.length
     If ($defenderEntryLength -ne 1) {
       Throw "Defender was not exactly 1 in quantity! There were $defenderEntryLength entries!"
@@ -159,6 +180,11 @@ Function Merge-ObjectCollections {
 
     If ($defenderEntry.Type -ne 'Script') {
       Throw "Defender entry type was not 'Script!"
+    }
+
+    $usersResultLength = $usersResult.length
+    If ($usersResultLength -ne 2) {
+      Throw "Expected `$usersResult.length to be 2! It was: $usersResultLength"
     }
 
     Write-Output "All tests passed!"
