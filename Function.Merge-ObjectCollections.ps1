@@ -83,6 +83,7 @@ Try {
   }
 }
 
+# TODO: change this to master URL when merging to production
 # Call in Merge-Objects
 (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/workstation-standards/Function.Merge-Objects.ps1') | Invoke-Expression
 
