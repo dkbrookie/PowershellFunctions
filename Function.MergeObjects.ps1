@@ -72,6 +72,7 @@ Merge-Objects -Left $config -Right $configOverride
 #>
 
 Function Merge-Objects {
+  [CmdletBinding()]
   param (
     $Left,
     $Right

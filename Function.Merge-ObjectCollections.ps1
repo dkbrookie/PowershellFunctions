@@ -84,97 +84,97 @@ Try {
 }
 
 # Call in Merge-Objects
-(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Merge-Objects.ps1') | Invoke-Expression
+(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/workstation-standards/Function.Merge-Objects.ps1') | Invoke-Expression
 
 Function Merge-ObjectCollections {
-    [CmdletBinding()]
-    param (
-      [hashtable[]]
-      $Left,
-      [hashtable[]]
-      $Right,
-      [Parameter(Mandatory=$True)]
-      [string]
-      $MatchKey
-    )
+  [CmdletBinding()]
+  param (
+    [hashtable[]]
+    $Left,
+    [hashtable[]]
+    $Right,
+    [Parameter(Mandatory=$True)]
+    [string]
+    $MatchKey
+  )
 
-    # If both right and left are missing, just return an empty hashtable array
-    If (($Left.Length -eq 0) -and ($Right.Length -eq 0)) {
-      Return @(@{})
-    }
-
-    # If $Left is missing / empty, we can just return right as-is
-    If ($Left.Length -eq 0) {
-      Return $Right
-    }
-
-    # If $Right is missing / empty, we can just return left as-is
-    If ($Right.Length -eq 0) {
-      Return $Left
-    }
-
-    # Can't continue if there are any duplicates of MatchKey value in right
-    $Right | Foreach-Object {
-      $val = $_[$MatchKey]
-      $length = ($Right | Where-Object { $_[$MatchKey] -eq $val }).Length
-      If ($length -gt 1) {
-        Throw "Entries in collection on -Right must have have unique values for '$MatchKey' property! There were $length entries with '$MatchKey' of '$val'!"
-        Break
-      }
-    }
-
-    # Can't continue if there are any duplicates of MatchKey value in left
-    $Left | Foreach-Object {
-      $val = $_[$MatchKey]
-      $length = ($Left | Where-Object { $_[$MatchKey] -eq $val }).Length
-      If ($length -gt 1) {
-        Throw "Entries in collection on -Left must have have unique values for '$MatchKey' property! There were $length entries with '$MatchKey' of '$val'!"
-        Break
-      }
-    }
-
-    $newArr = @()
-    $leftMatches = @()
-
-    # Find Matches from right to left by comparing MatchKey value, if matches are found, we want to merge them
-    $Right | Foreach-Object {
-      $newHashtable = @{}
-      $rightEntry = $_
-      $rightVal = $rightEntry[$MatchKey]
-      $leftMatching = $Left | Where-Object { $_[$MatchKey] -eq $rightVal }
-
-      # Compile a list of all left entries that had a match from the right so we can remove them from $Left later
-      $leftMatches += $leftMatching
-
-      # If array item has property "RemoveThisItem" and it's true, this array item should not be in the result whether it exists on the left or the right
-      If ($rightEntry.ContainsKey('RemoveThisItem') -and $rightEntry.RemoveThisItem -eq $True) {
-        Return
-      }
-
-      If ($leftMatching.Length -eq 1) {
-        # We landed at a matching entry, so merge the two
-        $newHashtable = Merge-Objects -Left $leftMatching -Right $rightEntry
-      } Else {
-        # No match for this right entry, so just add the entry as-is
-        $newHashtable = $rightEntry
-      }
-
-      # Add the new hashtable we built into the new array we're building
-      $newArr += $newHashtable
-    }
-
-    # Grab array items from the left that don't have a match on the right
-    $leftNotMatchingEntries = $Left | Foreach-Object {
-      # As long as this entry from $Left doesn't exist in $leftMatches return it
-      If ($leftMatches.IndexOf($_) -eq -1) {
-        Return $_
-      }
-    }
-
-    $newArr += $leftNotMatchingEntries
-
-    Return $newArr
+  # If both right and left are missing, just return an empty hashtable array
+  If (($Left.Length -eq 0) -and ($Right.Length -eq 0)) {
+    Return @(@{})
   }
+
+  # If $Left is missing / empty, we can just return right as-is
+  If ($Left.Length -eq 0) {
+    Return $Right
+  }
+
+  # If $Right is missing / empty, we can just return left as-is
+  If ($Right.Length -eq 0) {
+    Return $Left
+  }
+
+  # Can't continue if there are any duplicates of MatchKey value in right
+  $Right | Foreach-Object {
+    $val = $_[$MatchKey]
+    $length = ($Right | Where-Object { $_[$MatchKey] -eq $val }).Length
+    If ($length -gt 1) {
+      Throw "Entries in collection on -Right must have have unique values for '$MatchKey' property! There were $length entries with '$MatchKey' of '$val'!"
+      Break
+    }
+  }
+
+  # Can't continue if there are any duplicates of MatchKey value in left
+  $Left | Foreach-Object {
+    $val = $_[$MatchKey]
+    $length = ($Left | Where-Object { $_[$MatchKey] -eq $val }).Length
+    If ($length -gt 1) {
+      Throw "Entries in collection on -Left must have have unique values for '$MatchKey' property! There were $length entries with '$MatchKey' of '$val'!"
+      Break
+    }
+  }
+
+  $newArr = @()
+  $leftMatches = @()
+
+  # Find Matches from right to left by comparing MatchKey value, if matches are found, we want to merge them
+  $Right | Foreach-Object {
+    $newHashtable = @{}
+    $rightEntry = $_
+    $rightVal = $rightEntry[$MatchKey]
+    $leftMatching = $Left | Where-Object { $_[$MatchKey] -eq $rightVal }
+
+    # Compile a list of all left entries that had a match from the right so we can remove them from $Left later
+    $leftMatches += $leftMatching
+
+    # If array item has property "RemoveThisItem" and it's true, this array item should not be in the result whether it exists on the left or the right
+    If ($rightEntry.ContainsKey('RemoveThisItem') -and $rightEntry.RemoveThisItem -eq $True) {
+      Return
+    }
+
+    If ($leftMatching.Length -eq 1) {
+      # We landed at a matching entry, so merge the two
+      $newHashtable = Merge-Objects -Left $leftMatching -Right $rightEntry
+    } Else {
+      # No match for this right entry, so just add the entry as-is
+      $newHashtable = $rightEntry
+    }
+
+    # Add the new hashtable we built into the new array we're building
+    $newArr += $newHashtable
+  }
+
+  # Grab array items from the left that don't have a match on the right
+  $leftNotMatchingEntries = $Left | Foreach-Object {
+    # As long as this entry from $Left doesn't exist in $leftMatches return it
+    If ($leftMatches.IndexOf($_) -eq -1) {
+      Return $_
+    }
+  }
+
+  $newArr += $leftNotMatchingEntries
+
+  Return $newArr
+}
 
 function New-TestData {
   Return @{
