@@ -85,7 +85,7 @@ Function Test-VersionString {
   Return $False
 }
 
-Function Test-CheckVersionString {
+Function Test-TestVersionString {
   $failedTests = @()
   $ErrorActionPreference = 'Continue'
 
