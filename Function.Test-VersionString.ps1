@@ -2,27 +2,39 @@
 
 Test-VersionString
 
-xxNOTE: While using similar semantics, DOES NOT adhere to semver specxx
+**NOTE: While using similar semantics, DOES NOT adhere to semver spec**
 
 Checks two version strings against one another and returns $True or $False signaling whether the -StringToCheck string satisfies the
-requirement defined by the -CheckAgainst string. Only supports exact match, carrot `^`, `x` and tilde `~` characters.
+requirement defined by the -CheckAgainst string. Only supports exact match, carrot `^`, and `x` characters.
 
 An exact match only returns true if the two strings match exactly and DO NOT contain a carrot or a `x` character.
 
 If a carrot exists as the first character of the CheckAgainst string, the Version string will pass if it is any version larger than
 the specified version.
 
-If a `x` exists as one of the digits, any version will pass, from the point of the `x` onward.
+If an `x` exists as one of the digits, any version will pass, from the point of the `x` onward.
 
 .Parameter CheckAgainst
 Specifies the required/benchmark version string
 
-.Parameter Version
+.Parameter StringToCheck
 Specifies the version string being tested which will be checked against the CheckAgainst version string
 
 .Example
-Test-VersionString
+Test-VersionString -StringToCheck '1.2.3' -CheckAgainst '^1.2.3'
+# returns $True
 
+.Example
+Test-VersionString -StringToCheck '1.2.2' -CheckAgainst '^1.2.3'
+# returns $False
+
+.Example
+Test-VersionString -StringToCheck '1.3.3' -CheckAgainst '1.x'
+# returns $True
+
+.Example
+Test-VersionString -StringToCheck '2.1.3' -CheckAgainst '1.x'
+# returns $False
 #>
 Function Test-VersionString {
   [CmdletBinding()]
