@@ -4,7 +4,7 @@ Check-VersionString
 
 xxNOTE: While using similar semantics, DOES NOT adhere to semver specxx
 
-Checks two version strings against one another and returns $True or $False signaling whether the -Version string satisfies the
+Checks two version strings against one another and returns $True or $False signaling whether the -StringToCheck string satisfies the
 requirement defined by the -CheckAgainst string. Only supports exact match, carrot `^`, `x` and tilde `~` characters.
 
 An exact match only returns true if the two strings match exactly and DO NOT contain a carrot or a `x` character.
@@ -21,7 +21,7 @@ Specifies the required/benchmark version string
 Specifies the version string being tested which will be checked against the CheckAgainst version string
 
 .Example
-
+Check-VersionString
 
 #>
 Function Check-VersionString {
@@ -30,11 +30,11 @@ Function Check-VersionString {
     [Parameter(Mandatory = $True)]
     [string]$CheckAgainst,
     [Parameter(Mandatory = $True)]
-    [string]$Version
+    [string]$StringToCheck
   )
 
   # If they're an exact match, or $CheckAgainst is 'x' on its own, we can quickly call that a pass
-  If (($Version -eq $CheckAgainst) -or ('x' -eq $CheckAgainst)) { Return $True }
+  If (($StringToCheck -eq $CheckAgainst) -or ('x' -eq $CheckAgainst)) { Return $True }
 
   $CheckAgainst = $CheckAgainst.replace('*', 'x')
 
@@ -57,7 +57,7 @@ Function Check-VersionString {
     $checkAgainstWithoutX = $CheckAgainst.split('.')[0..$numSectionsCheckAgainst]
 
     # Make the "to check" the same number of sections b/c we don't care about anything after the '.x' (using the same 'checkagainst' as above, 1.4.5 becomes 1.4)
-    $toCheckSameLength = $Version.split('.')[0..($checkAgainstWithoutX.length - 1)]
+    $toCheckSameLength = $StringToCheck.split('.')[0..($checkAgainstWithoutX.length - 1)]
 
     # Loop through each entry in each string and check each against eachother from beginning to end
     # If any section in 'to check' is not equal to the corresponding section in 'check against' then the string we're checking has failed
@@ -75,9 +75,9 @@ Function Check-VersionString {
     Return $True
   }
 
-  # If there's a carrot in the string, we want to pass if $Version is larger OR the same (after removing the carrot)
+  # If there's a carrot in the string, we want to pass if $StringToCheck is larger OR the same (after removing the carrot)
   If (($CheckAgainst -like '*^*')) {
-    If (($Version -gt $CheckAgainst.split('^')[-1]) -or ($Version -eq $CheckAgainst.replace('^', ''))) {
+    If (($StringToCheck -gt $CheckAgainst.split('^')[-1]) -or ($StringToCheck -eq $CheckAgainst.replace('^', ''))) {
       Return $True
     }
   }
@@ -99,9 +99,9 @@ Function Test-CheckVersionString {
   }
 
   # Exact true tests
-  $exactOne = Check-VersionString -Version '1' -CheckAgainst '1'
-  $exactTwo = Check-VersionString -Version '1.2' -CheckAgainst '1.2'
-  $exactThree = Check-VersionString -Version '1.2.3' -CheckAgainst '1.2.3'
+  $exactOne = Check-VersionString -StringToCheck '1' -CheckAgainst '1'
+  $exactTwo = Check-VersionString -StringToCheck '1.2' -CheckAgainst '1.2'
+  $exactThree = Check-VersionString -StringToCheck '1.2.3' -CheckAgainst '1.2.3'
 
   # These should all be $True
   If ($exactOne -ne $True) {
@@ -119,10 +119,10 @@ Function Test-CheckVersionString {
   # ------------------------------------------------------------------------- #
 
   # Exact false tests
-  $higherExact = Check-VersionString -Version '1.2.3' -CheckAgainst '1.2.2'
-  $lowerExact = Check-VersionString -Version '1.2.3' -CheckAgainst '1.2.4'
-  $lessSpecificExact = Check-VersionString -Version '1.2' -CheckAgainst '1.2.4'
-  $moreSpecificExact = Check-VersionString -Version '1.2.3' -CheckAgainst '1.2'
+  $higherExact = Check-VersionString -StringToCheck '1.2.3' -CheckAgainst '1.2.2'
+  $lowerExact = Check-VersionString -StringToCheck '1.2.3' -CheckAgainst '1.2.4'
+  $lessSpecificExact = Check-VersionString -StringToCheck '1.2' -CheckAgainst '1.2.4'
+  $moreSpecificExact = Check-VersionString -StringToCheck '1.2.3' -CheckAgainst '1.2'
 
 
   # These should all be $False
@@ -145,15 +145,15 @@ Function Test-CheckVersionString {
   # ------------------------------------------------------------------------- #
 
   # Carrot tests
-  $sameCarrot = Check-VersionString -Version '1.2.3' -CheckAgainst '^1.2.3'
-  $higherCarrot = Check-VersionString -Version '1.2.3' -CheckAgainst '^1.2.2'
-  $lowerCarrot = Check-VersionString -Version '1.2.3' -CheckAgainst '^1.2.4'
-  $lessSpecificCarrot = Check-VersionString -Version '1.2' -CheckAgainst '^1.2.4'
-  $moreSpecificCarrot = Check-VersionString -Version '1.2.3' -CheckAgainst '^1.2'
-  $higherMajorCarrot = Check-VersionString -Version '3.1.3' -CheckAgainst '^1.2'
-  $lowerMajorCarrot = Check-VersionString -Version '1.4.3' -CheckAgainst '^2.2'
-  $hugeMinorCarrot = Check-VersionString -Version '1.4345.3' -CheckAgainst '^2.2'
-  $hugePatchCarrot = Check-VersionString -Version '1.4.3657543' -CheckAgainst '^2.2'
+  $sameCarrot = Check-VersionString -StringToCheck '1.2.3' -CheckAgainst '^1.2.3'
+  $higherCarrot = Check-VersionString -StringToCheck '1.2.3' -CheckAgainst '^1.2.2'
+  $lowerCarrot = Check-VersionString -StringToCheck '1.2.3' -CheckAgainst '^1.2.4'
+  $lessSpecificCarrot = Check-VersionString -StringToCheck '1.2' -CheckAgainst '^1.2.4'
+  $moreSpecificCarrot = Check-VersionString -StringToCheck '1.2.3' -CheckAgainst '^1.2'
+  $higherMajorCarrot = Check-VersionString -StringToCheck '3.1.3' -CheckAgainst '^1.2'
+  $lowerMajorCarrot = Check-VersionString -StringToCheck '1.4.3' -CheckAgainst '^2.2'
+  $hugeMinorCarrot = Check-VersionString -StringToCheck '1.4345.3' -CheckAgainst '^2.2'
+  $hugePatchCarrot = Check-VersionString -StringToCheck '1.4.3657543' -CheckAgainst '^2.2'
 
   # Expecting $True
   If ($sameCarrot -ne $True) {
@@ -201,19 +201,19 @@ Function Test-CheckVersionString {
   }
 
   # X tests
-  $patchXExact = Check-VersionString -Version '1.2.3' -CheckAgainst '1.2.x'
-  $patchXHigher = Check-VersionString -Version '1.3.3' -CheckAgainst '1.2.x'
-  $patchXLower = Check-VersionString -Version '1.1.3' -CheckAgainst '1.2.x'
+  $patchXExact = Check-VersionString -StringToCheck '1.2.3' -CheckAgainst '1.2.x'
+  $patchXHigher = Check-VersionString -StringToCheck '1.3.3' -CheckAgainst '1.2.x'
+  $patchXLower = Check-VersionString -StringToCheck '1.1.3' -CheckAgainst '1.2.x'
 
-  $minorXExact = Check-VersionString -Version '1.2.3' -CheckAgainst '1.x'
-  $minorXHigher = Check-VersionString -Version '1.3.3' -CheckAgainst '1.x'
-  $minorXLower = Check-VersionString -Version '1.1.3' -CheckAgainst '1.x'
-  $minorXMajorHigher = Check-VersionString -Version '2.1.3' -CheckAgainst '1.x'
-  $minorXMajorLower = Check-VersionString -Version '0.1.3' -CheckAgainst '1.x'
+  $minorXExact = Check-VersionString -StringToCheck '1.2.3' -CheckAgainst '1.x'
+  $minorXHigher = Check-VersionString -StringToCheck '1.3.3' -CheckAgainst '1.x'
+  $minorXLower = Check-VersionString -StringToCheck '1.1.3' -CheckAgainst '1.x'
+  $minorXMajorHigher = Check-VersionString -StringToCheck '2.1.3' -CheckAgainst '1.x'
+  $minorXMajorLower = Check-VersionString -StringToCheck '0.1.3' -CheckAgainst '1.x'
 
-  $majorXOne = Check-VersionString -Version '1' -CheckAgainst 'x'
-  $majorXTwo = Check-VersionString -Version '1.2' -CheckAgainst 'x'
-  $majorXThree = Check-VersionString -Version '1.2.3' -CheckAgainst 'x'
+  $majorXOne = Check-VersionString -StringToCheck '1' -CheckAgainst 'x'
+  $majorXTwo = Check-VersionString -StringToCheck '1.2' -CheckAgainst 'x'
+  $majorXThree = Check-VersionString -StringToCheck '1.2.3' -CheckAgainst 'x'
 
   If ($patchXExact -ne $True) {
     $failedTests += Format-Output '$patchXExact' $False $patchXExact $failedTests
