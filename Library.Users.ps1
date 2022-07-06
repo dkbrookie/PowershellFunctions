@@ -210,6 +210,103 @@ Function Set-LocalUserPass ($UserName, $Pass) {
     }
 }
 
+Function Add-ToLocalAdminGroup ($UserName) {
+    If (!$UserName) { Throw 'You must provide a username!'; Return; }
+
+    $userDetails = Get-LocalUserStatus -User $UserName
+
+    # Add the $UserName is in the local Administrators group if not a member currently
+    If ($userDetails -and !$userDetails.LocalAdmin) {
+        If ($psVers -lt 5.1) {
+            &cmd.exe /c "net localgroup $(Get-LocalAdminGroupName) $UserName /add" | Out-Null
+        } Else {
+            Add-LocalGroupMember -Group (Get-LocalAdminGroupName) -Member $UserName -ErrorAction Stop
+        }
+    }
+
+    # CMD doesn't give us any kind of validation or throw if something failed so we're going to validate and throw here if
+    # the user does not exist. Note the function called here is one defined in this script, not a default function
+    $userDetails = Get-LocalUserStatus -User $UserName
+
+    If (!$userDetails -or !$userDetails.LocalAdmin) {
+        Throw "Failed to add [$UserName] to the local admins group. If there was an error, it is likely printed right before this error, but no promises."
+    } Else {
+        Return "Verified [$UserName] is in the local [$(Get-LocalAdminGroupName)] group."
+    }
+}
+
+Function Set-PasswordNeverExpire ($UserName) {
+    If (!$UserName) { Throw 'You must provide a username!'; Return; }
+
+    $userDetails = Get-LocalUserStatus -User $UserName
+
+    If ($userDetails.PasswordExpires) {
+        If ($psVers -lt 5.1) {
+            &cmd.exe /c "wmic useraccount WHERE (LocalAccount=True AND Name='$UserName') set PasswordExpires=False" | Out-Null
+        } Else {
+            Set-LocalUser -Name $UserName -PasswordNeverExpires $true -ErrorAction Stop
+        }
+    }
+
+    # CMD doesn't give us any kind of validation or throw if something failed so we're going to validate and throw here if
+    # the user does not exist. Note the function called here is one defined in this script, not a default function
+    $userDetails = Get-LocalUserStatus -User $UserName
+
+    If (!$userDetails -or ($userDetails.PasswordExpires -ne 'Never')) {
+        Throw "Failed to set required password to never expire for [$UserName]. If there was an error, it is likely printed right before this error, but no promises."
+    } Else {
+        Return "Verified [$UserName] password is set to never expire."
+    }
+}
+
+Function Enable-User ($UserName) {
+    If (!$UserName) { Throw 'You must provide a username!'; Return; }
+
+    $userDetails = Get-LocalUserStatus -User $UserName
+
+    If (!$userDetails.Enabled) {
+        If ($psVers -lt 5.1) {
+            &cmd.exe /c "wmic useraccount WHERE (LocalAccount=True AND Name='$UserName') set Disabled=False" | Out-Null
+        } Else {
+            Enable-LocalUser -Name $UserName -ErrorAction Stop
+        }
+    }
+
+    # CMD doesn't give us any kind of validation or throw if something failed so we're going to validate and throw here if
+    # the user does not exist. Note the function called here is one defined in this script, not a default function
+    $userDetails = Get-LocalUserStatus -User $UserName
+
+    If (!$userDetails -or !$userDetails.Enabled) {
+        Throw "Failed to enable [$UserName]. If there was an error, it is likely printed right before this error, but no promises."
+    } Else {
+        Return "Verified [$UserName] is enabled."
+    }
+}
+
+Function Disable-User ($UserName) {
+    If (!$UserName) { Throw 'You must provide a username!'; Return; }
+
+    $userDetails = Get-LocalUserStatus -User $UserName
+
+    If ($userDetails.Enabled) {
+        If ($psVers -lt 5.1) {
+            &cmd.exe /c "wmic useraccount WHERE (LocalAccount=True AND Name='$UserName') set Disabled=True" | Out-Null
+        } Else {
+            Disable-LocalUser -Name $UserName -ErrorAction Stop
+        }
+    }
+
+    # CMD doesn't give us any kind of validation or throw if something failed so we're going to validate and throw here if
+    # the user does not exist. Note the function called here is one defined in this script, not a default function
+    $userDetails = Get-LocalUserStatus -User $UserName
+
+    If (!$userDetails -or $userDetails.Enabled) {
+        Throw "Failed to enable [$UserName]. If there was an error, it is likely printed right before this error, but no promises."
+    } Else {
+        Return "Verified [$UserName] is disabled."
+    }
+}
+
 Function Set-ExistingAccountConfig ($UserName) {
     <#
     .DESCRIPTION
@@ -224,51 +321,27 @@ Function Set-ExistingAccountConfig ($UserName) {
     #>
     If (!$UserName) { Throw 'You must provide a username!'; Return; }
 
-    $success = "Verified [$UserName] is in the local [$(Get-LocalAdminGroupName)] group," +
-        "verified [$UserName] password is set to never expire, and verified [$UserName] is enabled"
+    $output = ''
 
-    If ($psVers -lt 5.1) {
-        $userDetails = Get-LocalUserStatus -User $UserName
-
-        # Add the $UserName is in the local Administrators group if not a member currently
-        If (!$userDetails.LocalAdmin) {
-            &cmd.exe /c "net localgroup $(Get-LocalAdminGroupName) $UserName /add" | Out-Null
-        }
-        # Set the $UserName password to never expire
-        If ($userDetails.PasswordExpires) {
-            &cmd.exe /c "wmic useraccount WHERE (LocalAccount=True AND Name='$UserName') set PasswordExpires=False" | Out-Null
-        }
-        # Enable the $UserName
-        If (!$userDetails.Enabled) {
-            &cmd.exe /c "wmic useraccount WHERE (LocalAccount=True AND Name='$UserName') set Disabled=False" | Out-Null
-        }
-
-        # CMD doesn't give us any kind of validation or throw if something failed so we're going to validate and throw here if
-        # the user does not exist. Note the function called here is one defined in this script, not a default function
-        $userDetails = Get-LocalUserStatus -User $UserName
-        If (!$userDetails -or !$userDetails.LocalAdmin -or ($userDetails.PasswordExpires -ne 'Never') -or !$userDetails.Enabled) {
-            Throw "Failed to set required parameters for [$UserName]. If there was an error, it is likely printed right before this error, but no promises."
-        } Else {
-            Write-Output $success
-        }
-    } Else {
-        $userDetails = Get-LocalUserStatus -User $UserName
-
-        # Add the $UserName is in the local Administrators group if not a member currently
-        If (!$userDetails.LocalAdmin) {
-            Add-LocalGroupMember -Group (Get-LocalAdminGroupName) -Member $UserName -ErrorAction Stop
-        }
-        # Set the $UserName password to never expire
-        If ($userDetails.PasswordExpires) {
-            Set-LocalUser -Name $UserName -PasswordNeverExpires $true -ErrorAction Stop
-        }
-        # Enable the $UserName
-        If (!$userDetails.Enabled) {
-            Enable-LocalUser -Name $UserName -ErrorAction Stop
-        }
-
-        Write-Output $success
+    Try {
+        $output += Add-ToLocalAdminGroup -UserName $UserName
+    } Catch {
+        $output += $_
     }
+
+    Try {
+        $output += Set-PasswordNeverExpire -UserName $UserName
+    } Catch {
+        $output += $_
+    }
+
+    Try {
+        $output += Enable-User -UserName $UserName
+    } Catch {
+        $output += $_
+    }
+
+    Return $output
 }
 
 Function Get-LastLocalPasswordChangeTime ($UserName) {
