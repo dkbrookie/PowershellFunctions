@@ -6,7 +6,11 @@ Function Get-IsLocalAdmin ($UserName) {
 
     $localAdmins = Get-LocalAdminGroupMembers
 
-    $isLocalAdmin = $localAdmins | Where-Object { $_.Name -eq $UserName }
+    If ($UserName -like '*\*') {
+        $isLocalAdmin = $localAdmins | Where-Object { $_.Caption -eq $UserName }
+    } Else {
+        $isLocalAdmin = $localAdmins | Where-Object { $_.Name -eq $UserName }
+    }
 
     If ($isLocalAdmin) { Return $true }
 
