@@ -6,6 +6,7 @@ Function Get-IsLocalAdmin ($UserName) {
 
     $localAdmins = Get-LocalAdminGroupMembers
 
+    # If username contains a '\' then it is in format 'DOMAIN\Username' and we need to compare to caption
     If ($UserName -like '*\*') {
         $isLocalAdmin = $localAdmins | Where-Object { $_.Caption -eq $UserName }
     } Else {
