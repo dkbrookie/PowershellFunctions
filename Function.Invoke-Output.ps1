@@ -59,6 +59,8 @@ Function Invoke-Output {
     [Parameter(Mandatory = $True, ValueFromPipeline = $True, Position = 0, ParameterSetName = 'Hashtable')]
     [Hashtable]$InputObject,
     [Parameter(Mandatory = $True, ValueFromPipeline = $True, Position = 0, ParameterSetName = 'String')]
+    [AllowEmptyCollection()]
+    [AllowNull()]
     [string[]]$InputStringArray
   )
 
