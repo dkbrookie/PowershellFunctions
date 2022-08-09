@@ -54,61 +54,86 @@ Function Set-Wallpaper {
   If (!(Test-Path -Path $wallpaperPath)) {
     $outputLog += 'Was not able to download the wallpaper and it does not exist on the machine. Not able to set wallpaper.'
   } Else {
-    # The wallpaper exists, so we can go ahead and set it
-    $policiesPath = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies'
-    $systemPath = "$policiesPath\System"
+    # Mount HKU because we need it to set hkey_current_user values for all users as system
+    Try {
+      New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS
+    } Catch {
+      $outputLog += "Could not mount HKU. Exiting early and taking no action. The error was: $_"
 
-    $regPaths = @(
-      @{
-        Path  = "$policiesPath\ActiveDesktop"
-        Name  = 'NoChangingWallPaper'
-        Value = 1
-        Type  = 'DWORD'
-      },
-      @{
-        Path  = $systemPath
-        Name  = 'Wallpaper'
-        Value = $wallpaperPath
-        Type  = 'String'
-      },
-      @{
-        Path  = $systemPath
-        Name  = 'WallpaperStyle'
-        Value = 4
-        Type  = 'String'
+      # Exit early b/c we need HKU to continue
+      Return @{
+        outputLog = $outputLog
+        status    = 'PSDrive Error'
       }
-    )
+    }
 
-    # Loop through all paths
-    $regPaths | ForEach-Object {
-      $path = $_.Path
-      $name = $_.Name
-      $value = $_.Value
-      $type = $_.Type
+    # The wallpaper exists, so we can go ahead and set it
+    # Loop through all sids in HKU
+    Get-ChildItem -path 'HKU:/' | ForEach-Object {
+      $sid = $_.PSChildName
 
-      $errorMsg = "There was an issue when setting registry value of '$value' at '$path\$name' and it may have not been set"
+      $policiesPath = "HKU:\$sid\Software\Microsoft\Windows\CurrentVersion\Policies"
+      $systemPath = "$policiesPath\System"
 
-      # If registry value does not match anticipated value
-      If ((Get-RegistryValue -Path $path -Name $name) -ne $value) {
-        Try {
-          $result = Write-RegistryValue -Path $path -Name $name -Value $value -Type $type
+      $regPaths = @(
+        @{
+          Path  = "$policiesPath\ActiveDesktop"
+          Name  = 'NoChangingWallPaper'
+          Value = 1
+          Type  = 'DWORD'
+        },
+        @{
+          Path  = $systemPath
+          Name  = 'Wallpaper'
+          Value = $wallpaperPath
+          Type  = 'String'
+        },
+        @{
+          Path  = $systemPath
+          Name  = 'WallpaperStyle'
+          Value = 4
+          Type  = 'String'
+        }
+      )
 
-          # Write-RegistryValue doesn't throw when it errors, it always returns a string, so we need to watch for an error message, we want to enter the
-          # catch upon error
-          If ($result -like '*Could not*') {
-            Throw $result
+      # Loop through all paths
+      $regPaths | ForEach-Object {
+        $path = $_.Path
+        $name = $_.Name
+        $value = $_.Value
+        $type = $_.Type
+
+        $errorMsg = "There was an issue when setting registry value of '$value' at '$path\$name' and it may have not been set"
+
+        # If registry value does not match anticipated value
+        If ((Get-RegistryValue -Path $path -Name $name) -ne $value) {
+          Try {
+            $result = Write-RegistryValue -Path $path -Name $name -Value $value -Type $type
+
+            # Write-RegistryValue doesn't throw when it errors, it always returns a string, so we need to watch for an error message, we want to enter the
+            # catch upon error
+            If ($result -like '*Could not*') {
+              Throw $result
+            }
+
+            $changes += "$path\$name was adjusted to '$value'"
+          } Catch {
+            $outputLog += $errorMsg + ", the error was: $($_.Exception.Message)."
+            $skipAdditionalCheck = $True
           }
+        }
 
-          $changes += "$path\$name was adjusted to '$value'"
-        } Catch {
-          $outputLog += $errorMsg + ", the error was: $($_.Exception.Message)."
-          $skipAdditionalCheck = $True
+        If (!$skipAdditionalCheck -and (Get-RegistryValue -Path $path -Name $name) -ne $value) {
+          $outputLog += $errorMsg + '.'
         }
       }
+    }
 
-      If (!$skipAdditionalCheck -and (Get-RegistryValue -Path $path -Name $name) -ne $value) {
-        $outputLog += $errorMsg + '.'
-      }
+    # Unmount HKU
+    Try {
+      Remove-PSDrive 'HKU'
+    } Catch {
+      $outputLog += "Could not unmount HKU for some reason. The error was: $_"
     }
   }
 
