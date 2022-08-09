@@ -1,4 +1,34 @@
 Function Set-Screensaver {
+  <#
+  .SYNOPSIS
+  Set-ScreenSaver allows you to provide a URL to an scr (windows screensaver) file and it will ensure that the file exists on the local machine and ensure
+  that the file is set as screensaver for all users on the machine.
+
+  .DESCRIPTION
+  Provided a URL, a storage path, and a file name, Set-ScreenSaver will ensure that the file exists on the machine, downloading it if necessary, and it will
+  set this file as the active screen saver in the registry for every user that exists on the system. This is meant to be run as often as required, if the
+  correct screensaver is already set, no action is taken.
+
+  .PARAMETER DownloadUrl
+  Provide the URL to a web location that contains a .scr (windows screensaver) file. This path should not include http:// or https:// and it should not include
+  the file name or a trailing slash. Example: 'files.example.com/some-directory'
+
+  .PARAMETER StoragePath
+  Provide a path to store the file on the target machine. Do not include a trailing slash. Example: 'C:\Users\Public\Pictures'
+
+  .PARAMETER FileName
+  The name of the file including the file extension, which will be used at the DownloadUrl path and also on the target machine file system.
+  Example: 'screensaver.scr'
+
+  .EXAMPLE
+  Set-ScreenSaver -DownloadUrl 'example.com/downloads' -StoragePath 'C:\Users\Public\Pictures' -FileName 'some-example.scr'
+  # This will download a file from 'https://example.com/downloads/some-example.scr' and place it at 'C:\Users\Public\Pictures\some-example.scr' then set that
+  # as the active screensaver for all users on the machine.
+
+  .OUTPUTS
+  Output is an object (hashtable) that contains the keys 'outputLog' and 'status'. 'outputLog' contains all messages that occurred during execution, and
+  'status' is a list (array) of all changes that were made. If no changes were made, status is the string 'No change'.
+  #>
   Param(
     # URL to a web location that contains an image file specified in the FileName field. Must be an ssl/https accessible location. Do not include
     # 'https://' or a trailing slash. Example: 'www.example.com'
