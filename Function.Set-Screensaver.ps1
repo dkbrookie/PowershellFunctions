@@ -55,7 +55,7 @@ Function Set-Screensaver {
     $outputLog += 'Was not able to download the screensaver and it does not exist on the machine. Not able to set screensaver.'
   } Else {
     # The screensaver exists, so we can go ahead and set it
-    $desktopPath = 'Registry::HKEY_USERS\Temp\Control Panel\Desktop'
+    $desktopPath = 'HKU:\Control Panel\Desktop'
     $systemPath = "HKU:\Software\Microsoft\Windows\CurrentVersion\Policies\System"
 
     $regPaths = @(
@@ -86,65 +86,44 @@ Function Set-Screensaver {
       }
     )
 
-    $drive = (Get-Location).Drive.Root
-    $users = Get-ChildItem "$($drive)Users"
+    New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS
 
-    # For each user, load and edit their registry
-    ForEach ($user in $users) {
-      reg.exe LOAD HKU\Temp "$($drive)Users\$($user.Name)\NTUSER.DAT"
+    Get-ChildItem -path 'HKU:/' | ForEach-Object {
+      $sid = $_.PSChildName
 
-      # Loop through all paths
-      $regPaths | ForEach-Object {
 
-        # We don't care about users that don't have this directory
-        If (!(Test-Path $dir)) {
-          # Unload user's hive
-          [gc]::Collect()
-          reg.exe UNLOAD HKU\Temp
-          Return
-        }
+    }
 
-        $path = $_.Path
-        $name = $_.Name
-        $value = $_.Value
-        $type = $_.Type
+    # Loop through all paths
+    $regPaths | ForEach-Object {
+      $path = $_.Path
+      $name = $_.Name
+      $value = $_.Value
+      $type = $_.Type
 
-        $errorMsg = "There was an issue when setting registry value of '$value' at '$path\$name' and it may have not been set"
+      $errorMsg = "There was an issue when setting registry value of '$value' at '$path\$name' and it may have not been set"
 
-        # If registry value does not match anticipated value
-        If ((Get-RegistryValue -Path $path -Name $name) -ne $value) {
-          Try {
-            $result = Write-RegistryValue -Path $path -Name $name -Value $value -Type $type
+      # If registry value does not match anticipated value
+      If ((Get-RegistryValue -Path $path -Name $name) -ne $value) {
+        Try {
+          $result = Write-RegistryValue -Path $path -Name $name -Value $value -Type $type
 
-            # Write-RegistryValue doesn't throw when it errors, it always returns a string, so we need to watch for an error message, we want to enter the
-            # catch upon error
-            If ($result -like '*Could not*') {
-              Throw $result
-            }
-
-            $changes += "$path\$name was adjusted to '$value'"
-          } Catch {
-            $outputLog += $errorMsg + ", the error was: $($_.Exception.Message)."
-            $skipAdditionalCheck = $True
+          # Write-RegistryValue doesn't throw when it errors, it always returns a string, so we need to watch for an error message, we want to enter the
+          # catch upon error
+          If ($result -like '*Could not*') {
+            Throw $result
           }
-        }
 
-        If (!$skipAdditionalCheck -and (Get-RegistryValue -Path $path -Name $name) -ne $value) {
-          $outputLog += $errorMsg + '.'
+          $changes += "$path\$name was adjusted to '$value'"
+        } Catch {
+          $outputLog += $errorMsg + ", the error was: $($_.Exception.Message)."
+          $skipAdditionalCheck = $True
         }
-
-        # Unload user's hive
-        [gc]::Collect()
-        reg.exe UNLOAD HKU\Temp
       }
 
-      # # Set the image
-      # Set-ItemProperty -Path $dir -Name "Wallpaper" -value "$($drive)Users\Public\Pictures\Sample Pictures\Tulips.jpg"
-
-      # # Set the style to stretch
-      # Set-ItemProperty -Path $dir -Name "WallpaperStyle" -value 2
-
-
+      If (!$skipAdditionalCheck -and (Get-RegistryValue -Path $path -Name $name) -ne $value) {
+        $outputLog += $errorMsg + '.'
+      }
     }
   }
 
