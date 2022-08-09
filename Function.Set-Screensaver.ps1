@@ -54,76 +54,93 @@ Function Set-Screensaver {
   If (!(Test-Path -Path $screensaverPath)) {
     $outputLog += 'Was not able to download the screensaver and it does not exist on the machine. Not able to set screensaver.'
   } Else {
-    # The screensaver exists, so we can go ahead and set it
-    $desktopPath = 'HKU:\Control Panel\Desktop'
-    $systemPath = "HKU:\Software\Microsoft\Windows\CurrentVersion\Policies\System"
+    # Mount HKU because we need it to set hkey_current_user values for all users as system
+    Try {
+      New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS
+    } Catch {
+      $outputLog += "Could not mount HKU. Exiting early and taking no action. The error was: $_"
 
-    $regPaths = @(
-      @{
-        Path  = $desktopPath
-        Name  = 'SCRNSAVE.EXE'
-        Value = $screensaverPath
-      },
-      @{
-        Path  = $desktopPath
-        Name  = 'ScreenSaveActive'
-        Value = 1
-      },
-      @{
-        Path  = $desktopPath
-        Name  = 'ScreenSaveTimeout'
-        Value = 300
-      },
-      @{
-        Path  = $desktopPath
-        Name  = 'ScreenSaverIsSecure'
-        Value = 1
-      },
-      @{
-        Path  = $systemPath
-        Name  = 'NoDispScrSavPage'
-        Value = 1
+      # Exit early b/c we need HKU to continue
+      Return @{
+        outputLog = $outputLog
+        status    = 'PSDrive Error'
       }
-    )
+    }
 
-    New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS
-
+    # Loop through all sids in HKU
     Get-ChildItem -path 'HKU:/' | ForEach-Object {
       $sid = $_.PSChildName
 
+      # The screensaver exists, so we can go ahead and set it
+      $desktopPath = "HKU:\$sid\Control Panel\Desktop"
+      $systemPath = "HKU:\$sid\Software\Microsoft\Windows\CurrentVersion\Policies\System"
 
-    }
+      $regPaths = @(
+        @{
+          Path  = $desktopPath
+          Name  = 'SCRNSAVE.EXE'
+          Value = $screensaverPath
+        },
+        @{
+          Path  = $desktopPath
+          Name  = 'ScreenSaveActive'
+          Value = 1
+        },
+        @{
+          Path  = $desktopPath
+          Name  = 'ScreenSaveTimeout'
+          Value = 300
+        },
+        @{
+          Path  = $desktopPath
+          Name  = 'ScreenSaverIsSecure'
+          Value = 1
+        },
+        @{
+          Path  = $systemPath
+          Name  = 'NoDispScrSavPage'
+          Value = 1
+        }
+      )
 
-    # Loop through all paths
-    $regPaths | ForEach-Object {
-      $path = $_.Path
-      $name = $_.Name
-      $value = $_.Value
-      $type = $_.Type
+      # Loop through all paths
+      $regPaths | ForEach-Object {
+        $path = $_.Path
+        $name = $_.Name
+        $value = $_.Value
+        $type = $_.Type
 
-      $errorMsg = "There was an issue when setting registry value of '$value' at '$path\$name' and it may have not been set"
+        $errorMsg = "There was an issue when setting registry value of '$value' at '$path\$name' and it may have not been set"
 
-      # If registry value does not match anticipated value
-      If ((Get-RegistryValue -Path $path -Name $name) -ne $value) {
-        Try {
-          $result = Write-RegistryValue -Path $path -Name $name -Value $value -Type $type
+        # If registry value does not match anticipated value
+        If ((Get-RegistryValue -Path $path -Name $name) -ne $value) {
+          Try {
+            $result = Write-RegistryValue -Path $path -Name $name -Value $value -Type $type
 
-          # Write-RegistryValue doesn't throw when it errors, it always returns a string, so we need to watch for an error message, we want to enter the
-          # catch upon error
-          If ($result -like '*Could not*') {
-            Throw $result
+            # Write-RegistryValue doesn't throw when it errors, it always returns a string, so we need to watch for an error message, we want to enter the
+            # catch upon error
+            If ($result -like '*Could not*') {
+              Throw $result
+            }
+
+            $changes += "$path\$name was adjusted to '$value'"
+          } Catch {
+            $outputLog += $errorMsg + ", the error was: $($_.Exception.Message)."
+            $skipAdditionalCheck = $True
           }
+        }
 
-          $changes += "$path\$name was adjusted to '$value'"
-        } Catch {
-          $outputLog += $errorMsg + ", the error was: $($_.Exception.Message)."
-          $skipAdditionalCheck = $True
+        If (!$skipAdditionalCheck -and (Get-RegistryValue -Path $path -Name $name) -ne $value) {
+          $outputLog += $errorMsg + '.'
         }
       }
+    }
 
-      If (!$skipAdditionalCheck -and (Get-RegistryValue -Path $path -Name $name) -ne $value) {
-        $outputLog += $errorMsg + '.'
-      }
+    # Unmount HKU
+    Try {
+      Remove-PSDrive 'HKU'
+    } Catch {
+      $outputLog += "Could not unmount HKU for some reason. The error was: $_"
     }
   }
 
