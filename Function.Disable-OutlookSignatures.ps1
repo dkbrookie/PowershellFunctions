@@ -25,8 +25,9 @@ Function Disable-OutlookSignatures() {
     }
   }
 
+  # TODO: Change to master URL just before merge
   # Call in Registry-Helpers
-  (New-Object System.Net.WebClient).DownloadString("https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Registry-Helpers.ps1") | Invoke-Expression
+  (New-Object System.Net.WebClient).DownloadString("https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/ARI-DisableOutlookSignatures/Function.Registry-Helpers.ps1") | Invoke-Expression
 
   # Loop through list of user folders, deleting signatures for each user
   Get-ChildItem -Path "C:\Users" | Where-Object { $_.Name -ne "Public" } | Foreach-Object {
@@ -48,7 +49,7 @@ Function Disable-OutlookSignatures() {
 
   # Mount HKU because we need it to set hkey_current_user values for all users as system
   Try {
-    New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS
+    New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS | Out-Null
   } Catch {
     $outputLog += "Could not mount HKU. Exiting early and taking no further action. The error was: $_"
 
