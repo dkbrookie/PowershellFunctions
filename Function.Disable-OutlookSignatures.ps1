@@ -62,8 +62,8 @@ Function Disable-OutlookSignatures() {
     $sid = $_.PSChildName
     $regPath = "HKU:\$sid\Software\Microsoft\Office\16.0\Common\MailSettings"
 
-    Write-RegistryValue -Path $regPath -Name 'DisableSignatures' -Value "1" -Type 'DWORD'
-    Write-RegistryValue -Path $regPath -Name 'DisableRoamingSignaturesTemporaryToggle' -Value "1" -Type 'DWORD'
+    Write-RegistryValue -Path $regPath -Name 'DisableSignatures' -Value "1" -Type 'DWORD' | Out-Null
+    Write-RegistryValue -Path $regPath -Name 'DisableRoamingSignaturesTemporaryToggle' -Value "1" -Type 'DWORD' | Out-Null
   }
 
   $outputLog += "Set registry values for all users"
