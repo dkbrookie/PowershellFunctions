@@ -43,10 +43,7 @@ Function Disable-OutlookSignatures() {
     $outputLog += "Outlook is not installed so no further action is necessary."
 
     # No need to continue if outlook is not installed
-    Return @{
-      outputLog = $outputLog
-      status    = "Outlook Not Installed"
-    }
+    Return $outputLog
   }
 
   # Mount HKU because we need it to set hkey_current_user values for all users as system
@@ -56,10 +53,7 @@ Function Disable-OutlookSignatures() {
     $outputLog += "Could not mount HKU. Exiting early and taking no further action. The error was: $_"
 
     # Exit early b/c we need HKU to continue
-    Return @{
-      outputLog = $outputLog
-      status    = "PSDrive Error"
-    }
+    Return $outputLog
   }
 
   # Loop through all sids in HKU and disable adding new signatures for all users
@@ -80,8 +74,5 @@ Function Disable-OutlookSignatures() {
     $outputLog += "Could not unmount HKU for some reason. The error was: $_"
   }
 
-  Return @{
-    outputLog = $outputLog
-    status    = $changes
-  }
+  Return $outputLog
 }
