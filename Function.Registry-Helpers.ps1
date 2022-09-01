@@ -156,7 +156,7 @@ function Write-RegistryValue {
             $output += "$regPath didn't exist, so creating it."
             New-Item -Path $regPath -Force -ErrorAction Stop | Out-Null
         } Catch {
-            $output += Get-ErrorMessage $_ "Could not create $regPath."
+            $output += "Could not create $regPath. Error was: $($_.Exception.Message)"
         }
     }
 
@@ -168,7 +168,7 @@ function Write-RegistryValue {
         $output += "Setting $propertyPath to $Value"
         New-ItemProperty -Path $regPath -Name $Name -Value $Value -Type $Type -Force -ErrorAction Stop | Out-Null
     } Catch {
-        $output += Get-ErrorMessage $_ "Could not create registry property $propertyPath."
+        $output += "Could not create registry property $propertyPath. Error was: $($_.Exception.Message)"
     }
 
     Return ($output -join ' ')
