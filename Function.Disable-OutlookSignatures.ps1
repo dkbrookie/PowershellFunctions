@@ -25,9 +25,8 @@ Function Disable-OutlookSignatures() {
     }
   }
 
-  # TODO: Change to master URL just before merge
   # Call in Registry-Helpers
-  (New-Object System.Net.WebClient).DownloadString("https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/ARI-DisableOutlookSignatures/Function.Registry-Helpers.ps1") | Invoke-Expression
+  (New-Object System.Net.WebClient).DownloadString("https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Registry-Helpers.ps1") | Invoke-Expression
 
   # Loop through list of user folders, deleting signatures for each user
   Get-ChildItem -Path "C:\Users" | Where-Object { $_.Name -ne "Public" } | Foreach-Object {
