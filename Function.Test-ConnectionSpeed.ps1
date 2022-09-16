@@ -45,7 +45,7 @@ Function Test-ConnectionSpeed {
         }
 
         Unzip $downloadPath $ExtractToPath
-        RunTest
+        $output += RunTest
     }
 
     #read results out of log file into string
