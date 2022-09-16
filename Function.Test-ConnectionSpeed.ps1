@@ -14,8 +14,6 @@ Function Test-ConnectionSpeed {
     $downloadPath = "$workingPath\SpeedTest.Zip"
     $extractToPath = "$workingPath\SpeedTest"
     $speedTestEXEPath = "$workingPath\SpeedTest\speedtest.exe"
-    #Log File Path
-    $logPath = "$workingPath\SpeedTestLog.txt"
     $output = @()
 
 
@@ -61,9 +59,6 @@ Function Test-ConnectionSpeed {
         Unzip $downloadPath $ExtractToPath
         $output += RunTest
     }
-
-    #read results out of log file into string
-    $output += (Get-Content -Path $logPath) -join "`n"
 
     #email results use log file string as body
     Write-Output $output
