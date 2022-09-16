@@ -8,7 +8,7 @@ Function Test-ConnectionSpeed {
     
     #>
 
-    $DownloadURL = "https://install.speedtest.net/app/cli/ookla-speedtest-1.0.0-win64.zip"
+    $downloadURL = "https://install.speedtest.net/app/cli/ookla-speedtest-1.0.0-win64.zip"
     #location to save on the computer. Path must exist or it will error
     $workingPath = "$env:SystemDrive\temp"
     $downloadPath = "$workingPath\SpeedTest.Zip"
@@ -34,7 +34,7 @@ Function Test-ConnectionSpeed {
         $output += "SpeedTest EXE Doesn't Exist, starting file download"
 
         #downloads the file from the URL
-        wget $DownloadURL -outfile $DownloadPath
+        (New-Object System.Net.WebClient).DownloadFile($downloadURL,$downloadPath)
 
         #Unzip the file
         Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -44,7 +44,7 @@ Function Test-ConnectionSpeed {
             [System.IO.Compression.ZipFile]::ExtractToDirectory($zipfile, $outpath)
         }
 
-        Unzip $DownloadPath $ExtractToPath
+        Unzip $downloadPath $ExtractToPath
         RunTest
     }
 
