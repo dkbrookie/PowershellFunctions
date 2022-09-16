@@ -18,13 +18,6 @@ Function Test-ConnectionSpeed {
     $logPath = "$workingPath\SpeedTestLog.txt"
     $output = @()
 
-    
-    #Start Logging to a Text File
-    $ErrorActionPreference="SilentlyContinue"
-    Stop-Transcript | out-null
-    $ErrorActionPreference = "Continue"
-    Start-Transcript -path $logPath -Append:$false
-
 
     Function RunTest()
     {
@@ -60,7 +53,4 @@ Function Test-ConnectionSpeed {
 
     #email results use log file string as body
     Write-Output $output
-
-    #stop logging
-    Stop-Transcript
 }
