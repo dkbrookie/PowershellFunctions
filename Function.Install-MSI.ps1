@@ -10,7 +10,7 @@ Function Install-MSI {
     for more informaiton.
 
     .PARAMETER AppName
-    IMPORTANT: Type the name EXACTLY as shown in Add/Remove programs in Control Panel. This will be used 
+    IMPORTANT: Type the name EXACTLY as shown in Add/Remove programs in Control Panel. This will be used
     as the application name searched in Add/Remove programs after installation to verify this was successful,
     used as the folder name for the setup file, and the name of the installer MSI once downloaded.
 
@@ -35,20 +35,20 @@ Function Install-MSI {
     and silent, but if you define this parameter then you will need to add /i and /qn manually. See examples...
 
     .PARAMETER Wait
-    Valid values for this argument are $true or $false. This sets the -Wait flag on the Start-Process command of 
+    Valid values for this argument are $true or $false. This sets the -Wait flag on the Start-Process command of
     the installer MSI, meaning it will wait for the MSI to continue before moving on if this is set to $true. Set
     to $true if undefined.
 
     .Parameter AdditionalDownloadLinks
-    If the install process requires additional files, please include all URLs here to download to root dir separated 
+    If the install process requires additional files, please include all URLs here to download to root dir separated
     by commas. Exampe: 'https://test.com/file.dll','https://test.com/otherfile.ini'. Keep in mind that the download
     URL NEEDS to end with the file extension. In the examples above, the downloaded file would be named 'file.dll'
     and 'otherfile.ini'. This is because we're taking everything after the '/' as the file name + extension.
 
     .EXAMPLE
-    C:\PS> Install-MSI -AppName 'SuperApp' -FileDownloadURL 'https://domain.com/file/file.msi' -Arguments '/qn /norestart'
-    C:\PS> Install-MSI -AppName 'SuperApp' -FileDownloadURL 'https://domain.com/file/file.msi' -Arguments '/qn /norestart' -FileMSIPath "C:\windows\ltsvc\packages\softwar\superapp\superapp.msi" -LogPath "C:\install log.txt"
-    C:\PS> Install-MSI -AppName 'SuperApp' -FileDownloadURL 'https://domain.com/file/file.msi' -Arguments '/qn /norestart' -AdditionalDownloadLinks 'https://test.com/file.dll','https://test.com/otherfile.ini'
+    C:\PS> Install-MSI -AppName 'SuperApp' -FileDownloadLink 'https://domain.com/file/file.msi' -Arguments '/qn /norestart'
+    C:\PS> Install-MSI -AppName 'SuperApp' -FileDownloadLink 'https://domain.com/file/file.msi' -Arguments '/qn /norestart' -FileMSIPath "C:\windows\ltsvc\packages\softwar\superapp\superapp.msi" -LogPath "C:\install log.txt"
+    C:\PS> Install-MSI -AppName 'SuperApp' -FileDownloadLink 'https://domain.com/file/file.msi' -Arguments '/qn /norestart' -AdditionalDownloadLinks 'https://test.com/file.dll','https://test.com/otherfile.ini'
     #>
 
 
@@ -122,7 +122,7 @@ Function Install-MSI {
             $output += "Powershell version installed is only $psVers which has known issues with this script directly related to successful file downloads. Script will continue, but may be unsuccessful."
         }
     }
-    
+
 
     # Call the Get-InstalledApplication function into memory
     (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/Get-InstalledApplication/Function.Get-InstalledApplication.ps1') | Invoke-Expression;
