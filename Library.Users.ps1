@@ -146,7 +146,7 @@ Function New-RandomPassword {
 Function New-LocalAdmin ($UserName, $Pass) {
     <#
     .DESCRIPTION
-        Determinds the version of Powershell and if less than PS 5.1 will use CMD to create a new user.
+        Determines the version of Powershell and if less than PS 5.1 will use CMD to create a new user.
         CMD commands are written to validate after user creation and will throw if the user was not
         successfully created.
 
