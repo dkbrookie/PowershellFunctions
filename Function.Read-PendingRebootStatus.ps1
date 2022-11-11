@@ -2,9 +2,22 @@
 (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Registry-Helpers.ps1') | Invoke-Expression
 
 function Read-PendingRebootStatus {
+  <#
+  .DESCRIPTION
+    Read-PendingRebootStatus checks all of the various registry locations that windows could be hiding a pending reboot, it aggregates any pending reboots
+    found and reports them back if they exist.
+  .OUTPUTS
+    An object with keys "HasPendingReboots" "Entries" and "Output"
+    - HasPendingReboots (bool): true if any pending reboots are found, otherwise false
+    - Entries (array of Hashtables): When pending reboots are found, this array is populated with the path, name, and value of the registry keys that were found
+    - Output (string): A newline-delimited string containing the full path of all pending reboots found
+  #>
   $out = @()
   $entries = @()
 
+  # TODO: I don't know for certain how all of these work, it is possible that some of them need to be value-checked similar to the "HasPendingReboot" one
+  # I'm creating myself as the last entry. Ideally we know for certain that the existence of the rest of these means a pending reboot but we may need to
+  # rely on trial and error to figure out some of these.
   $keys = @(
     @{
       Path = 'HKLM:\SOFTWARE\Microsoft\Updates'
