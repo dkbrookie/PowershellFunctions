@@ -15,6 +15,19 @@ function Read-PendingRebootStatus {
   $out = @()
   $entries = @()
 
+  Try {
+    # Oddly, this command works to enable TLS12 on even Powershellv2 when it shows as unavailable. This also still works for Win8+
+    [Net.ServicePointManager]::SecurityProtocol = [Enum]::ToObject([Net.SecurityProtocolType], 3072)
+  } Catch {
+    $out += "Encountered an error while attempting to enable TLS1.2 to ensure successful file downloads. This can sometimes be due to dated Powershell. Checking Powershell version..."
+    # Generally enabling TLS1.2 fails due to dated Powershell so we're doing a check here to help troubleshoot failures later
+    $psVers = $PSVersionTable.PSVersion
+
+    If ($psVers.Major -lt 3) {
+      $out += "Powershell version installed is only $psVers which has known issues with this script directly related to successful file downloads. Script will continue, but may be unsuccessful."
+    }
+  }
+
   # TODO: I don't know for certain how all of these work, it is possible that some of them need to be value-checked similar to the "HasPendingReboot" one
   # I'm creating myself as the last entry. Ideally we know for certain that the existence of the rest of these means a pending reboot but we may need to
   # rely on trial and error to figure out some of these.
@@ -54,6 +67,23 @@ function Read-PendingRebootStatus {
     @{
       Path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired'
       Name = 'Mandatory'
+    },
+    @{
+      Path = 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing'
+      Name = 'PackagesPending'
+    },
+    @{
+      Path = 'HKLM:\SOFTWARE\Microsoft\Updates'
+      Name = 'UpdateExeVolatile'
+      ValueCheck = '1'
+    },
+    @{
+      Path = 'HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon'
+      Name = 'JoinDomain'
+    },
+    @{
+      Path = 'HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon'
+      Name = 'AvoidSpnSet'
     },
     @{
       Path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update'
