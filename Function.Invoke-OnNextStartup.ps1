@@ -15,7 +15,7 @@ Try {
 # Call in Read-PendingRebootStatus
 (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/Invoke-RebootIfNeeded/Function.Register-ScheduledPowershellTask.ps1') | Invoke-Expression
 
-function Invoke-OnNextBoot {
+function Invoke-OnNextStartup {
   <#
   .SYNOPSIS
   Schedules a powershell scriptblock to run via windows task scheduler on next startup
