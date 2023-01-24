@@ -35,13 +35,7 @@ Function Register-ScheduledPowershellTask {
   )
 
   Try {
-    $base64Action = [System.Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($ScriptBlock))
-  } Catch {
-    Throw "Could not convert the command to a base64 encoded string. The error was: $_"
-  }
-
-  Try {
-    $tasks = @(New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -EncodedCommand $base64Action -args @('$($ArgumentList -join ''',''')')")
+    $tasks = @(New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument "-NoProfile -Command '& { $($ScriptBlock.ToString()) }' @('$($ArgumentList -join ''',''')')")
 
     If ($SelfDestruct) {
       $tasks += New-ScheduledTaskAction -Execute "schtasks.exe" -Argument "/delete /f /tn `"$taskName`""
