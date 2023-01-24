@@ -31,7 +31,7 @@ Function Register-ScheduledPowershellTask {
     $SelfDestruct,
     [Parameter(Mandatory = $false)]
     [string[]]
-    $Args
+    $ArgumentList
   )
 
   Try {
@@ -41,7 +41,7 @@ Function Register-ScheduledPowershellTask {
   }
 
   Try {
-    $tasks = @(New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -EncodedCommand $base64Action -args $Args")
+    $tasks = @(New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -EncodedCommand $base64Action -args @('$($ArgumentList -join ''',''')')")
 
     If ($SelfDestruct) {
       $tasks += New-ScheduledTaskAction -Execute "schtasks.exe" -Argument "/delete /f /tn `"$taskName`""

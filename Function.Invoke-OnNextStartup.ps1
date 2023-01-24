@@ -33,9 +33,9 @@ function Invoke-OnNextStartup {
     [string]$TaskName,
     [Parameter(Mandatory = $false)]
     [string[]]
-    $Args
+    $ArgumentList
   )
 
   $trigger = New-ScheduledTaskTrigger -AtStartup
-  Return (Register-ScheduledPowershellTask -TaskName $TaskName -Trigger $trigger -ScriptBlock $ScriptBlock -Args $Args -SelfDestruct)
+  Return (Register-ScheduledPowershellTask -TaskName $TaskName -Trigger $trigger -ScriptBlock $ScriptBlock -ArgumentList $ArgumentList -SelfDestruct)
 }
