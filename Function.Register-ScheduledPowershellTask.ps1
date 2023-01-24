@@ -28,7 +28,10 @@ Function Register-ScheduledPowershellTask {
     # Parameter help description
     [Parameter(Mandatory = $false)]
     [switch]
-    $SelfDestruct
+    $SelfDestruct,
+    [Parameter(Mandatory = $false)]
+    [string[]]
+    $Args
   )
 
   Try {
@@ -38,7 +41,7 @@ Function Register-ScheduledPowershellTask {
   }
 
   Try {
-    $tasks = @(New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -EncodedCommand $base64Action")
+    $tasks = @(New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -EncodedCommand $base64Action -args $Args")
 
     If ($SelfDestruct) {
       $tasks += New-ScheduledTaskAction -Execute "schtasks.exe" -Argument "/delete /f /tn `"$taskName`""
@@ -49,7 +52,7 @@ Function Register-ScheduledPowershellTask {
 
     Register-ScheduledTask -Action $tasks -Trigger $Trigger -Principal $principal -Settings $settings -TaskName $TaskName
 
-    # Return the output from the first script block and a message indicating that the second script block was scheduled
+    # Return a message indicating that the second script block was scheduled
     Return "`nThe command block was scheduled to run as SYSTEM on the next system startup."
   } Catch {
     # If the first script block produces an error, return the output from the first script block and a message indicating that the second script block was not scheduled
