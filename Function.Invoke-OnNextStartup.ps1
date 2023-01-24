@@ -30,9 +30,9 @@ function Invoke-OnNextBoot {
     [Parameter(Mandatory = $true)]
     [ScriptBlock]$ScriptBlock,
     [Parameter(Mandatory = $true)]
-    [string]$Name
+    [string]$TaskName
   )
 
   $trigger = New-ScheduledTaskTrigger -AtStartup
-  Return (Register-ScheduledPowershellTask -TaskName $Name -Trigger $trigger -ScriptBlock $ScriptBlock -SelfDestruct)
+  Return (Register-ScheduledPowershellTask -TaskName $TaskName -Trigger $trigger -ScriptBlock $ScriptBlock -SelfDestruct)
 }
