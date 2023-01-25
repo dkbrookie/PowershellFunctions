@@ -13,7 +13,7 @@ Function New-EncodedCommandWithArguments {
   PS> powershell.exe -Command (New-EncodedCommandWithArguments -ScriptBlock { param($a, $b) $a + $b } -ArgumentList @(2, 2) | Invoke-Expression)
   # outputs 22
   .EXAMPLE
-  PS> $task = New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument "-NoProfile -Command ($(New-EncodedCommandWithArguments -ScriptBlock $ScriptBlock -ArgumentList $ArgumentList))"
+  PS> $task = New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument "-NoProfile -Command $(New-EncodedCommandWithArguments -ScriptBlock $ScriptBlock -ArgumentList $ArgumentList)"
   # Creates a scheduled task action that will execute the $ScriptBlock with the provided $ArgumentList
   #>
   [CmdletBinding()]
@@ -37,5 +37,5 @@ Function New-EncodedCommandWithArguments {
   Return '''Invoke-Command -ScriptBlock { param([string]$sb, [Object[]]$ArgumentList) ' +
     '$ScriptBlock = [ScriptBlock]::Create([System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String($sb))); ' +
     'Invoke-Command -ScriptBlock $ScriptBlock -ArgumentList $ArgumentList } ' +
-    "-ArgumentList ' + `"@('$base64', ```"@(`'$($ArgumentList -join "`', `'")`')```")`""
+    "-ArgumentList @(''$base64'', `"@(''$($ArgumentList -join "'', ''")'')`")'"
 }
