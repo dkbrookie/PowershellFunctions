@@ -12,7 +12,7 @@ Try {
 }
 
 # TODO: Switch this to master branch upon merge
-# Call in Read-PendingRebootStatus
+# Call in Register-ScheduledPowershellTask
 (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/Invoke-RebootIfNeeded/Function.Register-ScheduledPowershellTask.ps1') | Invoke-Expression
 
 function Invoke-OnNextStartup {

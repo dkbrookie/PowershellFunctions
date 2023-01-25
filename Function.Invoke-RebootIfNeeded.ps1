@@ -11,10 +11,14 @@ Try {
   }
 }
 
+# TODO: Switch this to master branch upon merge
 # Call in Read-PendingRebootStatus
-(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Read-PendingRebootStatus.ps1') | Invoke-Expression
+(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/Invoke-RebootIfNeeded/Function.Read-PendingRebootStatus.ps1') | Invoke-Expression
 # Call in Registry-Helpers
 (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Registry-Helpers.ps1') | Invoke-Expression
+# TODO: Switch this to master branch upon merge
+# Call in Invoke-OnNextStartup
+(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/Invoke-RebootIfNeeded/Function.Invoke-OnNextStartup.ps1') | Invoke-Expression
 
 Function Invoke-RebootIfNeeded {
   <#
@@ -29,13 +33,18 @@ Function Invoke-RebootIfNeeded {
   .PARAMETER (int, default = 10) Timeout
   Determines how long before the reboot occurs in seconds
 
+  .PARAMETER (string, default = "$env:windir\LTSvc") LogPath
+  Determines where logs are stored. A directory called "PendingReboots" will be created under this path which is where logs will be placed.
+
   .OUTPUTS
   Boolean - indicates whether machine is rebooting. $true means machine is rebooting. $false means reboot is not necessary
   #>
 
   Param (
     [int]
-    $Timeout = 10
+    $RebootDelay = 10,
+    [string]
+    $LogPath = "$env:windir\LTSvc"
   )
 
   $status = Read-PendingRebootStatus
@@ -43,11 +52,10 @@ Function Invoke-RebootIfNeeded {
   $pendingRebootRegRootPath = "$rootPath\PendingRebootEntries"
 
   # Make sure some paths exist
-  $ltDir = "$env:windir\LTSvc"
-  If (!(Test-Path -Path $ltDir)) {
-    New-Item -Path $ltDir -ItemType Directory | Out-Null
+  If (!(Test-Path -Path $LogPath)) {
+    New-Item -Path $LogPath -ItemType Directory | Out-Null
   }
-  $rootDir = "$ltDir\PendingReboots"
+  $rootDir = "$LogPath\PendingReboots"
   If (!(Test-Path -Path $rootDir)) {
     New-Item -Path $rootDir -ItemType Directory | Out-Null
   }
@@ -62,12 +70,11 @@ Function Invoke-RebootIfNeeded {
   }
 
   If ($status.HasPendingReboots) {
-    # Pending reboots do exist according to Read-PendingRebootStatus, so loop through them and create registry annd log entries for each of them
+    # Pending reboots do exist according to Read-PendingRebootStatus, so loop through them and create registry and log entries for each of them
     $status.Entries | Foreach-Object {
       $pendingRebootPath = "$($_.Path)\$($_.Name)"
       $name = $pendingRebootPath -replace '\\', '-'
       $taskName = "Delete-$($pendingRebootPath -replace '\\', '-' -replace ':', '')"
-      $xmlFile = "$rootDir\$taskName.xml"
 
       # Create a registry entry for each, we want to cache the locations now because we don't want to rely on network connectivity existing on next boot
       If (!(Test-RegistryValue -Path $pendingRebootPath -Name $name)) {
@@ -80,91 +87,34 @@ Function Invoke-RebootIfNeeded {
         Return
       }
 
-      # Had to remove the following two things from the '-Command' string, they don't work for some reason when run from a sheduled task
-      # TODO: log when reg entries are manually removed
-      # Function Write-ToLogFile (`$msg) {
-      #   `$contents = Get-Content -Path $logFile -Tail 499;
-      #   `$contents + `"``n`" + (Get-Date -Format 'mm/dd/yyyy_HH:mm:ss - ').ToString() + `$msg | Out-File $logFile;
-      # }
-      # Write-ToLogFile ('Rebooted. ' + `$path + '\' + `$name + ' still exists, so removing it manually.')
-
       # Create a scheduled task that takes action after next reboot and checks whatever locations were pending to see if they still exist and deletes them if they do
       # TODO: add logic to find powershell.exe from monitors
-      $psString = "-Command &amp;{
+      $scriptBlock = {
+        param($logFile, $regRootPath)
 
-        `$ErrorActionPreference = 'SilentlyContinue';
+        Function Write-ToLogFile ($msg) {
+          $contents = Get-Content -Path $logFile -Tail 499
+          $contents + "`n" + (Get-Date -Format 'mm/dd/yyyy_HH:mm:ss - ').ToString() + $msg | Out-File $logFile
+        }
 
-        `$reboots = @(`'$((Get-Item -Path $pendingRebootRegRootPath).Property -join ''',''')`') | Foreach-Object {
-          `$parts = `$_ -split '-';
-          `$name = `$parts[-1];
-          `$path = (`$parts -ne `$name) -join '\';
-          Remove-ItemProperty -Path `$path -Name `$name -Force -EA 0;
-          Remove-ItemProperty -Path $pendingRebootRegRootPath -Name `$_
+        (Get-Item -Path $regRootPath).Property | Foreach-Object {
+          $parts = $_ -split '-';
+          $name = $parts[-1];
+          $path = ($parts -ne $name) -join '\';
+
+          Write-ToLogFile ('Rebooted. ' + $path + '\' + $name + ' still exists, so removing it manually.')
+
+          Remove-ItemProperty -Path $path -Name $name -Force -EA 0
+          Remove-ItemProperty -Path $regRootPath -Name $_
         };
+      }
 
-        `$ErrorActionPreference = 'Continue'; }"
-
-      $xml = "<?xml version='1.0' encoding='UTF-16'?>
-        <Task version='1.3' xmlns='http://schemas.microsoft.com/windows/2004/02/mit/task'>
-        <RegistrationInfo>
-        <Date>2015-07-27T13:03:33.7076468</Date>
-        <Author>NT AUTHORITY\SYSTEM</Author>
-        </RegistrationInfo>
-        <Triggers>
-        <BootTrigger>
-        <Enabled>true</Enabled>
-        </BootTrigger>
-        </Triggers>
-        <Principals>
-        <Principal id='Author'>
-        <RunLevel>HighestAvailable</RunLevel>
-        <UserId>NT AUTHORITY\SYSTEM</UserId>
-        <LogonType>S4U</LogonType>
-        </Principal>
-        </Principals>
-        <Settings>
-        <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
-        <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
-        <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
-        <AllowHardTerminate>true</AllowHardTerminate>
-        <StartWhenAvailable>false</StartWhenAvailable>
-        <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
-        <IdleSettings>
-        <StopOnIdleEnd>true</StopOnIdleEnd>
-        <RestartOnIdle>false</RestartOnIdle>
-        </IdleSettings>
-        <AllowStartOnDemand>true</AllowStartOnDemand>
-        <Enabled>true</Enabled>
-        <Hidden>false</Hidden>
-        <RunOnlyIfIdle>false</RunOnlyIfIdle>
-        <DisallowStartOnRemoteAppSession>false</DisallowStartOnRemoteAppSession>
-        <UseUnifiedSchedulingEngine>false</UseUnifiedSchedulingEngine>
-        <WakeToRun>false</WakeToRun>
-        <ExecutionTimeLimit>P3D</ExecutionTimeLimit>
-        <Priority>7</Priority>
-        </Settings>
-        <Actions Context='Author'>
-        <Exec>
-        <Command>powershell.exe</Command>
-        <Arguments>$psString</Arguments>
-        <WorkingDirectory>c:\windows\system32</WorkingDirectory>
-        </Exec>
-        <Exec>
-        <Command>schtasks.exe</Command>
-        <Arguments>/delete /f /tn `"$taskName`"</Arguments>
-        <WorkingDirectory>c:\windows\system32</WorkingDirectory>
-        </Exec>
-        </Actions>
-        </Task>"
-
-      $xml | Out-File -FilePath $xmlFile
-
-      schtasks.exe /Create /XML $xmlFile /TN "$taskName"
       Write-ToLogFile "Creating '$taskName' scheduled task which will run next reboot."
+      Invoke-OnNextStartup -ScriptBlock $scriptBlock -TaskName $taskName -ArgumentList @($logFile, $pendingRebootRegRootPath)
     }
 
     Write-ToLogFile "Rebooting machine now."
-    shutdown.exe /r /c "Restarting your machine in $Timeout seconds to complete critical Windows patching. Please save your work!" /t $Timeout
+    # shutdown.exe /r /c "Restarting your machine in $Delay seconds to complete critical Windows patching. Please save your work!" /t $Delay
 
     Return $true
   } Else {

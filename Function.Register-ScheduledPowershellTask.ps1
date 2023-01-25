@@ -1,3 +1,19 @@
+Try {
+  # Oddly, this command works to enable TLS12 on even Powershellv2 when it shows as unavailable. This also still works for Win8+
+  [Net.ServicePointManager]::SecurityProtocol = [Enum]::ToObject([Net.SecurityProtocolType], 3072)
+} Catch {
+  $output += "Encountered an error while attempting to enable TLS1.2 to ensure successful file downloads. This can sometimes be due to dated Powershell. Checking Powershell version..."
+  # Generally enabling TLS1.2 fails due to dated Powershell so we're doing a check here to help troubleshoot failures later
+  $psVers = $PSVersionTable.PSVersion
+
+  If ($psVers.Major -lt 3) {
+    $output += "Powershell version installed is only $psVers which has known issues with this script directly related to successful file downloads. Script will continue, but may be unsuccessful."
+  }
+}
+
+# TODO: Switch this to master branch upon merge
+# Call in New-EncodedCommandWithArguments
+(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/Invoke-RebootIfNeeded/Function.New-EncodedCommandWithArguments.ps1') | Invoke-Expression
 
 
 Function Register-ScheduledPowershellTask {
@@ -35,7 +51,9 @@ Function Register-ScheduledPowershellTask {
   )
 
   Try {
-    $tasks = @(New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument "-NoProfile -Command '& { $($ScriptBlock.ToString()) }' @('$($ArgumentList -join ''',''')')")
+    $task = New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument "-NoProfile -Command $(New-EncodedCommandWithArguments -ScriptBlock $ScriptBlock -ArgumentList $ArgumentList)"
+
+    $tasks = @($task)
 
     If ($SelfDestruct) {
       $tasks += New-ScheduledTaskAction -Execute "schtasks.exe" -Argument "/delete /f /tn `"$taskName`""
