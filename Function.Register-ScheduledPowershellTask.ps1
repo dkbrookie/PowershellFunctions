@@ -21,10 +21,8 @@ Function Register-ScheduledPowershellTask {
   .SYNOPSIS
   Schedules a powershell scriptblock to run via windows task scheduler
   .DESCRIPTION
-  Provided a `Trigger` (ScheduledTaskTrigger) a `ScriptBlock`, and a `TaskName`, Create-ScheduledPsTask will create a scheduled task that will run the provided
-  powershell at the trigger time. `SelfDestruct` can be used to specify that you'd like the task to self-delete upon execution.
-  .OUTPUTS
-  Upon success, returns a (string) success message
+  Provided a `Trigger` (ScheduledTaskTrigger) a `ScriptBlock`, and a `TaskName`, this will create a scheduled task that will run the provided
+  ScriptBlock based on the trigger. `SelfDestruct` can be used to specify that you'd like the task to self-delete upon execution.
   #>
 
   [CmdletBinding()]
@@ -64,9 +62,6 @@ Function Register-ScheduledPowershellTask {
     $settings = New-ScheduledTaskSettingsSet
 
     Register-ScheduledTask -Action $tasks -Trigger $Trigger -Principal $principal -Settings $settings -TaskName $TaskName
-
-    # Return a message indicating that the second script block was scheduled
-    Return "`nThe command block was scheduled to run as SYSTEM on the next system startup."
   } Catch {
     # If the first script block produces an error, return the output from the first script block and a message indicating that the second script block was not scheduled
     Throw "`nThe command was not scheduled due to an error. The error was: $_"

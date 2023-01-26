@@ -15,14 +15,12 @@ Try {
 # Call in Register-ScheduledPowershellTask
 (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/Invoke-RebootIfNeeded/Function.Register-ScheduledPowershellTask.ps1') | Invoke-Expression
 
-function Invoke-OnNextStartup {
+Function Invoke-OnNextStartup {
   <#
   .SYNOPSIS
   Schedules a powershell scriptblock to run via windows task scheduler on next startup
   .DESCRIPTION
   Provided a ScriptBlock and a Name, creates a self-destructing scheduled task that will run the script block as system upon next startup
-  .OUTPUTS
-  Upon success, returns a (string) success message
   #>
 
   [CmdletBinding()]
@@ -37,5 +35,5 @@ function Invoke-OnNextStartup {
   )
 
   $trigger = New-ScheduledTaskTrigger -AtStartup
-  Return (Register-ScheduledPowershellTask -TaskName $TaskName -Trigger $trigger -ScriptBlock $ScriptBlock -ArgumentList $ArgumentList -SelfDestruct)
+  Register-ScheduledPowershellTask -TaskName $TaskName -Trigger $trigger -ScriptBlock $ScriptBlock -ArgumentList $ArgumentList -SelfDestruct
 }
