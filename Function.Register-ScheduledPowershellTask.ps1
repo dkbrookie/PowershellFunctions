@@ -29,22 +29,23 @@ Function Register-ScheduledPowershellTask {
 
   [CmdletBinding()]
   Param(
-    # Parameter help description
+    # (ScriptBlock, required) The powershell scriptblock that will be executed by the scheduled task
     [Parameter(Mandatory = $true, Position = 0)]
     [scriptblock]
     $ScriptBlock,
-    # Parameter help description
+    # (ScheduledTaskTrigger, required) See ScheduledTaskTrigger docs
     [Parameter(Mandatory=$true)]
     [ciminstance[]]
     $Trigger,
-    # Parameter help description
+    # (string, required) The name that will be used in task scheduler
     [Parameter(Mandatory = $true)]
     [string]
     $TaskName,
-    # Parameter help description
+    # (Switch, default $false) Indicates whether this task should delete itself upon first run
     [Parameter(Mandatory = $false)]
     [switch]
     $SelfDestruct,
+    # (string[]) An array of positional arguments that will be passed into the ScriptBlock on execution
     [Parameter(Mandatory = $false)]
     [string[]]
     $ArgumentList

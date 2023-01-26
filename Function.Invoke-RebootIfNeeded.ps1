@@ -114,7 +114,7 @@ Function Invoke-RebootIfNeeded {
     }
 
     Write-ToLogFile "Rebooting machine now."
-    # shutdown.exe /r /c "Restarting your machine in $Delay seconds to complete critical Windows patching. Please save your work!" /t $Delay
+    shutdown.exe /r /c "Restarting your machine in $Delay seconds to complete critical Windows patching. Please save your work!" /t $Delay
 
     Return $true
   } Else {
