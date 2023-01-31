@@ -21,9 +21,10 @@ Try {
 Function Cache-AndRestorePendingReboots {
   <#
   .SYNOPSIS
-
+  Removes all pending reboots in registry and then puts them back after the next reboot
   .DESCRIPTION
-
+  Gathers up all pending reboots in windows registry as identified by Read-PendingRebootStatus and moves them to a temporary location, then creates
+  self-deleting scheduled tasks to move them back to their original locations after the next reboot occurs.
   .OUTPUTS
   Returns object with `ActionTaken` which is a bool value indicating whether pending reboots existed and were therefore cached, or none existed so no action
   was taken, `Output` which is a string with output messages, and `ErrorState` which is true if any errors were experienced.
