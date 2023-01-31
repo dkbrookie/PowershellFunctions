@@ -41,8 +41,10 @@ Function Invoke-RebootIfNeeded {
   #>
 
   Param (
+    # (int) The amount of time in seconds between when a popup appears warning of an impending reboot and when the machine reboots
     [int]
     $RebootDelay = 10,
+    # (string) The base path where log files should be stored
     [string]
     $LogPath = "$env:windir\LTSvc"
   )
@@ -88,7 +90,6 @@ Function Invoke-RebootIfNeeded {
       }
 
       # Create a scheduled task that takes action after next reboot and checks whatever locations were pending to see if they still exist and deletes them if they do
-      # TODO: add logic to find powershell.exe from monitors
       $scriptBlock = {
         param($logFile, $regRootPath)
 

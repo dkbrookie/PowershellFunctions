@@ -27,14 +27,15 @@ Function Cache-AndRestoreRegistryValue {
   #>
 
   Param (
-    # The path to a target registry key
+    # (string, required) The path to a target registry key
     [Parameter(Mandatory = $true)]
     [string]
     $Path,
-    # The name of the registry value to be cached
+    # (string, required) The name of the registry value to be cached
     [Parameter(Mandatory = $true)]
     [string]
     $Name,
+    # (string) The base registry path that should be used as temporary storage
     [Parameter(Mandatory = $false)]
     [string]
     $TempRegPath = "HKLM:\\SOFTWARE\DKB\Temp"

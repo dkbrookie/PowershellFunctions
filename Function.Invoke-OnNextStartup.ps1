@@ -25,10 +25,13 @@ Function Invoke-OnNextStartup {
 
   [CmdletBinding()]
   param(
+    # (ScriptBlock, required) The powershell scriptblock that will be executed by the scheduled task
     [Parameter(Mandatory = $true)]
     [ScriptBlock]$ScriptBlock,
+    # (string, required) The name that will be used in task scheduler
     [Parameter(Mandatory = $true)]
     [string]$TaskName,
+    # (string[]) An array of positional arguments that will be passed into the ScriptBlock on execution
     [Parameter(Mandatory = $false)]
     [string[]]
     $ArgumentList
