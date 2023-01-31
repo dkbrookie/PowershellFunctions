@@ -1,5 +1,3 @@
-#Write a powershell function that accepts a path to a registry location as a parameter, then it moves that registry value to a temporary registry location and schedules a task to move it back after the next reboot
-
 Try {
   # Oddly, this command works to enable TLS12 on even Powershellv2 when it shows as unavailable. This also still works for Win8+
   [Net.ServicePointManager]::SecurityProtocol = [Enum]::ToObject([Net.SecurityProtocolType], 3072)

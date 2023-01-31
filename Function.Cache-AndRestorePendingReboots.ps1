@@ -1,5 +1,3 @@
-# takes all found pending reboots and deletes them, but saves them to a temporary location and creates a scheduled task to put them back after next reboot
-
 Try {
   # Oddly, this command works to enable TLS12 on even Powershellv2 when it shows as unavailable. This also still works for Win8+
   [Net.ServicePointManager]::SecurityProtocol = [Enum]::ToObject([Net.SecurityProtocolType], 3072)
