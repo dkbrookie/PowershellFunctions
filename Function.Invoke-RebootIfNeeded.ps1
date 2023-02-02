@@ -46,8 +46,15 @@ Function Invoke-RebootIfNeeded {
     $RebootDelay = 10,
     # (string) The base path where log files should be stored
     [string]
-    $LogPath = "$env:windir\LTSvc"
+    $LogPath = "$env:windir\LTSvc",
+    # (string) The message displayed to user if user is logged in
+    [string]
+    $Message = ""
   )
+
+  If ($Message -eq "") {
+    $Message = "Restarting your machine in $RebootDelay seconds to complete critical Windows patching. Please save your work!"
+  }
 
   $status = Read-PendingRebootStatus
   $rootPath = 'HKLM:\SOFTWARE\DKB\SystemState'
@@ -115,7 +122,7 @@ Function Invoke-RebootIfNeeded {
     }
 
     Write-ToLogFile "Rebooting machine now."
-    shutdown.exe /r /c "Restarting your machine in $RebootDelay seconds to complete critical Windows patching. Please save your work!" /t $RebootDelay
+    shutdown.exe /r /c $Message /t $RebootDelay
 
     Return $true
   } Else {
