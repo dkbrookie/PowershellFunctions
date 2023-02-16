@@ -11,10 +11,10 @@ Try {
   }
 }
 
-# Call in Registry-Helpers
-(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Registry-Helpers.ps1') | Invoke-Expression
+# Call in Cache-AndRestoreRegistryValue
+(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Cache-AndRestoreRegistryValue.ps1') | Invoke-Expression
 # Call in Read-PendingRebootStatus
-(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Registry-Helpers.ps1') | Invoke-Expression
+(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Read-PendingRebootStatus.ps1') | Invoke-Expression
 
 Function Cache-AndRestorePendingReboots {
   <#
@@ -30,7 +30,6 @@ Function Cache-AndRestorePendingReboots {
   $out = @()
   $errorState = $false
   $status = Read-PendingRebootStatus
-
 
   If (!$status.HasPendingReboots) {
     # No pending reboots exist, so can exit early
