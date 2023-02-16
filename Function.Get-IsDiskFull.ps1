@@ -19,7 +19,7 @@ function Get-IsDiskFull {
 
         $spaceAvailable = [math]::round((Get-PSDrive C | Select-Object -ExpandProperty Free) / 1GB, 0)
 
-        If ($spaceAvailable -lt 10) {
+        If ($spaceAvailable -lt $minGb) {
             # Disk is still too full :'(
             $out = "!Error: After disk cleanup the available space is now $spaceAvailable GBs, still under $minGb. Please manually clear at least $minGb and try this script." + $out
 
@@ -28,5 +28,10 @@ function Get-IsDiskFull {
                 DiskFull = $True
             }
         }
+    }
+
+    Return @{
+        Output = "There is at least $($minGb)GB available on the C drive."
+        DiskFull = $False
     }
 }
