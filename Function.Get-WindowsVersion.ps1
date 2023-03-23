@@ -9,7 +9,7 @@
         Build = $Null
         Version = $Null
         Arch = $osArch
-        OrderOfWindowsVersions = @('1507','1511','1607','1703','1709','1803','1809','1903','1909','2004','20H2','21H1', '21H2')
+        OrderOfWindowsVersions = @('1507','1511','1607','1703','1709','1803','1809','1903','1909','2004','20H2','21H1', '21H2', '22H2')
     }
 
     If ($osName -like 'Microsoft Windows Server 2008*' -and $osName -notlike '*R2*') {
@@ -42,6 +42,9 @@
         $osObject.Build = "$build";
 
         Switch ($build) {
+            22621 { $osObject.Version = '22H2' }
+            22000 { $osObject.Version = '21H2' }
+            19045 { $osObject.Version = '22H2'; }
             19044 { $osObject.Version = '21H2'; }
             19043 { $osObject.Version = '21H1'; }
             19042 { $osObject.Version = '20H2'; }
