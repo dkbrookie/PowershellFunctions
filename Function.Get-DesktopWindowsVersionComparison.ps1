@@ -54,9 +54,8 @@ Try {
   }
 }
 
-# TODO: replace with master URL before merge
 # Call in Get-WindowsVersion
-(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/add-22621-to-windowsversioncomparison/Function.Get-WindowsVersion.ps1') | Invoke-Expression
+(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Get-WindowsVersion.ps1') | Invoke-Expression
 
 function Get-DesktopWindowsVersionComparison {
   param (
