@@ -44,7 +44,6 @@ If ($winIsLessThan20H2.Result) {
 Try {
   # Oddly, this command works to enable TLS12 on even Powershellv2 when it shows as unavailable. This also still works for Win8+
   [Net.ServicePointManager]::SecurityProtocol = [Enum]::ToObject([Net.SecurityProtocolType], 3072)
-  $outputLog += "Successfully enabled TLS1.2 to ensure successful file downloads."
 } Catch {
   $outputLog += "Encountered an error while attempting to enable TLS1.2 to ensure successful file downloads. This can sometimes be due to dated Powershell. Checking Powershell version..."
   # Generally enabling TLS1.2 fails due to dated Powershell so we're doing a check here to help troubleshoot failures later
