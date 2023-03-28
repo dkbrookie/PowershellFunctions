@@ -11,11 +11,10 @@ Try {
   }
 }
 
-# TODO: switch to master URLs upon merge
 # Call in Cache-AndRestoreRegistryValue
-(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/Invoke-RebootIfNeeded/Function.Cache-AndRestoreRegistryValue.ps1') | Invoke-Expression
+(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Cache-AndRestoreRegistryValue.ps1') | Invoke-Expression
 # Call in Read-PendingRebootStatus
-(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/Invoke-RebootIfNeeded/Function.Read-PendingRebootStatus.ps1') | Invoke-Expression
+(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Read-PendingRebootStatus.ps1') | Invoke-Expression
 
 Function Cache-AndRestorePendingReboots {
   <#

@@ -11,9 +11,8 @@ Try {
   }
 }
 
-# TODO: Switch this to master branch upon merge
 # Call in New-EncodedCommandWithArguments
-(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/Invoke-RebootIfNeeded/Function.New-EncodedCommandWithArguments.ps1') | Invoke-Expression
+(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.New-EncodedCommandWithArguments.ps1') | Invoke-Expression
 
 
 Function Register-ScheduledPowershellTask {

@@ -11,14 +11,13 @@ Try {
   }
 }
 
-# TODO: Switch this to master branch upon merge
 # Call in Read-PendingRebootStatus
-(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/Invoke-RebootIfNeeded/Function.Read-PendingRebootStatus.ps1') | Invoke-Expression
+(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Read-PendingRebootStatus.ps1') | Invoke-Expression
 # Call in Registry-Helpers
 (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Registry-Helpers.ps1') | Invoke-Expression
 # TODO: Switch this to master branch upon merge
 # Call in Invoke-OnNextStartup
-(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/Invoke-RebootIfNeeded/Function.Invoke-OnNextStartup.ps1') | Invoke-Expression
+(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Invoke-OnNextStartup.ps1') | Invoke-Expression
 
 Function Invoke-RebootIfNeeded {
   <#

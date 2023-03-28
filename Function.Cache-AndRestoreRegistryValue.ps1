@@ -13,9 +13,8 @@ Try {
 
 # Call in Registry-Helpers
 (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Registry-Helpers.ps1') | Invoke-Expression
-# TODO: change to master branch on merge
 # Call in Invoke-OnNextStartup
-(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/Invoke-RebootIfNeeded/Function.Invoke-OnNextStartup.ps1') | Invoke-Expression
+(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/dkbrookie/PowershellFunctions/master/Function.Invoke-OnNextStartup.ps1') | Invoke-Expression
 
 Function Cache-AndRestoreRegistryValue {
   <#
