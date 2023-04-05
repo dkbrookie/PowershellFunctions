@@ -42,8 +42,6 @@
         $osObject.Build = "$build";
 
         Switch ($build) {
-            22621 { $osObject.Version = '22H2' }
-            22000 { $osObject.Version = '21H2' }
             19045 { $osObject.Version = '22H2'; }
             19044 { $osObject.Version = '21H2'; }
             19043 { $osObject.Version = '21H1'; }
@@ -72,6 +70,7 @@
         $osObject.Build = "$build";
 
         Switch ($build) {
+            22621 { $osObject.Version = '22H2'; }
             22000 { $osObject.Version = '21H2'; }
             Default { $osObject.Name = 'Windows 11 Unknown'; $osObject.Version = 'Unknown'; }
         }
