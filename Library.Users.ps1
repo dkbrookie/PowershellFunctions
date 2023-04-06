@@ -456,3 +456,22 @@ Function Remove-FromLocalAdminGroup ($UserName) {
         }
     }
 }
+
+Function Get-BuiltInAdministrator {
+    <#
+    .DESCRIPTION
+        This function outputs the account information for the built-in default Administrator
+        account. Depending on region, this account name may differ, so it's essential to
+        locate the account by SID which we know always starts with S-1-5 and ends in -500
+
+    .Example
+        Get-LocalAdminGroupMembers
+        # AccountType : 512
+        # Caption     : computername\Administrator
+        # Domain      : computername
+        # SID         : S-1-5-xx-xxxxx-xxxxx-xx-500
+        # FullName    :
+        # Name        : Administrator
+    #>
+    Get-LocalAdminGroupMembers | Where { $_.SID -like 'S-1-5-*' -and $_.SID -like '*-500' }
+}
