@@ -121,26 +121,24 @@ Function Get-LocalUserStatus ($UserName) {
     Return $newUser
 }
 
-# TODO: Test this! Untested
 Function New-RandomPassword {
     <#
     .DESCRIPTION
-        Note this function will only work if the script is started from Automate because the dictionary is in a
-        private github repo and the API key has to be called from Automate
+        This will generate a random password with the dinopass API, then append random numbers and
+        symbols to that password since dinopass passwords are a bit on the short side sometimes.
+        This helps take out a lot of the worry of us creating a complex password ourselves.
     #>
-    $symbol = ''
-    $dict = 'https://raw.githubusercontent.com/dkbrookie/Security/master/Credential_Management/Windows_Local_Admin_Control/Dictionary.txt'
-    $word1 = (($WebClient).DownloadString($dict)).split() | Get-Random -ErrorAction Stop
-    $random = Get-Random -Maximum 999999999 -Minimum 10000000
-    $string = @'
-@#$%~`^&(*)_+';?\][}:.,<#>`./;~`-="
+    $randomPassword = Invoke-RestMethod "https://www.dinopass.com/password/strong"
+    $randomNumber   = Get-Random -Maximum 999999999 -Minimum 10000000
+    $symbolList     = @'
+    (~!@#$%^&*_-+=`|\(){}[]:;"'<>,.?/)
 '@
-
     For ($i = 0; $i -lt 2; $i++ ) {
-        $symbol += $string[(Get-Random -Minimum 0 -Maximum $string.Length)]
+        $randomSymbol += $symbolList[(Get-Random -Minimum 0 -Maximum $symbolList.Length)]
     }
 
-    Return $word1 + $random + $symbol
+    $randomPassword = $randomPassword + $randomNumber + $randomSymbol
+    Return $randomPassword
 }
 
 Function New-LocalAdmin ($UserName, $Pass) {
