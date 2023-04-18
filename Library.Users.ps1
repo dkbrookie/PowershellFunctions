@@ -359,9 +359,19 @@ Function Get-LastLocalPasswordChangeTime ($UserName) {
         password, and want to preserve that password to ensure we still have access to the machine.
     #>
     If (!$UserName) { Throw 'You must provide a username!'; Return; }
-
+    
     # Grab the local time the machine reports the password was last changed locally
-    [datetime]$lastChanged = ((net user $UserName | Select-String -Pattern 'Password last set(\s*(.*))') -replace 'Password last set(\s*)','')
+    $userInfo = net user $UserName
+    $userInfo = ($userInfo[8] -split "\s\s+")[1]
+
+    # Get local datetime format to avoid breaking on diff region time conversion
+    $dayPattern = ((get-culture).DateTimeFormat).ShortDatePattern
+    $timePattern = ((get-culture).DateTimeFormat).LongTimePattern
+    $totalPattern = $dayPattern + ' ' + $timePattern
+
+    # Output to US datetime format by using patterns retrieved above
+    $lastChanged = [datetime]::parseexact($userInfo, $totalPattern, $null).ToString('MM/dd/yyyy HH:mm:ss')
+
     Return $lastChanged
 }
 
