@@ -8,7 +8,7 @@ $webClient.DownloadFile($url,$file)
 $proc = Start-Process -FilePath $file -PassThru -Wait -ArgumentList "/quietinstall /skipeula /auto upgrade /copylogs /NoReboot /NoRestartUI /NoRestart $dir"
 
 if ($proc.ExitCode -eq 0) {
-  Write-Host "!Success: Upgrade successful"
+  Write-Output "!Success: Upgrade successful"
 } else {
-  Write-Host "!Error: Upgrade failed. StandardError Output: " + $proc.StandardError
+  Write-Output "!Error: Upgrade failed. StandardError Output: " + $proc.StandardError
 }
