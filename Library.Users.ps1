@@ -42,7 +42,7 @@ Function New-LocalUserMaker ($UserName, $Pass) {
     If (Get-LocalUserExists $UserName) { Write-Output "Not creating new user $UserName because a user with that name already exists."; Return; }
 
     If ($psVers -lt 5.1) {
-        &cmd.exe /c "net user /add $UserName $Pass"
+        &cmd.exe /c "net user /add $UserName $Pass /y"
 
         # Verify that the user was actually created
         If (!(Get-LocalUserExists $UserName)) {
